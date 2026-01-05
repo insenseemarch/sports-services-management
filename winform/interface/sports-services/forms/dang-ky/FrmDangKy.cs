@@ -10,7 +10,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace TTTT
+namespace SportsServices.Forms
 {
     public partial class FormDangKy : Form
     {

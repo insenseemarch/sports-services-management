@@ -1,4 +1,4 @@
-﻿namespace ThongTinCaNhan
+﻿namespace SportsServices
 {
     partial class frmDoiMatKhau
     {

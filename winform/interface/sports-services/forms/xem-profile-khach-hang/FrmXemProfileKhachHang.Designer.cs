@@ -1,4 +1,4 @@
-﻿namespace ThongTinCaNhan
+﻿namespace SportsServices.Forms
 {
     partial class Form1
     {
@@ -47,7 +47,7 @@
             this.lbMK = new System.Windows.Forms.Label();
             this.lbTenDN = new System.Windows.Forms.Label();
             this.txtTenDangNhap = new System.Windows.Forms.TextBox();
-            this.gbThongTinCaNhan = new System.Windows.Forms.GroupBox();
+            this.gbSportsServices.Forms = new System.Windows.Forms.GroupBox();
             this.checkNCT = new System.Windows.Forms.CheckBox();
             this.checkNL = new System.Windows.Forms.CheckBox();
             this.checkHSSV = new System.Windows.Forms.CheckBox();
@@ -73,7 +73,7 @@
             this.gbThongTinBasic.SuspendLayout();
             this.gbHangTV.SuspendLayout();
             this.gbTTDN.SuspendLayout();
-            this.gbThongTinCaNhan.SuspendLayout();
+            this.gbSportsServices.Forms.SuspendLayout();
             this.SuspendLayout();
             // 
             // gbThongTinBasic
@@ -270,37 +270,37 @@
             this.txtTenDangNhap.Size = new System.Drawing.Size(444, 32);
             this.txtTenDangNhap.TabIndex = 1;
             // 
-            // gbThongTinCaNhan
+            // gbSportsServices.Forms
             // 
-            this.gbThongTinCaNhan.Controls.Add(this.checkNCT);
-            this.gbThongTinCaNhan.Controls.Add(this.checkNL);
-            this.gbThongTinCaNhan.Controls.Add(this.checkHSSV);
-            this.gbThongTinCaNhan.Controls.Add(this.label6);
-            this.gbThongTinCaNhan.Controls.Add(this.label5);
-            this.gbThongTinCaNhan.Controls.Add(this.label3);
-            this.gbThongTinCaNhan.Controls.Add(this.label2);
-            this.gbThongTinCaNhan.Controls.Add(this.dausao1);
-            this.gbThongTinCaNhan.Controls.Add(this.btnThoat);
-            this.gbThongTinCaNhan.Controls.Add(this.btnLuu);
-            this.gbThongTinCaNhan.Controls.Add(this.txtDiaChi);
-            this.gbThongTinCaNhan.Controls.Add(this.lbDiaChi);
-            this.gbThongTinCaNhan.Controls.Add(this.txtEmail);
-            this.gbThongTinCaNhan.Controls.Add(this.lbEmail);
-            this.gbThongTinCaNhan.Controls.Add(this.txtSDT);
-            this.gbThongTinCaNhan.Controls.Add(this.lbSDT);
-            this.gbThongTinCaNhan.Controls.Add(this.txtCCCD);
-            this.gbThongTinCaNhan.Controls.Add(this.lbCCCD);
-            this.gbThongTinCaNhan.Controls.Add(this.dtpNgaySinh);
-            this.gbThongTinCaNhan.Controls.Add(this.lbNamSinh);
-            this.gbThongTinCaNhan.Controls.Add(this.txtHoTen);
-            this.gbThongTinCaNhan.Controls.Add(this.lbHoTen);
-            this.gbThongTinCaNhan.Font = new System.Drawing.Font("Bahnschrift", 12F, System.Drawing.FontStyle.Bold);
-            this.gbThongTinCaNhan.Location = new System.Drawing.Point(13, 347);
-            this.gbThongTinCaNhan.Name = "gbThongTinCaNhan";
-            this.gbThongTinCaNhan.Size = new System.Drawing.Size(1240, 314);
-            this.gbThongTinCaNhan.TabIndex = 4;
-            this.gbThongTinCaNhan.TabStop = false;
-            this.gbThongTinCaNhan.Text = "Thông tin Cá Nhân";
+            this.gbSportsServices.Forms.Controls.Add(this.checkNCT);
+            this.gbSportsServices.Forms.Controls.Add(this.checkNL);
+            this.gbSportsServices.Forms.Controls.Add(this.checkHSSV);
+            this.gbSportsServices.Forms.Controls.Add(this.label6);
+            this.gbSportsServices.Forms.Controls.Add(this.label5);
+            this.gbSportsServices.Forms.Controls.Add(this.label3);
+            this.gbSportsServices.Forms.Controls.Add(this.label2);
+            this.gbSportsServices.Forms.Controls.Add(this.dausao1);
+            this.gbSportsServices.Forms.Controls.Add(this.btnThoat);
+            this.gbSportsServices.Forms.Controls.Add(this.btnLuu);
+            this.gbSportsServices.Forms.Controls.Add(this.txtDiaChi);
+            this.gbSportsServices.Forms.Controls.Add(this.lbDiaChi);
+            this.gbSportsServices.Forms.Controls.Add(this.txtEmail);
+            this.gbSportsServices.Forms.Controls.Add(this.lbEmail);
+            this.gbSportsServices.Forms.Controls.Add(this.txtSDT);
+            this.gbSportsServices.Forms.Controls.Add(this.lbSDT);
+            this.gbSportsServices.Forms.Controls.Add(this.txtCCCD);
+            this.gbSportsServices.Forms.Controls.Add(this.lbCCCD);
+            this.gbSportsServices.Forms.Controls.Add(this.dtpNgaySinh);
+            this.gbSportsServices.Forms.Controls.Add(this.lbNamSinh);
+            this.gbSportsServices.Forms.Controls.Add(this.txtHoTen);
+            this.gbSportsServices.Forms.Controls.Add(this.lbHoTen);
+            this.gbSportsServices.Forms.Font = new System.Drawing.Font("Bahnschrift", 12F, System.Drawing.FontStyle.Bold);
+            this.gbSportsServices.Forms.Location = new System.Drawing.Point(13, 347);
+            this.gbSportsServices.Forms.Name = "gbSportsServices.Forms";
+            this.gbSportsServices.Forms.Size = new System.Drawing.Size(1240, 314);
+            this.gbSportsServices.Forms.TabIndex = 4;
+            this.gbSportsServices.Forms.TabStop = false;
+            this.gbSportsServices.Forms.Text = "Thông tin Cá Nhân";
             // 
             // checkNCT
             // 
@@ -516,7 +516,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Cornsilk;
             this.ClientSize = new System.Drawing.Size(1264, 694);
-            this.Controls.Add(this.gbThongTinCaNhan);
+            this.Controls.Add(this.gbSportsServices.Forms);
             this.Controls.Add(this.gbThongTinBasic);
             this.Font = new System.Drawing.Font("Bahnschrift", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.ForeColor = System.Drawing.Color.DarkGreen;
@@ -528,8 +528,8 @@
             this.gbHangTV.PerformLayout();
             this.gbTTDN.ResumeLayout(false);
             this.gbTTDN.PerformLayout();
-            this.gbThongTinCaNhan.ResumeLayout(false);
-            this.gbThongTinCaNhan.PerformLayout();
+            this.gbSportsServices.Forms.ResumeLayout(false);
+            this.gbSportsServices.Forms.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -553,7 +553,7 @@
         private System.Windows.Forms.Label lbTenCapBac;
         private System.Windows.Forms.TextBox txtUuDai;
         private System.Windows.Forms.Label lbUuDai;
-        private System.Windows.Forms.GroupBox gbThongTinCaNhan;
+        private System.Windows.Forms.GroupBox gbSportsServices.Forms;
         private System.Windows.Forms.Label lbNamSinh;
         private System.Windows.Forms.TextBox txtHoTen;
         private System.Windows.Forms.Label lbHoTen;

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 
-namespace ReportDoanhThu
+namespace SportsServices.Forms
 {
     public partial class Form1 : Form
     {

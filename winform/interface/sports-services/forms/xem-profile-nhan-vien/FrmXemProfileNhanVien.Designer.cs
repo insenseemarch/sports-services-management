@@ -1,4 +1,4 @@
-﻿namespace ThongTinCaNhan
+﻿namespace SportsServices
 {
     partial class Form1
     {
@@ -41,7 +41,7 @@
             this.lbMK = new System.Windows.Forms.Label();
             this.lbTenDN = new System.Windows.Forms.Label();
             this.txtTenDangNhap = new System.Windows.Forms.TextBox();
-            this.gbThongTinCaNhan = new System.Windows.Forms.GroupBox();
+            this.gbSportsServices = new System.Windows.Forms.GroupBox();
             this.label6 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
@@ -62,7 +62,7 @@
             this.txtHoTen = new System.Windows.Forms.TextBox();
             this.lbHoTen = new System.Windows.Forms.Label();
             this.gbThongTin.SuspendLayout();
-            this.gbThongTinCaNhan.SuspendLayout();
+            this.gbSportsServices.SuspendLayout();
             this.SuspendLayout();
             // 
             // lbLuongCoBan
@@ -210,34 +210,34 @@
             this.txtTenDangNhap.Size = new System.Drawing.Size(401, 32);
             this.txtTenDangNhap.TabIndex = 1;
             // 
-            // gbThongTinCaNhan
+            // gbSportsServices
             // 
-            this.gbThongTinCaNhan.Controls.Add(this.label6);
-            this.gbThongTinCaNhan.Controls.Add(this.label5);
-            this.gbThongTinCaNhan.Controls.Add(this.label3);
-            this.gbThongTinCaNhan.Controls.Add(this.label2);
-            this.gbThongTinCaNhan.Controls.Add(this.dausao1);
-            this.gbThongTinCaNhan.Controls.Add(this.btnThoat);
-            this.gbThongTinCaNhan.Controls.Add(this.btnLuu);
-            this.gbThongTinCaNhan.Controls.Add(this.txtDiaChi);
-            this.gbThongTinCaNhan.Controls.Add(this.lbDiaChi);
-            this.gbThongTinCaNhan.Controls.Add(this.txtEmail);
-            this.gbThongTinCaNhan.Controls.Add(this.lbEmail);
-            this.gbThongTinCaNhan.Controls.Add(this.txtSDT);
-            this.gbThongTinCaNhan.Controls.Add(this.lbSDT);
-            this.gbThongTinCaNhan.Controls.Add(this.txtCCCD);
-            this.gbThongTinCaNhan.Controls.Add(this.lbCCCD);
-            this.gbThongTinCaNhan.Controls.Add(this.dtpNgaySinh);
-            this.gbThongTinCaNhan.Controls.Add(this.lbNamSinh);
-            this.gbThongTinCaNhan.Controls.Add(this.txtHoTen);
-            this.gbThongTinCaNhan.Controls.Add(this.lbHoTen);
-            this.gbThongTinCaNhan.Font = new System.Drawing.Font("Bahnschrift", 12F, System.Drawing.FontStyle.Bold);
-            this.gbThongTinCaNhan.Location = new System.Drawing.Point(12, 338);
-            this.gbThongTinCaNhan.Name = "gbThongTinCaNhan";
-            this.gbThongTinCaNhan.Size = new System.Drawing.Size(1240, 344);
-            this.gbThongTinCaNhan.TabIndex = 4;
-            this.gbThongTinCaNhan.TabStop = false;
-            this.gbThongTinCaNhan.Text = "Thông tin Cá Nhân";
+            this.gbSportsServices.Controls.Add(this.label6);
+            this.gbSportsServices.Controls.Add(this.label5);
+            this.gbSportsServices.Controls.Add(this.label3);
+            this.gbSportsServices.Controls.Add(this.label2);
+            this.gbSportsServices.Controls.Add(this.dausao1);
+            this.gbSportsServices.Controls.Add(this.btnThoat);
+            this.gbSportsServices.Controls.Add(this.btnLuu);
+            this.gbSportsServices.Controls.Add(this.txtDiaChi);
+            this.gbSportsServices.Controls.Add(this.lbDiaChi);
+            this.gbSportsServices.Controls.Add(this.txtEmail);
+            this.gbSportsServices.Controls.Add(this.lbEmail);
+            this.gbSportsServices.Controls.Add(this.txtSDT);
+            this.gbSportsServices.Controls.Add(this.lbSDT);
+            this.gbSportsServices.Controls.Add(this.txtCCCD);
+            this.gbSportsServices.Controls.Add(this.lbCCCD);
+            this.gbSportsServices.Controls.Add(this.dtpNgaySinh);
+            this.gbSportsServices.Controls.Add(this.lbNamSinh);
+            this.gbSportsServices.Controls.Add(this.txtHoTen);
+            this.gbSportsServices.Controls.Add(this.lbHoTen);
+            this.gbSportsServices.Font = new System.Drawing.Font("Bahnschrift", 12F, System.Drawing.FontStyle.Bold);
+            this.gbSportsServices.Location = new System.Drawing.Point(12, 338);
+            this.gbSportsServices.Name = "gbSportsServices";
+            this.gbSportsServices.Size = new System.Drawing.Size(1240, 344);
+            this.gbSportsServices.TabIndex = 4;
+            this.gbSportsServices.TabStop = false;
+            this.gbSportsServices.Text = "Thông tin Cá Nhân";
             // 
             // label6
             // 
@@ -421,7 +421,7 @@
             this.BackColor = System.Drawing.Color.Cornsilk;
             this.ClientSize = new System.Drawing.Size(1264, 694);
             this.Controls.Add(this.gbThongTin);
-            this.Controls.Add(this.gbThongTinCaNhan);
+            this.Controls.Add(this.gbSportsServices);
             this.Font = new System.Drawing.Font("Bahnschrift", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.ForeColor = System.Drawing.Color.DarkGreen;
             this.Name = "Form1";
@@ -429,8 +429,8 @@
             this.Load += new System.EventHandler(this.Form1_Load);
             this.gbThongTin.ResumeLayout(false);
             this.gbThongTin.PerformLayout();
-            this.gbThongTinCaNhan.ResumeLayout(false);
-            this.gbThongTinCaNhan.PerformLayout();
+            this.gbSportsServices.ResumeLayout(false);
+            this.gbSportsServices.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -446,7 +446,7 @@
         private System.Windows.Forms.TextBox txtPass;
         private System.Windows.Forms.Label lbMK;
         private System.Windows.Forms.Label lbChucVu;
-        private System.Windows.Forms.GroupBox gbThongTinCaNhan;
+        private System.Windows.Forms.GroupBox gbSportsServices;
         private System.Windows.Forms.Label lbNamSinh;
         private System.Windows.Forms.TextBox txtHoTen;
         private System.Windows.Forms.Label lbHoTen;

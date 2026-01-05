@@ -4,7 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 
-namespace TTTT
+namespace SportsServices.Forms
 {
     public partial class FormReportLoiSan : Form
     {

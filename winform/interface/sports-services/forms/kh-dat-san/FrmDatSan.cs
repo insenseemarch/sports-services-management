@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace TTTT
+namespace SportsServices.Forms
 {
     public partial class FormDatSan : Form
     {
@@ -64,7 +64,7 @@ namespace TTTT
             dtpGioKetThuc.ShowUpDown = true;
             dtpGioKetThuc.Value = DateTime.Today.AddHours(20);
 
-            // Hình thức thanh toán (bám theo đề: có HOADON, HinhThucTT)
+            // Hình thức thanh toán (bám theo đề: có SportsServices.Forms, HinhThucTT)
             cboHinhThucTT.Items.Clear();
             cboHinhThucTT.Items.Add("Tiền mặt tại quầy");
             cboHinhThucTT.Items.Add("Chuyển khoản ngân hàng");
@@ -239,7 +239,7 @@ namespace TTTT
             DateTime gioKT = dtpGioKetThuc.Value;
             string hinhThuc = cboHinhThucTT.SelectedItem.ToString();
 
-            // Demo: hiển thị thông tin phiếu đặt sân (bám sát PHIEUDATSAN + HOADON)
+            // Demo: hiển thị thông tin phiếu đặt sân (bám sát PHIEUDATSAN + SportsServices.Forms)
             string msg =
                 $"Đặt sân thành công!\n\n" +
                 $"Sân: {_sanDangChon.TenSan} ({_sanDangChon.CoSo} - {_sanDangChon.LoaiSan})\n" +

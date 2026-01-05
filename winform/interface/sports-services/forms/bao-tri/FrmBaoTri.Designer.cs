@@ -1,4 +1,4 @@
-﻿namespace WindowsFormsApp
+﻿namespace SportsServices.Forms
 {
     partial class QuanLiBaoTri
     {

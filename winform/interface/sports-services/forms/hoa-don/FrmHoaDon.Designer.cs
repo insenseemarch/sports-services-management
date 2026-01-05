@@ -1,4 +1,4 @@
-﻿namespace HoaDon
+﻿namespace SportsServices.Forms
 {
     partial class Form1
     {

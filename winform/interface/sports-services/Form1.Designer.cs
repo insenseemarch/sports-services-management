@@ -1,4 +1,4 @@
-﻿namespace sports_services
+﻿namespace SportsServices
 {
     partial class Form1
     {

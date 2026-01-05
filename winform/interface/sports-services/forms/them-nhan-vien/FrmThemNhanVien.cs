@@ -1,10 +1,10 @@
-﻿using DanhSachNhanVien.Models;
+﻿using SportsServices.Forms.Models;
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using System.Drawing;
 
-namespace DanhSachNhanVien
+namespace SportsServices.Forms
 {
     public partial class ThemNhanVien : Form
     {

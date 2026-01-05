@@ -1,15 +1,15 @@
-﻿using DanhSachNhanVien.Models;
+﻿using SportsServices.Forms.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace DanhSachNhanVien
+namespace SportsServices.Forms
 {
     public partial class Form1 : Form
     {
         private List<CoSo> danhSachCoSo = new List<CoSo>();
-        private List<NhanVien> danhSachNhanVien = new List<NhanVien>();
+        private List<NhanVien> SportsServices.Forms = new List<NhanVien>();
 
         public Form1()
         {
@@ -63,7 +63,7 @@ namespace DanhSachNhanVien
                 new CoSo { MaCoSo = "CS4", TenCoSo = "Cần Thơ" }
             };
 
-            danhSachNhanVien = new List<NhanVien>
+            SportsServices.Forms = new List<NhanVien>
             {
                 new NhanVien { MaNV = "NV01", HoTen = "Nguyễn Văn A", NgaySinh = new DateTime(1999,1,1), GioiTinh="Nam", CCCD="012345", SDT="0901111", DiaChi="Long An", ChucVu="Nhân viên thu ngân", LuongCB=5000, MaCoSo = "CS2"},
                 new NhanVien { MaNV = "NV02", HoTen = "Trần Thị B", NgaySinh = new DateTime(2000,5,10), GioiTinh="Nữ", CCCD="098765", SDT="0902222", DiaChi="Tiền Giang", ChucVu="Quản lý", LuongCB=8000, MaCoSo = "CS2"},
@@ -94,7 +94,7 @@ namespace DanhSachNhanVien
         {
             dgvNhanVien.Rows.Clear();
 
-            var list = danhSachNhanVien
+            var list = SportsServices.Forms
                 .Where(nv => nv.MaCoSo == maCoSo)
                 .ToList();
 
@@ -141,9 +141,9 @@ namespace DanhSachNhanVien
 
                 if (confirm == DialogResult.Yes)
                 {
-                    var nv = danhSachNhanVien.FirstOrDefault(x => x.MaNV == maNV);
+                    var nv = SportsServices.Forms.FirstOrDefault(x => x.MaNV == maNV);
                     if (nv != null)
-                        danhSachNhanVien.Remove(nv);
+                        SportsServices.Forms.Remove(nv);
 
                     LoadNhanVienTheoCoSo(cboCoSo.SelectedValue.ToString());
                 }
@@ -165,7 +165,7 @@ namespace DanhSachNhanVien
                     var nv = f.NhanVienMoi;
                     nv.MaCoSo = cboCoSo.SelectedValue.ToString();
 
-                    danhSachNhanVien.Add(nv);
+                    SportsServices.Forms.Add(nv);
                     LoadNhanVienTheoCoSo(nv.MaCoSo);
                 }
             }

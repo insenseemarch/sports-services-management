@@ -1,4 +1,4 @@
-﻿namespace DanhSachNhanVien
+﻿namespace SportsServices.Forms
 {
     partial class ThemNhanVien
     {

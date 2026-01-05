@@ -7,8 +7,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using SportsServices.Dto;
 
-namespace HoaDon
+namespace SportsServices.Forms
 {
     public partial class Form1 : Form
     {

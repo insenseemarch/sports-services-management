@@ -7,14 +7,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using SportsServices.Forms;
 
-namespace sports_services
+namespace SportsServices
 {
     public partial class Form1 : Form
     {
-        public Form1()
+        private void btnOpenDangKy_Click(object sender, EventArgs e)
         {
-            InitializeComponent();
+            FrmDangKy frm = new FrmDangKy(); // Bây giờ mới new được
+            frm.Show();
         }
     }
 }

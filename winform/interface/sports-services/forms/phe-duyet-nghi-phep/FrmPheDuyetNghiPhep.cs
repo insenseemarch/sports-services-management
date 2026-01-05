@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace DuyetDonXinNghi
+namespace SportsServices.Forms
 {
     public partial class Form1 : Form // Nếu form bạn tên khác thì sửa chữ Form1 này
     {

@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using SportsServices.Forms;
 
-namespace sports_services
+namespace SportsServices
 {
     internal static class Program
     {

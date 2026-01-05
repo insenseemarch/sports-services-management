@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ReportDoanhThu
+namespace SportsServices.Dto
 {
     // Cấu trúc cho Doanh Thu
     public class DoanhThuDTO

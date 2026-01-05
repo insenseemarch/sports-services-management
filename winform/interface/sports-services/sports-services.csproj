@@ -6,7 +6,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{88EEBB94-E1DD-40B7-910B-B4679D63CDF3}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>sports_services</RootNamespace>
+    <RootNamespace>SportsServices</RootNamespace>
     <AssemblyName>sports-services</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -101,6 +101,16 @@
     <Compile Include="forms\lich-lam-viec\FrmLichLamViec.Designer.cs">
       <DependentUpon>FrmLichLamViec.cs</DependentUpon>
     </Compile>
+    <Compile Include="forms\phan-cong-ca\frmChiTietCa.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="forms\phan-cong-ca\frmChiTietCa.Designer.cs">
+      <DependentUpon>frmChiTietCa.cs</DependentUpon>
+    </Compile>
+    <Compile Include="forms\phan-cong-ca\FrmPhanCongCaTruc.cs" />
+    <Compile Include="forms\phan-cong-ca\FrmPhanCongCaTruc.Designer.cs">
+      <DependentUpon>FrmPhanCongCaTruc.cs</DependentUpon>
+    </Compile>
     <Compile Include="forms\phe-duyet-nghi-phep\FrmPheDuyetNghiPhep.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -184,6 +194,12 @@
     <EmbeddedResource Include="forms\lich-lam-viec\FrmLichLamViec.resx">
       <DependentUpon>FrmLichLamViec.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="forms\phan-cong-ca\frmChiTietCa.resx">
+      <DependentUpon>frmChiTietCa.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="forms\phan-cong-ca\FrmPhanCongCaTruc.resx">
+      <DependentUpon>FrmPhanCongCaTruc.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="forms\phe-duyet-nghi-phep\FrmPheDuyetNghiPhep.resx">
       <DependentUpon>FrmPheDuyetNghiPhep.cs</DependentUpon>
     </EmbeddedResource>
@@ -219,6 +235,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -233,8 +250,6 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="forms\phan-cong-ca\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

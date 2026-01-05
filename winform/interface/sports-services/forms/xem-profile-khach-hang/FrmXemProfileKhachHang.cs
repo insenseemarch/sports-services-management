@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace ThongTinCaNhan
+namespace SportsServices
 {
     public partial class Form1 : Form
     {
@@ -194,14 +194,14 @@ namespace ThongTinCaNhan
 
                 // BƯỚC 4: Refresh (Tải lại) thông tin
                 // Gọi lại hàm load dữ liệu ban đầu để giao diện hiển thị thông tin mới nhất
-                LoadThongTinCaNhan();
+                LoadSportsServices();
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Có lỗi xảy ra: " + ex.Message);
             }
         }
-        private void LoadThongTinCaNhan()
+        private void LoadSportsServices()
         {
             // Code lấy dữ liệu từ SQL và gán vào các TextBox, DateTimePicker...
             // Ví dụ:

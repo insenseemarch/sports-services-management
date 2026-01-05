@@ -1,4 +1,4 @@
-﻿namespace TTTT
+﻿namespace SportsServices.Forms
 {
     partial class FormDangKy
     {

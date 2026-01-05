@@ -1,4 +1,4 @@
-﻿namespace ThayDoiHeThong
+﻿namespace SportsServices.Forms
 {
     partial class Form1
     {

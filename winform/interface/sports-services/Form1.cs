@@ -4,7 +4,7 @@ using System;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace SportsServices.Forms
+namespace SportsServices
 {
     public partial class Form1 : Form
     {

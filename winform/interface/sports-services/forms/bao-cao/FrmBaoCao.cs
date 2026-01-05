@@ -8,12 +8,13 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
+using SportsServices.Dto;
 
 namespace SportsServices.Forms
 {
-    public partial class Form1 : Form
+    public partial class FrmBaoCao : Form
     {
-        public Form1()
+        public FrmBaoCao()
         {
             InitializeComponent(); this.WindowState = FormWindowState.Maximized;
         }

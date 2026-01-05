@@ -1,40 +1,50 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace SportsServices.Dto
 {
-    // Cấu trúc cho Doanh Thu
-    public class DoanhThuDTO
+
+}
+public static class DbHelper
+{
+    private static string _connectionString =
+        @"Data Source=.\SQLEXPRESS;Initial Catalog=QL_DatSan;Integrated Security=True";
+
+    public static SqlConnection GetConnection()
     {
-        public string Thang { get; set; }
-        public decimal SoTien { get; set; }
+        return new SqlConnection(_connectionString);
     }
 
-    // Cấu trúc cho Tỷ lệ đặt sân (Online/Trực tiếp)
-    public class NguonDatDTO
+    public static int ExecuteNonQuery(string sql, params SqlParameter[] parameters)
     {
-        public string Nguon { get; set; } // "Online", "Trực tiếp", "Vãng lai"
-        public int SoLuong { get; set; }
+        using (var conn = GetConnection())
+        using (var cmd = new SqlCommand(sql, conn))
+        {
+            if (parameters != null)
+                cmd.Parameters.AddRange(parameters);
+            conn.Open();
+            return cmd.ExecuteNonQuery();
+        }
     }
 
-    // Cấu trúc cho Nhân viên chấm công
-    public class NhanVienDTO
+    public static DataTable ExecuteQuery(string sql, params SqlParameter[] parameters)
     {
-        public string MaNV { get; set; }
-        public string TenNV { get; set; }
-        public int TongGioLam { get; set; }
-        public decimal LuongTamTinh { get; set; }
-    }
-
-    // Cấu trúc KPI tổng hợp (4 cái thẻ màu)
-    public class KPIDTO
-    {
-        public decimal TongDoanhThu { get; set; }
-        public double TyLeLapDay { get; set; }
-        public int TongLuotDat { get; set; }
-        public decimal TienMatDoHuy { get; set; }
+        using (var conn = GetConnection())
+        using (var cmd = new SqlCommand(sql, conn))
+        {
+            if (parameters != null)
+                cmd.Parameters.AddRange(parameters);
+            using (var da = new SqlDataAdapter(cmd))
+            {
+                var dt = new DataTable();
+                da.Fill(dt);
+                return dt;
+            }
+        }
     }
 }

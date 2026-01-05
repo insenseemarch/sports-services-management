@@ -1,4 +1,4 @@
-﻿using SportsServices.Forms.Models;
+﻿using SportsServices.Dto;
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;

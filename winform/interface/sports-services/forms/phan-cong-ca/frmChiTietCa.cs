@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace SportsServices.Forms
+namespace PhanCongCaTruc
 {
     public partial class frmChiTietCa : Form
     {
@@ -23,7 +23,7 @@ namespace SportsServices.Forms
         // 2. Sửa Constructor để nhận tham số (Tên ca và Ngày)
         public frmChiTietCa(string tenCa, DateTime ngay, string chiNhanh)
         {
-            InitializeComponent(); this.WindowState = FormWindowState.Maximized;
+            InitializeComponent();
             _tenCa = tenCa;
             _ngay = ngay;
             _chiNhanh = chiNhanh; // <-- Lưu lại

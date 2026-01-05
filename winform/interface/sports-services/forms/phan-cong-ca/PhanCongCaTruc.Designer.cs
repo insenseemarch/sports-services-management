@@ -1,6 +1,6 @@
-﻿namespace SportsServices.Forms
+﻿namespace PhanCongCaTruc
 {
-    partial class SportsServices.Forms
+    partial class PhanCongCaTruc
     {
         /// <summary>
         /// Required designer variable.
@@ -171,7 +171,7 @@
             this.lblChiNhanh.TabIndex = 3;
             this.lblChiNhanh.Text = "Chi nhánh: ";
             // 
-            // SportsServices.Forms
+            // PhanCongCaTruc
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -181,9 +181,9 @@
             this.Controls.Add(this.cboChiNhanh);
             this.Controls.Add(this.lblBangCaTruc);
             this.Controls.Add(this.dgvLichTuan);
-            this.Name = "SportsServices.Forms";
-            this.Text = "SportsServices.Forms";
-            this.Load += new System.EventHandler(this.SportsServices.Forms_Load);
+            this.Name = "PhanCongCaTruc";
+            this.Text = "PhanCongCaTruc";
+            this.Load += new System.EventHandler(this.PhanCongCaTruc_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dgvLichTuan)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

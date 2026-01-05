@@ -1,6 +1,6 @@
-﻿namespace SportsServices
+﻿namespace SportsServices.Forms
 {
-    partial class Form1
+    partial class FrmXemProfileNhanVien
     {
         /// <summary>
         /// Required designer variable.

@@ -10,9 +10,9 @@ using System.Windows.Forms;
 
 namespace SportsServices.Forms
 {
-    public partial class Form1 : Form
+    public partial class FrmThayDoiHeThong : Form
     {
-        public Form1()
+        public FrmThayDoiHeThong()
         {
             InitializeComponent(); this.WindowState = FormWindowState.Maximized;
         }

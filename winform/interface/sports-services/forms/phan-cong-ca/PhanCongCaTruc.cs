@@ -8,19 +8,19 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace SportsServices.Forms
+namespace PhanCongCaTruc
 {
-    public partial class SportsServices.Forms : Form
+    public partial class PhanCongCaTruc : Form
     {
         // Biến lưu ngày Thứ 2 của tuần hiện tại
         DateTime _ngayDauTuan;
 
-        public SportsServices.Forms()
+        public PhanCongCaTruc()
         {
-            InitializeComponent(); this.WindowState = FormWindowState.Maximized;
+            InitializeComponent();
         }
 
-        private void SportsServices.Forms_Load(object sender, EventArgs e)
+        private void PhanCongCaTruc_Load(object sender, EventArgs e)
         {
             // ---- BƯỚC KHỞI TẠO BAN ĐẦU ----
             // 1. Tạo dữ liệu mẫu

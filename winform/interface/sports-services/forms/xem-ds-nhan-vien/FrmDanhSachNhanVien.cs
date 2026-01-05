@@ -6,12 +6,12 @@ using System.Windows.Forms;
 
 namespace SportsServices.Forms
 {
-    public partial class Form1 : Form
+    public partial class FrmDanhSachNhanVien : Form
     {
         private List<CoSo> danhSachCoSo = new List<CoSo>();
         private List<NhanVien> listNhanVien = new List<NhanVien>();
 
-        public Form1()
+        public FrmDanhSachNhanVien()
         {
             InitializeComponent(); this.WindowState = FormWindowState.Maximized;
         }
@@ -63,7 +63,7 @@ namespace SportsServices.Forms
                 new CoSo { MaCoSo = "CS4", TenCoSo = "Cần Thơ" }
             };
 
-            SportsServices.Forms = new List<NhanVien>
+            FakeDatabase.NhanViens = new List<NhanVien>
             {
                 new NhanVien { MaNV = "NV01", HoTen = "Nguyễn Văn A", NgaySinh = new DateTime(1999,1,1), GioiTinh="Nam", CCCD="012345", SDT="0901111", DiaChi="Long An", ChucVu="Nhân viên thu ngân", LuongCB=5000, MaCoSo = "CS2"},
                 new NhanVien { MaNV = "NV02", HoTen = "Trần Thị B", NgaySinh = new DateTime(2000,5,10), GioiTinh="Nữ", CCCD="098765", SDT="0902222", DiaChi="Tiền Giang", ChucVu="Quản lý", LuongCB=8000, MaCoSo = "CS2"},
@@ -94,7 +94,7 @@ namespace SportsServices.Forms
         {
             dgvNhanVien.Rows.Clear();
 
-            var list = SportsServices.Forms
+            var list = FakeDatabase.NhanViens
                 .Where(nv => nv.MaCoSo == maCoSo)
                 .ToList();
 
@@ -141,9 +141,9 @@ namespace SportsServices.Forms
 
                 if (confirm == DialogResult.Yes)
                 {
-                    var nv = SportsServices.Forms.FirstOrDefault(x => x.MaNV == maNV);
+                    var nv = FakeDatabase.NhanViens.FirstOrDefault(x => x.MaNV == maNV);
                     if (nv != null)
-                        SportsServices.Forms.Remove(nv);
+                        FakeDatabase.NhanViens.Remove(nv);
 
                     LoadNhanVienTheoCoSo(cboCoSo.SelectedValue.ToString());
                 }
@@ -165,7 +165,7 @@ namespace SportsServices.Forms
                     var nv = f.NhanVienMoi;
                     nv.MaCoSo = cboCoSo.SelectedValue.ToString();
 
-                    SportsServices.Forms.Add(nv);
+                    FakeDatabase.NhanViens.Add(nv);
                     LoadNhanVienTheoCoSo(nv.MaCoSo);
                 }
             }

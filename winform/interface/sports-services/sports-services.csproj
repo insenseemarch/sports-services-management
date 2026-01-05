@@ -35,6 +35,8 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Windows.Forms.DataVisualization" />
+    <Reference Include="System.Windows.Forms.DataVisualization.Design" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -108,15 +110,18 @@
     <Compile Include="forms\lich-lam-viec\FrmLichLamViec.Designer.cs">
       <DependentUpon>FrmLichLamViec.cs</DependentUpon>
     </Compile>
+    <Compile Include="forms\phan-cong-ca\DuLieuGia.cs" />
     <Compile Include="forms\phan-cong-ca\frmChiTietCa.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="forms\phan-cong-ca\frmChiTietCa.Designer.cs">
       <DependentUpon>frmChiTietCa.cs</DependentUpon>
     </Compile>
-    <Compile Include="forms\phan-cong-ca\FrmPhanCongCaTruc.cs" />
-    <Compile Include="forms\phan-cong-ca\FrmPhanCongCaTruc.Designer.cs">
-      <DependentUpon>FrmPhanCongCaTruc.cs</DependentUpon>
+    <Compile Include="forms\phan-cong-ca\PhanCongCaTruc.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="forms\phan-cong-ca\PhanCongCaTruc.Designer.cs">
+      <DependentUpon>PhanCongCaTruc.cs</DependentUpon>
     </Compile>
     <Compile Include="forms\phe-duyet-nghi-phep\FrmPheDuyetNghiPhep.cs">
       <SubType>Form</SubType>
@@ -213,8 +218,8 @@
     <EmbeddedResource Include="forms\phan-cong-ca\frmChiTietCa.resx">
       <DependentUpon>frmChiTietCa.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="forms\phan-cong-ca\FrmPhanCongCaTruc.resx">
-      <DependentUpon>FrmPhanCongCaTruc.cs</DependentUpon>
+    <EmbeddedResource Include="forms\phan-cong-ca\PhanCongCaTruc.resx">
+      <DependentUpon>PhanCongCaTruc.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="forms\phe-duyet-nghi-phep\FrmPheDuyetNghiPhep.resx">
       <DependentUpon>FrmPheDuyetNghiPhep.cs</DependentUpon>

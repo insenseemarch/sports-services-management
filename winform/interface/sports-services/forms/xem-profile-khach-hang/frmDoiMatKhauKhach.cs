@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace SportsServices
 {
-    public partial class frmDoiMatKhau : Form
+    public partial class frmDoiMatKhauKhach : Form
     {
         // Biến để lưu mật khẩu hiện tại từ Form chính truyền sang
         private string _matKhauHienTai;
@@ -19,7 +19,7 @@ namespace SportsServices
         public string MatKhauMoi { get; private set; }
 
         // Sửa constructor để nhận tham số mật khẩu hiện tại
-        public frmDoiMatKhau(string matKhauDangDung)
+        public frmDoiMatKhauKhach(string matKhauDangDung)
         {
             InitializeComponent(); this.WindowState = FormWindowState.Maximized;
             _matKhauHienTai = matKhauDangDung;

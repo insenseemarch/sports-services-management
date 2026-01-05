@@ -11,12 +11,12 @@ using SportsServices.Dto;
 
 namespace SportsServices.Forms
 {
-    public partial class Form1 : Form
+    public partial class FrmHoaDon : Form
     {
         decimal giaThueSan = 0;
         decimal phanTramGiam = 0;
         decimal thanhTienDV = 0;
-        public Form1()
+        public FrmHoaDon()
         {
             InitializeComponent(); this.WindowState = FormWindowState.Maximized;
         }

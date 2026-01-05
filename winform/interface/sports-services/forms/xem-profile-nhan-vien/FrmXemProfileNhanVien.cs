@@ -8,11 +8,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace SportsServices
+namespace SportsServices.Forms
 {
-    public partial class Form1 : Form
+    public partial class FrmXemProfileNhanVien : Form
     {
-        public Form1()
+        public FrmXemProfileNhanVien()
         {
             InitializeComponent(); this.WindowState = FormWindowState.Maximized;
         }
@@ -102,7 +102,7 @@ namespace SportsServices
             string matKhauHienTai = txtPass.Text;
 
             // Khởi tạo form đổi mật khẩu và truyền mật khẩu hiện tại vào
-            frmDoiMatKhau frm = new frmDoiMatKhau(matKhauHienTai);
+            frmDoiMatKhauKhach frm = new frmDoiMatKhauKhach(matKhauHienTai);
 
             // Hiện form lên dưới dạng Dialog (người dùng phải xử lý xong mới quay lại được form chính)
             if (frm.ShowDialog() == DialogResult.OK)

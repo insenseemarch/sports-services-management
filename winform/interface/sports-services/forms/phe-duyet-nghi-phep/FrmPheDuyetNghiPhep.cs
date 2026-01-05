@@ -7,12 +7,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using SportsServices.Dto;
 
 namespace SportsServices.Forms
 {
-    public partial class Form1 : Form // Nếu form bạn tên khác thì sửa chữ Form1 này
+    public partial class FrmPheDuyetDonNghiPhep : Form // Nếu form bạn tên khác thì sửa chữ Form1 này
     {
-        public Form1()
+        public FrmPheDuyetDonNghiPhep()
         {
             InitializeComponent(); this.WindowState = FormWindowState.Maximized;
         }

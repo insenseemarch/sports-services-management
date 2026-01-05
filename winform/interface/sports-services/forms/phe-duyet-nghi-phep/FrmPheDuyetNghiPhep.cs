@@ -14,7 +14,7 @@ namespace SportsServices.Forms
     {
         public Form1()
         {
-            InitializeComponent();
+            InitializeComponent(); this.WindowState = FormWindowState.Maximized;
         }
 
         // 1. KHI FORM VỪA CHẠY

@@ -1,23 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using SportsServices.Forms;
+using SportsServices.Dto; // Nhớ dòng này
 
 namespace SportsServices
 {
-    internal static class Program
+    static class Program
     {
-        /// <summary>
-        /// The main entry point for the application.
-        /// </summary>
         [STAThread]
         static void Main()
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+
+            // ==> NẠP DỮ LIỆU GIẢ VÀO BỘ NHỚ
+            FakeDatabase.InitData();
+
+            // Chạy form Intro hoặc Login
+            Application.Run(new Forms.FrmIntro());
         }
     }
 }

@@ -14,7 +14,7 @@ namespace SportsServices.Forms
     {
         public FormDatDichVu()
         {
-            InitializeComponent();
+            InitializeComponent(); this.WindowState = FormWindowState.Maximized;
 
             // Gắn event (nếu trong Designer đã gắn rồi thì cũng không sao)
             this.Load += FormDatDichVu_Load;

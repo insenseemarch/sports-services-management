@@ -29,7 +29,7 @@ namespace SportsServices.Forms
 
         public FormDoiSan()
         {
-            InitializeComponent();
+            InitializeComponent(); this.WindowState = FormWindowState.Maximized;
 
             this.Load += FormDoiSan_Load;
             dgvDanhSach.CellClick += dgvDanhSach_CellClick;

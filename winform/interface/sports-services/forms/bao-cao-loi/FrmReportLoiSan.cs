@@ -34,7 +34,7 @@ namespace SportsServices.Forms
 
         public FormReportLoiSan()
         {
-            InitializeComponent();
+            InitializeComponent(); this.WindowState = FormWindowState.Maximized;
 
             // Gắn event (phòng trường hợp Designer chưa gắn)
             this.Load += FormReportLoiSan_Load;

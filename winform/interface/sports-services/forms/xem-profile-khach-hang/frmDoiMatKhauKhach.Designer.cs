@@ -1,6 +1,6 @@
 ﻿namespace SportsServices
 {
-    partial class frmDoiMatKhau
+    partial class frmDoiMatKhauKhach
     {
         /// <summary>
         /// Required designer variable.

@@ -28,7 +28,7 @@ namespace SportsServices.Forms
 
         public FormDatSan()
         {
-            InitializeComponent();
+            InitializeComponent(); this.WindowState = FormWindowState.Maximized;
 
             // Gắn event
             this.Load += FormDatSan_Load;

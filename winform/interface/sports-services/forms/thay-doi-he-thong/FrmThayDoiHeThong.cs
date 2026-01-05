@@ -14,7 +14,7 @@ namespace SportsServices.Forms
     {
         public Form1()
         {
-            InitializeComponent();
+            InitializeComponent(); this.WindowState = FormWindowState.Maximized;
         }
 
         private void label3_Click(object sender, EventArgs e)

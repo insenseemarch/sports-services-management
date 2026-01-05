@@ -19,7 +19,7 @@ namespace SportsServices.Forms
 
         public FormDangKy()
         {
-            InitializeComponent();
+            InitializeComponent(); this.WindowState = FormWindowState.Maximized;
         }
 
         private void FormDangKy_Load(object sender, EventArgs e)

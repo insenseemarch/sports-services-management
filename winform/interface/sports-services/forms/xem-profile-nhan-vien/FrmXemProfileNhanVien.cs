@@ -14,7 +14,7 @@ namespace SportsServices
     {
         public Form1()
         {
-            InitializeComponent();
+            InitializeComponent(); this.WindowState = FormWindowState.Maximized;
         }
 
         // Giả sử đây là ID của khách hàng đang đăng nhập

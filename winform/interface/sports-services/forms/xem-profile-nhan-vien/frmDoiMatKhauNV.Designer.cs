@@ -1,6 +1,6 @@
-﻿namespace SportsServices
+﻿namespace SportsServices.Forms
 {
-    partial class frmDoiMatKhau
+    partial class frmDoiMatKhauNV
     {
         /// <summary>
         /// Required designer variable.

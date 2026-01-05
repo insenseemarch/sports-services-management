@@ -21,7 +21,7 @@ namespace SportsServices
         // Sửa constructor để nhận tham số mật khẩu hiện tại
         public frmDoiMatKhau(string matKhauDangDung)
         {
-            InitializeComponent();
+            InitializeComponent(); this.WindowState = FormWindowState.Maximized;
             _matKhauHienTai = matKhauDangDung;
         }
 

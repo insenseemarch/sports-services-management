@@ -12,7 +12,7 @@ namespace SportsServices.Forms
 
         public ThemNhanVien()
         {
-            InitializeComponent();
+            InitializeComponent(); this.WindowState = FormWindowState.Maximized;
         }
 
         private void btnThem_Click(object sender, EventArgs e)

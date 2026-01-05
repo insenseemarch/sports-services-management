@@ -23,7 +23,7 @@ namespace SportsServices.Forms
         // 2. Sửa Constructor để nhận tham số (Tên ca và Ngày)
         public frmChiTietCa(string tenCa, DateTime ngay, string chiNhanh)
         {
-            InitializeComponent();
+            InitializeComponent(); this.WindowState = FormWindowState.Maximized;
             _tenCa = tenCa;
             _ngay = ngay;
             _chiNhanh = chiNhanh; // <-- Lưu lại

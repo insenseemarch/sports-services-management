@@ -25,7 +25,7 @@ namespace SportsServices.Forms
 
         public FormLichLamViec()
         {
-            InitializeComponent();
+            InitializeComponent(); this.WindowState = FormWindowState.Maximized;
 
             this.Load += FormLichLamViec_Load;
             dtpThang.ValueChanged += dtpThang_ValueChanged;

@@ -18,7 +18,7 @@ namespace SportsServices.Forms
         decimal thanhTienDV = 0;
         public Form1()
         {
-            InitializeComponent();
+            InitializeComponent(); this.WindowState = FormWindowState.Maximized;
         }
 
         private void groupBox1_Enter(object sender, EventArgs e)

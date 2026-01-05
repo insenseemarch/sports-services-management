@@ -1,4 +1,4 @@
-﻿using SportsServices.Forms.Models;
+﻿using SportsServices.Dto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,11 +9,11 @@ namespace SportsServices.Forms
     public partial class Form1 : Form
     {
         private List<CoSo> danhSachCoSo = new List<CoSo>();
-        private List<NhanVien> SportsServices.Forms = new List<NhanVien>();
+        private List<NhanVien> listNhanVien = new List<NhanVien>();
 
         public Form1()
         {
-            InitializeComponent();
+            InitializeComponent(); this.WindowState = FormWindowState.Maximized;
         }
 
         private void Form1_Load(object sender, EventArgs e)

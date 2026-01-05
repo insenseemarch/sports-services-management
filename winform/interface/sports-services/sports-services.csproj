@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="dto\FakeDatabase.cs" />
     <Compile Include="dto\Models.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
@@ -70,6 +71,12 @@
     </Compile>
     <Compile Include="forms\bao-tri\FrmBaoTri.Designer.cs">
       <DependentUpon>FrmBaoTri.cs</DependentUpon>
+    </Compile>
+    <Compile Include="forms\dang-nhap\FrmDangNhap.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="forms\dang-nhap\FrmDangNhap.Designer.cs">
+      <DependentUpon>FrmDangNhap.cs</DependentUpon>
     </Compile>
     <Compile Include="forms\dang-ky\FrmDangKy.cs">
       <SubType>Form</SubType>
@@ -141,11 +148,11 @@
     <Compile Include="forms\xem-ds-nhan-vien\FrmDanhSachNhanVien.Designer.cs">
       <DependentUpon>FrmDanhSachNhanVien.cs</DependentUpon>
     </Compile>
-    <Compile Include="forms\xem-profile-khach-hang\frmDoiMatKhau.cs">
+    <Compile Include="forms\xem-profile-khach-hang\frmDoiMatKhauKhach.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="forms\xem-profile-khach-hang\frmDoiMatKhau.Designer.cs">
-      <DependentUpon>frmDoiMatKhau.cs</DependentUpon>
+    <Compile Include="forms\xem-profile-khach-hang\frmDoiMatKhauKhach.Designer.cs">
+      <DependentUpon>frmDoiMatKhauKhach.cs</DependentUpon>
     </Compile>
     <Compile Include="forms\xem-profile-khach-hang\FrmXemProfileKhachHang.cs">
       <SubType>Form</SubType>
@@ -153,17 +160,23 @@
     <Compile Include="forms\xem-profile-khach-hang\FrmXemProfileKhachHang.Designer.cs">
       <DependentUpon>FrmXemProfileKhachHang.cs</DependentUpon>
     </Compile>
-    <Compile Include="forms\xem-profile-nhan-vien\frmDoiMatKhau.cs">
+    <Compile Include="forms\xem-profile-nhan-vien\frmDoiMatKhauNV.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="forms\xem-profile-nhan-vien\frmDoiMatKhau.Designer.cs">
-      <DependentUpon>frmDoiMatKhau.cs</DependentUpon>
+    <Compile Include="forms\xem-profile-nhan-vien\frmDoiMatKhauNV.Designer.cs">
+      <DependentUpon>frmDoiMatKhauNV.cs</DependentUpon>
     </Compile>
     <Compile Include="forms\xem-profile-nhan-vien\FrmXemProfileNhanVien.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="forms\xem-profile-nhan-vien\FrmXemProfileNhanVien.Designer.cs">
       <DependentUpon>FrmXemProfileNhanVien.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmIntro.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmIntro.Designer.cs">
+      <DependentUpon>FrmIntro.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -175,6 +188,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="forms\bao-tri\FrmBaoTri.resx">
       <DependentUpon>FrmBaoTri.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="forms\dang-nhap\FrmDangNhap.resx">
+      <DependentUpon>FrmDangNhap.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="forms\dang-ky\FrmDangKy.resx">
       <DependentUpon>FrmDangKy.cs</DependentUpon>
@@ -215,17 +231,20 @@
     <EmbeddedResource Include="forms\xem-ds-nhan-vien\FrmDanhSachNhanVien.resx">
       <DependentUpon>FrmDanhSachNhanVien.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="forms\xem-profile-khach-hang\frmDoiMatKhau.resx">
-      <DependentUpon>frmDoiMatKhau.cs</DependentUpon>
+    <EmbeddedResource Include="forms\xem-profile-khach-hang\frmDoiMatKhauKhach.resx">
+      <DependentUpon>frmDoiMatKhauKhach.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="forms\xem-profile-khach-hang\FrmXemProfileKhachHang.resx">
       <DependentUpon>FrmXemProfileKhachHang.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="forms\xem-profile-nhan-vien\frmDoiMatKhau.resx">
-      <DependentUpon>frmDoiMatKhau.cs</DependentUpon>
+    <EmbeddedResource Include="forms\xem-profile-nhan-vien\frmDoiMatKhauNV.resx">
+      <DependentUpon>frmDoiMatKhauNV.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="forms\xem-profile-nhan-vien\FrmXemProfileNhanVien.resx">
       <DependentUpon>FrmXemProfileNhanVien.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmIntro.resx">
+      <DependentUpon>FrmIntro.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

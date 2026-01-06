@@ -51,8 +51,12 @@ namespace SportsServices.Dto
             if (TaiKhoans.Count == 0)
             {
                 // 1. Tài khoản Quản lý/Nhân viên mẫu
-                TaiKhoans.Add(new TaiKhoan { Username = "admin", Password = "123", Role = "QUAN_LY", HoTen = "Quản Lý A" });
-                TaiKhoans.Add(new TaiKhoan { Username = "nv01", Password = "123", Role = "NHAN_VIEN", HoTen = "Nhân Viên B" });
+                TaiKhoans.Add(new TaiKhoan { Username = "letan", Password = "1", Role = "LE_TAN", HoTen = "Lễ Tân A" });
+                TaiKhoans.Add(new TaiKhoan { Username = "thungan", Password = "1", Role = "THU_NGAN", HoTen = "Thu Ngân B" });
+                TaiKhoans.Add(new TaiKhoan { Username = "it", Password = "1", Role = "IT", HoTen = "IT Admin C" });
+                TaiKhoans.Add(new TaiKhoan { Username = "kythuat", Password = "1", Role = "KY_THUAT", HoTen = "Kỹ Thuật D" });
+                TaiKhoans.Add(new TaiKhoan { Username = "quanly", Password = "1", Role = "QUAN_LY", HoTen = "Sếp E" });
+                TaiKhoans.Add(new TaiKhoan { Username = "hlv", Password = "1", Role = "HLV", HoTen = "Coach F" });
 
                 // 2. Tài khoản Khách hàng mẫu (nếu muốn test sẵn)
                 TaiKhoans.Add(new TaiKhoan { Username = "khach01", Password = "123", Role = "KHACH_HANG", HoTen = "Khách Hàng C" });

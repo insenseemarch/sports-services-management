@@ -46,7 +46,7 @@ namespace SportsServices.Forms
                     frmKhach.ShowDialog();
                     this.Show();
                 }
-                else if (user.Role == "NHAN_VIEN" || user.Role == "QUAN_LY")
+                else if (user.Role == "LE_TAN" || user.Role == "QUAN_LY" || user.Role == "THU_NGAN" || user.Role == "IT" || user.Role == "KY_THUAT" || user.Role == "HLV")
                 {
                     // Mở giao diện cho Nhân viên/Quản lý
                     // Ví dụ bạn có FrmMainStaff
@@ -54,8 +54,8 @@ namespace SportsServices.Forms
                     // Ví dụ:
                     // FrmQuanLy frmAdmin = new FrmQuanLy();
                     // frmAdmin.ShowDialog();
-                    MessageBox.Show("Đang mở giao diện Quản lý (Bạn cần tạo Form này)");
-                    Form1 frmAdmin = new Form1(); // Tạm thời mở Form1
+                    MessageBox.Show("Đang mở giao diện Quản lý");
+                    FrmMainStaff frmAdmin = new FrmMainStaff(user); // Tạm thời mở Form1
                     frmAdmin.ShowDialog();
                 }
 

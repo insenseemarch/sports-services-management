@@ -1,4 +1,4 @@
-﻿namespace PhanCongCaTruc
+﻿namespace SportsServices.Forms
 {
     partial class PhanCongCaTruc
     {

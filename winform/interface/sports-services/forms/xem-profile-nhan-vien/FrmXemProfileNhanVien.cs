@@ -3,185 +3,182 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
-using System.Linq;
+using System.Linq; // Cần dùng LINQ để tìm trong List
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using SportsServices.Dto; // Để dùng FakeDatabase và TaiKhoan
 
 namespace SportsServices.Forms
 {
     public partial class FrmXemProfileNhanVien : Form
     {
+        private TaiKhoan _currentUser; // Tài khoản đang đăng nhập
+        private NhanVien _nhanVienChiTiet; // Thông tin chi tiết nhân viên
+
+        // Constructor nhận vào tài khoản từ FormMain
+        public FrmXemProfileNhanVien(TaiKhoan user)
+        {
+            InitializeComponent();
+            this.WindowState = FormWindowState.Maximized;
+            _currentUser = user;
+        }
+
+        // Constructor mặc định (để tránh lỗi Designer, nhưng ít dùng)
         public FrmXemProfileNhanVien()
         {
-            InitializeComponent(); this.WindowState = FormWindowState.Maximized;
+            InitializeComponent();
         }
 
-        // Giả sử đây là ID của khách hàng đang đăng nhập
-        private string currentNVien = "KH001";
-
-        private void Form1_Load(object sender, EventArgs e)
+        private void FrmXemProfileNhanVien_Load(object sender, EventArgs e)
         {
-            LoadThongTinKhachHang(currentNVien);
+            if (_currentUser == null) return;
+
+            LoadThongTinNhanVien();
         }
 
-        private void LoadThongTinKhachHang(string maKH)
+        private void LoadThongTinNhanVien()
         {
-            // --- MÔ PHỎNG DỮ LIỆU TỪ SQL (Thay đoạn này bằng query SQL thật của bạn) ---
-            // Bảng TÀI KHOẢN
-            string tenDangNhap = "nguyenvana123";
-            DateTime ngayDangKy = new DateTime(2023, 1, 15);
+            // 1. Hiển thị thông tin Tài khoản
+            txtTenDangNhap.Text = _currentUser.Username;
+            txtPass.Text = _currentUser.Password; // Mật khẩu hiện tại
 
-            // Bảng KHÁCH HÀNG
-            string hoTen = "Nguyễn Văn A";
-            DateTime ngaySinh = new DateTime(2000, 5, 20);
-            string cccd = "079200001234";
-            string sdt = "0909123456";
-            string email = "nguyenvana@gmail.com";
-            string diaChi = "123 Đường ABC, TP.HCM";
-            bool isHSSV = true;
-            // --------------------------------------------------------------------------
+            // 2. Tìm thông tin chi tiết trong FakeDatabase.NhanViens
+            // Logic: Tìm người có HoTen trùng với HoTen của tài khoản
+            _nhanVienChiTiet = FakeDatabase.NhanViens.FirstOrDefault(nv => nv.HoTen == _currentUser.HoTen);
 
-            // Đổ dữ liệu vào các Control
-            // Nhóm tài khoản
-            txtPass.Text = "123";
-            txtTenDangNhap.Text = tenDangNhap;
-            dtpNgayDangKy.Value = ngayDangKy;
-
-
-            // Nhóm cá nhân
-            txtHoTen.Text = hoTen;
-            dtpNgaySinh.Value = ngaySinh;
-            txtCCCD.Text = cccd;
-            txtSDT.Text = sdt;
-            txtEmail.Text = email;
-            txtDiaChi.Text = diaChi;
-        }
-        private void label1_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void dtpNgaySinh_ValueChanged(object sender, EventArgs e)
-        {
-            // 1. Tính tuổi chính xác
-            DateTime ngaySinh = dtpNgaySinh.Value;
-            DateTime homNay = DateTime.Now;
-
-            int tuoi = homNay.Year - ngaySinh.Year;
-
-            // Kiểm tra xem đã tới sinh nhật năm nay chưa, nếu chưa thì trừ đi 1 tuổi
-            if (homNay < ngaySinh.AddYears(tuoi))
+            if (_nhanVienChiTiet != null)
             {
-                tuoi--;
+                // Nếu tìm thấy trong danh sách nhân viên
+                txtHoTen.Text = _nhanVienChiTiet.HoTen;
+                dtpNgaySinh.Value = _nhanVienChiTiet.NgaySinh;
+
+                // Kiểm tra control txtCCCD có tồn tại không, nếu không thì bỏ qua
+                if (IsControlAvailable(nameof(txtCCCD))) txtCCCD.Text = _nhanVienChiTiet.CCCD;
+
+                txtSDT.Text = _nhanVienChiTiet.SDT;
+                txtDiaChi.Text = _nhanVienChiTiet.DiaChi;
+
+                // Hiển thị lương (nếu có TextBox txtLuongCoBan)
+                // Lưu ý: Lương thường để ReadOnly = true vì nhân viên không tự sửa lương được
+                if (IsControlAvailable("txtLuongCoBan"))
+                    Controls["txtLuongCoBan"].Text = _nhanVienChiTiet.LuongCB.ToString("N0") + " VNĐ";
             }
+            else
+            {
+                // Trường hợp user mới tạo chưa có trong danh sách nhân viên chi tiết
+                txtHoTen.Text = _currentUser.HoTen;
+                txtDiaChi.Text = "Chưa cập nhật";
+                txtSDT.Text = "Chưa cập nhật";
+            }
+        }
+
+        // Hàm phụ trợ kiểm tra xem TextBox có tồn tại trên form không (tránh lỗi)
+        private bool IsControlAvailable(string name)
+        {
+            return this.Controls.Find(name, true).Length > 0;
         }
 
         private void btnShowHide_CheckedChanged(object sender, EventArgs e)
         {
-            // '\0' là ký tự rỗng (null character), nghĩa là không che gì cả -> Hiện mật khẩu
-            // '*' là ký tự dùng để che -> Ẩn mật khẩu
-
+            // Logic ẩn hiện mật khẩu
             if (txtPass.PasswordChar == '*')
             {
-                // Đang ẩn -> Chuyển sang hiện
-                txtPass.PasswordChar = '\0';
-                btnShowHide.Checked = true; // (Tuỳ chọn) Đổi tên nút
+                txtPass.PasswordChar = '\0'; // Hiện
             }
             else
             {
-                // Đang hiện -> Chuyển sang ẩn
-                txtPass.PasswordChar = '*';
-                btnShowHide.Checked = false; // (Tuỳ chọn) Đổi tên nút
+                txtPass.PasswordChar = '*'; // Ẩn
             }
         }
 
         private void btnDoiMatKhau_Click(object sender, EventArgs e)
         {
-            // Lấy mật khẩu đang có trên ô text (hoặc từ biến lưu trữ của bạn)
             string matKhauHienTai = txtPass.Text;
 
-            // Khởi tạo form đổi mật khẩu và truyền mật khẩu hiện tại vào
-            frmDoiMatKhauKhach frm = new frmDoiMatKhauKhach(matKhauHienTai);
+            // Mở form đổi mật khẩu dành cho Nhân viên
+            frmDoiMatKhauNV frm = new frmDoiMatKhauNV(matKhauHienTai);
 
-            // Hiện form lên dưới dạng Dialog (người dùng phải xử lý xong mới quay lại được form chính)
             if (frm.ShowDialog() == DialogResult.OK)
             {
-                // Nếu người dùng bấm "Lưu" thành công
-                // Cập nhật mật khẩu mới lên giao diện
+                // 1. Cập nhật trên giao diện
                 txtPass.Text = frm.MatKhauMoi;
 
-                // Cập nhật vào CSDL (Database) nếu có
-                // UpdatePasswordToDatabase(frm.MatKhauMoi);
+                // 2. Cập nhật vào biến session
+                _currentUser.Password = frm.MatKhauMoi;
 
-                MessageBox.Show("Đổi mật khẩu thành công!");
-            }
-            else
-            {
-                // Trường hợp người dùng bấm Hủy hoặc tắt form thì không làm gì cả
-            }
-        }
+                // 3. Cập nhật vào FakeDatabase (List TaiKhoans)
+                var userInDb = FakeDatabase.TaiKhoans.FirstOrDefault(t => t.Username == _currentUser.Username);
+                if (userInDb != null)
+                {
+                    userInDb.Password = frm.MatKhauMoi;
+                }
 
-        private void btnThoat_Click(object sender, EventArgs e)
-        {
-            // Hiện hộp thoại xác nhận
-            DialogResult hoi = MessageBox.Show("Bạn có chắc chắn muốn thoát chương trình không?", "Xác nhận thoát", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-            // Nếu người dùng chọn Yes thì mới thoát
-            if (hoi == DialogResult.Yes)
-            {
-                Application.Exit(); // Lệnh này sẽ tắt toàn bộ chương trình
+                MessageBox.Show("Đổi mật khẩu thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
         private void btnLuu_Click(object sender, EventArgs e)
         {
-            // BƯỚC 1: Kiểm tra dữ liệu nhập vào (Validate)
+            // Validate dữ liệu
             if (string.IsNullOrEmpty(txtHoTen.Text) || string.IsNullOrEmpty(txtSDT.Text))
             {
-                MessageBox.Show("Vui lòng nhập đầy đủ Họ tên và Số điện thoại!", "Thông báo");
-                return; // Dừng lại, không làm tiếp
+                MessageBox.Show("Vui lòng nhập họ tên và số điện thoại.", "Thiếu thông tin", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
 
             try
             {
-                // BƯỚC 2: Thực hiện Lưu vào Database (SQL)
-                // Ví dụ: UpdateThongTin(txtHoTen.Text, dtpNgaySinh.Value, ...);
+                // 1. Cập nhật vào biến cục bộ _nhanVienChiTiet (nếu đã kết nối được)
+                if (_nhanVienChiTiet != null)
+                {
+                    _nhanVienChiTiet.HoTen = txtHoTen.Text;
+                    _nhanVienChiTiet.NgaySinh = dtpNgaySinh.Value;
+                    _nhanVienChiTiet.SDT = txtSDT.Text;
+                    _nhanVienChiTiet.DiaChi = txtDiaChi.Text;
+                    if (IsControlAvailable("txtCCCD")) _nhanVienChiTiet.CCCD = txtCCCD.Text;
+                }
+                else
+                {
+                    // Nếu chưa có thì tạo mới (Optional - tuỳ logic)
+                    // Ở đây chỉ cập nhật tên hiển thị
+                }
 
-                // --- VIẾT CODE SQL UPDATE CỦA BẠN Ở ĐÂY ---
-                // string sql = "UPDATE KhachHang SET HoTen = @HoTen, NgaySinh = @NgaySinh ... WHERE ID = ...";
-                // ... thực thi câu lệnh ...
-                // --------------------------------------------
+                // 2. Cập nhật tên vào Tài khoản (để hiển thị Xin chào ở form chính đúng tên mới)
+                _currentUser.HoTen = txtHoTen.Text;
+                var userInDb = FakeDatabase.TaiKhoans.FirstOrDefault(t => t.Username == _currentUser.Username);
+                if (userInDb != null) userInDb.HoTen = txtHoTen.Text;
 
-
-                // BƯỚC 3: Thông báo thành công
-                MessageBox.Show("Cập nhật thông tin thành công!", "Thông báo");
-
-                // BƯỚC 4: Refresh (Tải lại) thông tin
-                // Gọi lại hàm load dữ liệu ban đầu để giao diện hiển thị thông tin mới nhất
-                LoadSportsServices();
+                MessageBox.Show("Cập nhật thông tin thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Có lỗi xảy ra: " + ex.Message);
+                MessageBox.Show("Lỗi cập nhật: " + ex.Message);
             }
         }
-        private void LoadSportsServices()
+
+        private void btnThoat_Click(object sender, EventArgs e)
         {
-            // Code lấy dữ liệu từ SQL và gán vào các TextBox, DateTimePicker...
-            // Ví dụ:
-            // txtHoTen.Text = dataTuSQL["HoTen"].ToString();
-            // dtpNgaySinh.Value = ...
+            // Chỉ đóng form này, không thoát cả ứng dụng (Application.Exit)
+            // Vì form này nằm trong Panel của FrmMainStaff
+            this.Close();
         }
 
-        private void txtLuongCoBan_TextChanged(object sender, EventArgs e)
+        // Tính tuổi tự động khi chọn ngày sinh
+        private void dtpNgaySinh_ValueChanged(object sender, EventArgs e)
         {
+            DateTime ngaySinh = dtpNgaySinh.Value;
+            int tuoi = DateTime.Now.Year - ngaySinh.Year;
+            if (DateTime.Now < ngaySinh.AddYears(tuoi)) tuoi--;
 
+            // Nếu có label hiển thị tuổi thì gán vào đây
+            // lblTuoi.Text = tuoi.ToString();
         }
 
-        private void label2_Click(object sender, EventArgs e)
-        {
-
-        }
+        // Các event thừa (Do copy paste hoặc click nhầm designer), cứ để trống
+        private void label1_Click(object sender, EventArgs e) { }
+        private void txtLuongCoBan_TextChanged(object sender, EventArgs e) { }
+        private void label2_Click(object sender, EventArgs e) { }
+        private void Form1_Load(object sender, EventArgs e) { } // Hàm load cũ
     }
 }

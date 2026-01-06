@@ -274,6 +274,41 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="Resources\unnamed %281%29.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\clay-court.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Bioscapes-Blog-header-1-1080x400.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\cau-tao-va-quy-trinh-thi-cong-san-tennis-dat-cung1-600x458.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\sân-bóng-đá-mini-1.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\gioi-thieu-ve-thiet-ke-va-thi-cong-san-cau-long.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\sonsanbongro %282%29.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\dich-vu-thi-cong-san-futsal-anh-bia.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\1-3-768x768.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\3-2-768x768.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\2-3-768x768.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\4-1-768x768.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

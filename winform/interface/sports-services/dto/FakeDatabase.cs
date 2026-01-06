@@ -10,6 +10,9 @@ namespace SportsServices.Dto
         public static List<CoSo> CoSos { get; set; } = new List<CoSo>();
         public static List<NhanVien> NhanViens { get; set; } = new List<NhanVien>();
 
+        public static List<SanTheThao> Sans { get; set; } = new List<SanTheThao>();
+
+
         // Hàm này chạy 1 lần lúc mở App để nạp dữ liệu mẫu
         public static void InitData()
         {
@@ -30,6 +33,15 @@ namespace SportsServices.Dto
                 new NhanVien { MaNV = "NV03", HoTen = "Lê Văn C", NgaySinh = new DateTime(1998, 8, 20), GioiTinh = "Nam", ChucVu = "Bảo vệ", MaCoSo = "CS1", LuongCB = 7000000, SDT = "0901234569", CCCD = "001098000003", DiaChi = "Hà Nội" },
                 new NhanVien { MaNV = "NV04", HoTen = "Phạm Thị D", NgaySinh = new DateTime(2000, 12, 12), GioiTinh = "Nữ", ChucVu = "Lễ tân", MaCoSo = "CS1", LuongCB = 7500000, SDT = "0901234570", CCCD = "001200000004", DiaChi = "Hà Nội" },
                 new NhanVien { MaNV = "NV05", HoTen = "Hoàng Văn E", NgaySinh = new DateTime(1992, 3, 15), GioiTinh = "Nam", ChucVu = "Kỹ thuật", MaCoSo = "CS3", LuongCB = 10000000, SDT = "0901234571", CCCD = "001092000005", DiaChi = "Đà Nẵng" }
+            };
+
+            Sans = new List<SanTheThao>
+            {
+                new SanTheThao { LoaiSan="Cầu lông", ChiNhanh="TP.HCM", GioMo=new TimeSpan(6,0,0), GioDong=new TimeSpan(22,0,0), DangTrong=true },
+                new SanTheThao { LoaiSan="Bóng đá mini", ChiNhanh="Hà Nội", GioMo=new TimeSpan(5,0,0), GioDong=new TimeSpan(23,0,0), DangTrong=false },
+                new SanTheThao { LoaiSan="Tennis", ChiNhanh="Đà Nẵng", GioMo=new TimeSpan(7,0,0), GioDong=new TimeSpan(21,0,0), DangTrong=true },
+                new SanTheThao { LoaiSan="Futsal", ChiNhanh="Cần Thơ", GioMo=new TimeSpan(6,0,0), GioDong=new TimeSpan(22,0,0), DangTrong=true },
+                new SanTheThao { LoaiSan="Bóng rổ", ChiNhanh="TP.HCM", GioMo=new TimeSpan(8,0,0), GioDong=new TimeSpan(20,0,0), DangTrong=false },
             };
         }
     }
@@ -187,5 +199,14 @@ namespace SportsServices.Dto
         public string SDT { get; set; }
         public string CCCD { get; set; }
         public string DiaChi { get; set; }
+    }
+
+    public class SanTheThao
+    {
+        public string LoaiSan { get; set; }
+        public string ChiNhanh { get; set; }
+        public TimeSpan GioMo { get; set; }
+        public TimeSpan GioDong { get; set; }
+        public bool DangTrong { get; set; }
     }
 }

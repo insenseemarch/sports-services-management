@@ -48,7 +48,7 @@
             this.lblTieuDe.ForeColor = System.Drawing.Color.ForestGreen;
             this.lblTieuDe.Location = new System.Drawing.Point(140, 40);
             this.lblTieuDe.Name = "lblTieuDe";
-            this.lblTieuDe.Size = new System.Drawing.Size(236, 52);
+            this.lblTieuDe.Size = new System.Drawing.Size(262, 52);
             this.lblTieuDe.TabIndex = 0;
             this.lblTieuDe.Text = "ĐĂNG NHẬP";
             this.lblTieuDe.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -74,7 +74,7 @@
             this.chkShowPass.Font = new System.Drawing.Font("Bahnschrift", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.chkShowPass.Location = new System.Drawing.Point(170, 150);
             this.chkShowPass.Name = "chkShowPass";
-            this.chkShowPass.Size = new System.Drawing.Size(140, 25);
+            this.chkShowPass.Size = new System.Drawing.Size(142, 25);
             this.chkShowPass.TabIndex = 4;
             this.chkShowPass.Text = "Hiện mật khẩu";
             this.chkShowPass.UseVisualStyleBackColor = true;
@@ -94,7 +94,7 @@
             this.lblMatKhau.AutoSize = true;
             this.lblMatKhau.Location = new System.Drawing.Point(20, 103);
             this.lblMatKhau.Name = "lblMatKhau";
-            this.lblMatKhau.Size = new System.Drawing.Size(100, 24);
+            this.lblMatKhau.Size = new System.Drawing.Size(98, 24);
             this.lblMatKhau.TabIndex = 2;
             this.lblMatKhau.Text = "Mật khẩu:";
             // 
@@ -150,9 +150,9 @@
             this.btnDangKy.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnDangKy.Font = new System.Drawing.Font("Bahnschrift", 10.2F, System.Drawing.FontStyle.Underline, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnDangKy.ForeColor = System.Drawing.Color.DarkBlue;
-            this.btnDangKy.Location = new System.Drawing.Point(140, 390);
+            this.btnDangKy.Location = new System.Drawing.Point(102, 390);
             this.btnDangKy.Name = "btnDangKy";
-            this.btnDangKy.Size = new System.Drawing.Size(250, 30);
+            this.btnDangKy.Size = new System.Drawing.Size(287, 30);
             this.btnDangKy.TabIndex = 4;
             this.btnDangKy.Text = "Chưa có tài khoản? Đăng ký ngay";
             this.btnDangKy.UseVisualStyleBackColor = false;

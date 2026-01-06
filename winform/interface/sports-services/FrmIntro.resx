@@ -117,4 +117,25 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="label3.Text" xml:space="preserve">
+    <value>- Các sân pickleball được thiết kế theo tiêu chuẩn cao, phù hợp cho cả các trận đấu 
+   chuyên nghiệp và luyện tập.
+
+- Sân có bề mặt chống trơn trượt, hệ thống chiếu sáng đạt chuẩn để bạn có thể chơi 
+   bất kể thời gian nào trong ngày.</value>
+  </data>
+  <data name="label8.Text" xml:space="preserve">
+    <value>- Hệ thống sân bóng rổ đạt tiêu chuẩn thi đấu, mặt sân phẳng và độ bám tốt, 
+   giúp người chơi di chuyển an toàn và linh hoạt.
+
+- Trang bị đầy đủ trụ rổ, bảng rổ và hệ thống chiếu sáng, phù hợp cho cả luyện tập
+   lẫn thi đấu giao hữu.</value>
+  </data>
+  <data name="label10.Text" xml:space="preserve">
+    <value>- Sân futsal được thiết kế theo tiêu chuẩn quốc tế, mặt sân chống trơn trượt, hỗ trợ 
+   kiểm soát bóng và tốc độ trận đấu.
+
+- Không gian kín gió, hệ thống lưới chắn và chiếu sáng hiện đại, tạo điều kiện lý tưởng 
+   cho luyện tập và thi đấu.</value>
+  </data>
 </root>

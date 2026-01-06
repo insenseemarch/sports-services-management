@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
-using SportsServices.Dto; // Nhớ dòng này
+using SportsServices.Dto;
 
 namespace SportsServices
 {
@@ -11,12 +11,15 @@ namespace SportsServices
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-
-            // ==> NẠP DỮ LIỆU GIẢ VÀO BỘ NHỚ
             FakeDatabase.InitData();
 
-            // Chạy form Intro hoặc Login
-            Application.Run(new Forms.FrmIntro());
+            // 1. Chạy Intro trước
+            Forms.FrmIntro intro = new Forms.FrmIntro();
+            // Nếu Intro chạy xong và trả về OK (hoặc chỉ cần ShowDialog xong)
+            intro.ShowDialog();
+
+            // 2. Sau khi Intro tắt thì mới chạy Form Đăng Nhập là Form chính
+            Application.Run(new Forms.FrmDangNhap());
         }
     }
 }

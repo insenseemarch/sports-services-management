@@ -11,6 +11,7 @@ namespace SportsServices.Forms
         {
             InitializeComponent();
             this.StartPosition = FormStartPosition.CenterScreen; // Hiện giữa màn hình
+            this.WindowState = FormWindowState.Maximized;
         }
 
         private void FrmDangNhap_Load(object sender, EventArgs e)

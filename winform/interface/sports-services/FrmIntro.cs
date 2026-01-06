@@ -1,7 +1,14 @@
-﻿using System;
-using System.Drawing;
-using System.Windows.Forms;
+﻿using SportsServices.Dto;
 using SportsServices.Forms; // Để gọi FrmDangNhap
+using System;
+using System.Drawing;
+using System.IO;
+using System.Reflection.Emit;
+using System.Security.Cryptography;
+using System.Windows.Forms;
+using System.Linq;
+
+
 
 namespace SportsServices.Forms
 {
@@ -11,7 +18,8 @@ namespace SportsServices.Forms
         {
             InitializeComponent();
             // Tự động căn giữa nội dung khi mở lên
-            CenterContent();
+            this.WindowState = FormWindowState.Maximized;
+            this.AutoScroll = true;
         }
 
         // Sự kiện khi bấm nút Đăng nhập ở góc phải
@@ -19,6 +27,30 @@ namespace SportsServices.Forms
         {
             OpenLogin();
         }
+
+        private void FrmIntro_Load(object sender, EventArgs e)
+        {
+            string duongDanAnh = @"Bioscapes-Blog-header-1-1080x400.jpg";
+        }
+
+
+        /// <summary>
+        /// Hàm vẽ lớp phủ màu đen lên ảnh
+        /// </summary>
+        private Image TaoLopPhuMo(Image img, int alpha)
+        {
+            Bitmap bmp = new Bitmap(img.Width, img.Height);
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                g.DrawImage(img, 0, 0, img.Width, img.Height);
+                using (Brush brush = new SolidBrush(Color.FromArgb(alpha, 0, 0, 0)))
+                {
+                    g.FillRectangle(brush, 0, 0, img.Width, img.Height);
+                }
+            }
+            return bmp;
+        }
+
 
         // Sự kiện khi bấm nút "TÌM SÂN NGAY" ở giữa
         private void btnCta_Click(object sender, EventArgs e)
@@ -33,21 +65,74 @@ namespace SportsServices.Forms
             frm.ShowDialog(); // Chờ đăng nhập
             this.Close(); // Đóng hẳn ứng dụng sau khi form đăng nhập đóng (nếu user tắt form đăng nhập)
         }
-
-        // Hàm giúp nội dung luôn nằm giữa màn hình dù màn hình to hay nhỏ
-        private void CenterContent()
+        private void lblLogo_Click(object sender, EventArgs e)
         {
-            if (pnlHero != null && pnlContentCenter != null)
-            {
-                pnlContentCenter.Left = (pnlHero.Width - pnlContentCenter.Width) / 2;
-                pnlContentCenter.Top = (pnlHero.Height - pnlContentCenter.Height) / 2;
-            }
+
         }
 
-        // Khi thay đổi kích thước cửa sổ, tự động căn giữa lại
-        private void pnlHero_SizeChanged(object sender, EventArgs e)
+        private void picBanner_Click(object sender, EventArgs e)
         {
-            CenterContent();
+
+        }
+
+        private void dgvKetQua_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
+
+        private void pnlHero_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void cboChiNhanh_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void txtSearch_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void cboLoaiSan_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void dtpGioDen_ValueChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void pictureBox1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void pictureBox1_Click_1(object sender, EventArgs e)
+        {
+
+        }
+
+        private void pnlLoaiSan_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void btnOnTop_Click(object sender, EventArgs e)
+        {
+            pnlHero.VerticalScroll.Value = 0;
+            pnlHero.PerformLayout();
+        }
+        private void pnlMain_Scroll(object sender, ScrollEventArgs e)
+        {
+            btnOnTop.Visible = pnlHero.VerticalScroll.Value > 200;
         }
     }
 }

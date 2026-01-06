@@ -29,6 +29,11 @@
         private void InitializeComponent()
         {
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.chkShowConfirm = new System.Windows.Forms.CheckBox();
+            this.chkShowPass = new System.Windows.Forms.CheckBox();
+            this.label16 = new System.Windows.Forms.Label();
+            this.label17 = new System.Windows.Forms.Label();
+            this.label18 = new System.Windows.Forms.Label();
             this.label10 = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
@@ -42,6 +47,11 @@
             this.btnHuy = new System.Windows.Forms.Button();
             this.btnDangKy = new System.Windows.Forms.Button();
             this.grpThongtin = new System.Windows.Forms.GroupBox();
+            this.label15 = new System.Windows.Forms.Label();
+            this.label14 = new System.Windows.Forms.Label();
+            this.label13 = new System.Windows.Forms.Label();
+            this.label12 = new System.Windows.Forms.Label();
+            this.label11 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
             this.txtEmail = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
@@ -55,16 +65,6 @@
             this.dtpNgaySinh = new System.Windows.Forms.DateTimePicker();
             this.txtDiaChi = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
-            this.label11 = new System.Windows.Forms.Label();
-            this.label12 = new System.Windows.Forms.Label();
-            this.label13 = new System.Windows.Forms.Label();
-            this.label14 = new System.Windows.Forms.Label();
-            this.label15 = new System.Windows.Forms.Label();
-            this.label16 = new System.Windows.Forms.Label();
-            this.label17 = new System.Windows.Forms.Label();
-            this.label18 = new System.Windows.Forms.Label();
-            this.chkShowPass = new System.Windows.Forms.CheckBox();
-            this.chkShowConfirm = new System.Windows.Forms.CheckBox();
             this.groupBox2.SuspendLayout();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picGiayTo)).BeginInit();
@@ -91,6 +91,64 @@
             this.groupBox2.TabIndex = 15;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Thông tin tài khoản";
+            // 
+            // chkShowConfirm
+            // 
+            this.chkShowConfirm.AutoSize = true;
+            this.chkShowConfirm.Location = new System.Drawing.Point(320, 214);
+            this.chkShowConfirm.Name = "chkShowConfirm";
+            this.chkShowConfirm.Size = new System.Drawing.Size(56, 28);
+            this.chkShowConfirm.TabIndex = 30;
+            this.chkShowConfirm.Text = "👁";
+            this.chkShowConfirm.UseVisualStyleBackColor = true;
+            this.chkShowConfirm.CheckedChanged += new System.EventHandler(this.chkShowConfirm_CheckedChanged);
+            // 
+            // chkShowPass
+            // 
+            this.chkShowPass.AutoSize = true;
+            this.chkShowPass.Location = new System.Drawing.Point(320, 146);
+            this.chkShowPass.Name = "chkShowPass";
+            this.chkShowPass.Size = new System.Drawing.Size(56, 28);
+            this.chkShowPass.TabIndex = 29;
+            this.chkShowPass.Text = "👁";
+            this.chkShowPass.UseVisualStyleBackColor = true;
+            this.chkShowPass.CheckedChanged += new System.EventHandler(this.chkShowPass_CheckedChanged);
+            // 
+            // label16
+            // 
+            this.label16.AutoSize = true;
+            this.label16.BackColor = System.Drawing.Color.Transparent;
+            this.label16.Font = new System.Drawing.Font("Bahnschrift", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label16.ForeColor = System.Drawing.Color.Red;
+            this.label16.Location = new System.Drawing.Point(223, 49);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(19, 24);
+            this.label16.TabIndex = 26;
+            this.label16.Text = "*";
+            // 
+            // label17
+            // 
+            this.label17.AutoSize = true;
+            this.label17.BackColor = System.Drawing.Color.Transparent;
+            this.label17.Font = new System.Drawing.Font("Bahnschrift", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label17.ForeColor = System.Drawing.Color.Red;
+            this.label17.Location = new System.Drawing.Point(251, 188);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(19, 24);
+            this.label17.TabIndex = 27;
+            this.label17.Text = "*";
+            // 
+            // label18
+            // 
+            this.label18.AutoSize = true;
+            this.label18.BackColor = System.Drawing.Color.Transparent;
+            this.label18.Font = new System.Drawing.Font("Bahnschrift", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label18.ForeColor = System.Drawing.Color.Red;
+            this.label18.Location = new System.Drawing.Point(180, 120);
+            this.label18.Name = "label18";
+            this.label18.Size = new System.Drawing.Size(19, 24);
+            this.label18.TabIndex = 28;
+            this.label18.Text = "*";
             // 
             // label10
             // 
@@ -252,6 +310,68 @@
             this.grpThongtin.TabStop = false;
             this.grpThongtin.Text = "Thông tin cá nhân";
             // 
+            // label15
+            // 
+            this.label15.AutoSize = true;
+            this.label15.BackColor = System.Drawing.Color.Transparent;
+            this.label15.Font = new System.Drawing.Font("Bahnschrift", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label15.ForeColor = System.Drawing.Color.Red;
+            this.label15.Location = new System.Drawing.Point(428, 108);
+            this.label15.Name = "label15";
+            this.label15.Size = new System.Drawing.Size(19, 24);
+            this.label15.TabIndex = 25;
+            this.label15.Text = "*";
+            // 
+            // label14
+            // 
+            this.label14.AutoSize = true;
+            this.label14.BackColor = System.Drawing.Color.Transparent;
+            this.label14.Font = new System.Drawing.Font("Bahnschrift", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label14.ForeColor = System.Drawing.Color.Red;
+            this.label14.Location = new System.Drawing.Point(222, 177);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(19, 24);
+            this.label14.TabIndex = 24;
+            this.label14.Text = "*";
+            // 
+            // label13
+            // 
+            this.label13.AutoSize = true;
+            this.label13.BackColor = System.Drawing.Color.Transparent;
+            this.label13.Font = new System.Drawing.Font("Bahnschrift", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label13.ForeColor = System.Drawing.Color.Red;
+            this.label13.Location = new System.Drawing.Point(512, 43);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(19, 24);
+            this.label13.TabIndex = 23;
+            this.label13.Text = "*";
+            // 
+            // label12
+            // 
+            this.label12.AutoSize = true;
+            this.label12.BackColor = System.Drawing.Color.Transparent;
+            this.label12.Font = new System.Drawing.Font("Bahnschrift", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label12.ForeColor = System.Drawing.Color.Red;
+            this.label12.Location = new System.Drawing.Point(184, 108);
+            this.label12.Name = "label12";
+            this.label12.Size = new System.Drawing.Size(19, 24);
+            this.label12.TabIndex = 22;
+            this.label12.Text = "*";
+            this.label12.Click += new System.EventHandler(this.label12_Click);
+            // 
+            // label11
+            // 
+            this.label11.AutoSize = true;
+            this.label11.BackColor = System.Drawing.Color.Transparent;
+            this.label11.Font = new System.Drawing.Font("Bahnschrift", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label11.ForeColor = System.Drawing.Color.Red;
+            this.label11.Location = new System.Drawing.Point(159, 43);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(19, 24);
+            this.label11.TabIndex = 21;
+            this.label11.Text = "*";
+            this.label11.Click += new System.EventHandler(this.label11_Click);
+            // 
             // label7
             // 
             this.label7.AutoSize = true;
@@ -373,129 +493,9 @@
             this.label1.ForeColor = System.Drawing.Color.ForestGreen;
             this.label1.Location = new System.Drawing.Point(410, 36);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(387, 53);
+            this.label1.Size = new System.Drawing.Size(380, 52);
             this.label1.TabIndex = 18;
             this.label1.Text = "Đăng Ký Tài Khoản";
-            // 
-            // label11
-            // 
-            this.label11.AutoSize = true;
-            this.label11.BackColor = System.Drawing.Color.Transparent;
-            this.label11.Font = new System.Drawing.Font("Bahnschrift", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label11.ForeColor = System.Drawing.Color.Red;
-            this.label11.Location = new System.Drawing.Point(159, 43);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(19, 24);
-            this.label11.TabIndex = 21;
-            this.label11.Text = "*";
-            this.label11.Click += new System.EventHandler(this.label11_Click);
-            // 
-            // label12
-            // 
-            this.label12.AutoSize = true;
-            this.label12.BackColor = System.Drawing.Color.Transparent;
-            this.label12.Font = new System.Drawing.Font("Bahnschrift", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label12.ForeColor = System.Drawing.Color.Red;
-            this.label12.Location = new System.Drawing.Point(184, 108);
-            this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(19, 24);
-            this.label12.TabIndex = 22;
-            this.label12.Text = "*";
-            this.label12.Click += new System.EventHandler(this.label12_Click);
-            // 
-            // label13
-            // 
-            this.label13.AutoSize = true;
-            this.label13.BackColor = System.Drawing.Color.Transparent;
-            this.label13.Font = new System.Drawing.Font("Bahnschrift", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label13.ForeColor = System.Drawing.Color.Red;
-            this.label13.Location = new System.Drawing.Point(512, 43);
-            this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(19, 24);
-            this.label13.TabIndex = 23;
-            this.label13.Text = "*";
-            // 
-            // label14
-            // 
-            this.label14.AutoSize = true;
-            this.label14.BackColor = System.Drawing.Color.Transparent;
-            this.label14.Font = new System.Drawing.Font("Bahnschrift", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label14.ForeColor = System.Drawing.Color.Red;
-            this.label14.Location = new System.Drawing.Point(222, 177);
-            this.label14.Name = "label14";
-            this.label14.Size = new System.Drawing.Size(19, 24);
-            this.label14.TabIndex = 24;
-            this.label14.Text = "*";
-            // 
-            // label15
-            // 
-            this.label15.AutoSize = true;
-            this.label15.BackColor = System.Drawing.Color.Transparent;
-            this.label15.Font = new System.Drawing.Font("Bahnschrift", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label15.ForeColor = System.Drawing.Color.Red;
-            this.label15.Location = new System.Drawing.Point(428, 108);
-            this.label15.Name = "label15";
-            this.label15.Size = new System.Drawing.Size(19, 24);
-            this.label15.TabIndex = 25;
-            this.label15.Text = "*";
-            // 
-            // label16
-            // 
-            this.label16.AutoSize = true;
-            this.label16.BackColor = System.Drawing.Color.Transparent;
-            this.label16.Font = new System.Drawing.Font("Bahnschrift", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label16.ForeColor = System.Drawing.Color.Red;
-            this.label16.Location = new System.Drawing.Point(223, 49);
-            this.label16.Name = "label16";
-            this.label16.Size = new System.Drawing.Size(19, 24);
-            this.label16.TabIndex = 26;
-            this.label16.Text = "*";
-            // 
-            // label17
-            // 
-            this.label17.AutoSize = true;
-            this.label17.BackColor = System.Drawing.Color.Transparent;
-            this.label17.Font = new System.Drawing.Font("Bahnschrift", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label17.ForeColor = System.Drawing.Color.Red;
-            this.label17.Location = new System.Drawing.Point(251, 188);
-            this.label17.Name = "label17";
-            this.label17.Size = new System.Drawing.Size(19, 24);
-            this.label17.TabIndex = 27;
-            this.label17.Text = "*";
-            // 
-            // label18
-            // 
-            this.label18.AutoSize = true;
-            this.label18.BackColor = System.Drawing.Color.Transparent;
-            this.label18.Font = new System.Drawing.Font("Bahnschrift", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label18.ForeColor = System.Drawing.Color.Red;
-            this.label18.Location = new System.Drawing.Point(180, 120);
-            this.label18.Name = "label18";
-            this.label18.Size = new System.Drawing.Size(19, 24);
-            this.label18.TabIndex = 28;
-            this.label18.Text = "*";
-            // 
-            // chkShowPass
-            // 
-            this.chkShowPass.AutoSize = true;
-            this.chkShowPass.Location = new System.Drawing.Point(320, 146);
-            this.chkShowPass.Name = "chkShowPass";
-            this.chkShowPass.Size = new System.Drawing.Size(56, 28);
-            this.chkShowPass.TabIndex = 29;
-            this.chkShowPass.Text = "👁";
-            this.chkShowPass.UseVisualStyleBackColor = true;
-            this.chkShowPass.CheckedChanged += new System.EventHandler(this.chkShowPass_CheckedChanged);
-            // 
-            // chkShowConfirm
-            // 
-            this.chkShowConfirm.AutoSize = true;
-            this.chkShowConfirm.Location = new System.Drawing.Point(320, 214);
-            this.chkShowConfirm.Name = "chkShowConfirm";
-            this.chkShowConfirm.Size = new System.Drawing.Size(56, 28);
-            this.chkShowConfirm.TabIndex = 30;
-            this.chkShowConfirm.Text = "👁";
-            this.chkShowConfirm.UseVisualStyleBackColor = true;
-            this.chkShowConfirm.CheckedChanged += new System.EventHandler(this.chkShowConfirm_CheckedChanged);
             // 
             // FormDangKy
             // 

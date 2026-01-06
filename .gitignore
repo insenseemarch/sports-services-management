@@ -1,0 +1,13 @@
+# Visual Studio temp folder
+.vs/
+**/.vs/
+
+# Build results
+bin/
+obj/
+**/bin/
+**/obj/
+
+# User-specific files
+*.user
+*.suo

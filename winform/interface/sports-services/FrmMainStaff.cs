@@ -16,13 +16,10 @@ namespace SportsServices
             InitializeComponent();
             _user = user;
             this.WindowState = FormWindowState.Maximized;
-            lblXinChao.Text = "Xin chào:" + $"{_user.HoTen} ({GetTenChucVu(_user.Role)})";
-        }
-
-        private void FrmMainStaff_Load(object sender, EventArgs e)
-        {
+            lblXinChao.Text = "Xin chào: " + $"{_user.HoTen} ({GetTenChucVu(_user.Role)})";
             PhanQuyenSuDung();
         }
+
 
         // Hàm hiển thị tên chức vụ tiếng Việt cho đẹp
         private string GetTenChucVu(string role)
@@ -42,66 +39,57 @@ namespace SportsServices
         // === LOGIC PHÂN QUYỀN ===
         private void PhanQuyenSuDung()
         {
-            // BƯỚC 1: Reset trạng thái ban đầu
-            // Cho hiện hết (Visible = true) nhưng KHÓA lại (Enabled = false)
 
-            // Nhóm Lễ tân
+            if (_user.Role == null) _user.Role = "";
+            string roleChuan = _user.Role.Trim().ToUpper();
+
             btnDatSan.Enabled = false;
-
-            // Nhóm Thu ngân
             btnThanhToan.Enabled = false;
-
-            // Nhóm IT
             btnHeThong.Enabled = false;
-
-            // Nhóm Kỹ thuật
             btnBaoTri.Enabled = false;
 
-            // Nhóm Quản lý
+            // Nút Quản lý
             btnNhanSu.Enabled = false;
             btnPhanCa.Enabled = false;
             btnDuyetPhep.Enabled = false;
             btnBaoCaoLoi.Enabled = false;
             btnBaoCaoThongKe.Enabled = false;
 
-            // Lưu ý: Các nút chung như "Lịch làm việc", "Cá nhân", "Đăng xuất" 
-            // thì luôn Enabled = true nên không cần chỉnh ở đây.
-
-            // BƯỚC 2: MỞ KHÓA (Enabled = true) dựa theo vai trò
-            switch (_user.Role)
+            switch (roleChuan)
             {
                 case "LE_TAN":
-                    btnDatSan.Enabled = true; // Chỉ mở nút đặt sân
+                    btnDatSan.Enabled = true;
                     break;
 
                 case "THU_NGAN":
-                    btnThanhToan.Enabled = true; // Chỉ mở nút thanh toán
+                    btnThanhToan.Enabled = true;
                     break;
 
                 case "IT":
-                    btnHeThong.Enabled = true; // Chỉ mở cấu hình hệ thống
+                case "TIN_HOC": // Dự phòng trường hợp bạn đặt tên khác trong DB
+                    btnHeThong.Enabled = true;
                     break;
 
                 case "KY_THUAT":
-                    btnBaoTri.Enabled = true; // Chỉ mở bảo trì
+                    btnBaoTri.Enabled = true;
                     break;
 
                 case "QUAN_LY":
-                    // Quản lý được dùng full quyền quản trị
+                    // Quản lý thấy hết
                     btnNhanSu.Enabled = true;
                     btnPhanCa.Enabled = true;
                     btnDuyetPhep.Enabled = true;
                     btnBaoCaoLoi.Enabled = true;
                     btnBaoCaoThongKe.Enabled = true;
-
-                    // Nếu Quản lý được quyền bán hàng giúp nhân viên thì mở luôn:
-                    btnDatSan.Enabled = true;
-                    btnThanhToan.Enabled = true;
                     break;
 
                 case "HLV":
-                    // HLV không được mở các chức năng nghiệp vụ trên
-                    // Chỉ dùng được các nút chung (đã mặc định mở)
+                    // Không làm gì, chỉ xem lịch
+                    break;
+
+                default:
+                    // Nếu code chạy vào đây nghĩa là Role trong DB không khớp với bất kỳ case nào ở trên
+                    MessageBox.Show($"Cảnh báo: Role '{roleChuan}' không khớp với quyền nào trong hệ thống!");
                     break;
             }
         }

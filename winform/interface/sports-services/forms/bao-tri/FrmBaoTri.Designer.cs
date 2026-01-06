@@ -208,7 +208,7 @@
             // 
             // btnLuuTrangThai
             // 
-            this.btnLuuTrangThai.Location = new System.Drawing.Point(647, 186);
+            this.btnLuuTrangThai.Location = new System.Drawing.Point(575, 184);
             this.btnLuuTrangThai.Margin = new System.Windows.Forms.Padding(5, 4, 5, 4);
             this.btnLuuTrangThai.Name = "btnLuuTrangThai";
             this.btnLuuTrangThai.Size = new System.Drawing.Size(126, 34);
@@ -224,7 +224,7 @@
             this.cboTrangThaiSan.Items.AddRange(new object[] {
             "Trống",
             "Đang bảo trì"});
-            this.cboTrangThaiSan.Location = new System.Drawing.Point(1003, 60);
+            this.cboTrangThaiSan.Location = new System.Drawing.Point(825, 60);
             this.cboTrangThaiSan.Margin = new System.Windows.Forms.Padding(5, 4, 5, 4);
             this.cboTrangThaiSan.Name = "cboTrangThaiSan";
             this.cboTrangThaiSan.Size = new System.Drawing.Size(421, 32);
@@ -244,7 +244,7 @@
             // txtTrangThaiMoi
             // 
             this.txtTrangThaiMoi.AutoSize = true;
-            this.txtTrangThaiMoi.Location = new System.Drawing.Point(824, 60);
+            this.txtTrangThaiMoi.Location = new System.Drawing.Point(646, 60);
             this.txtTrangThaiMoi.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
             this.txtTrangThaiMoi.Name = "txtTrangThaiMoi";
             this.txtTrangThaiMoi.Size = new System.Drawing.Size(145, 24);

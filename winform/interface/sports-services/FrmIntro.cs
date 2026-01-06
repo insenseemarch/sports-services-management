@@ -17,9 +17,12 @@ namespace SportsServices.Forms
         public FrmIntro()
         {
             InitializeComponent();
-            // Tự động căn giữa nội dung khi mở lên
-            this.WindowState = FormWindowState.Maximized;
-            this.AutoScroll = true;
+            if (!this.DesignMode)
+            {
+                // Tự động căn giữa nội dung khi mở lên
+                this.WindowState = FormWindowState.Maximized;
+                this.AutoScroll = true;
+            }
         }
 
         // Sự kiện khi bấm nút Đăng nhập ở góc phải
@@ -125,22 +128,29 @@ namespace SportsServices.Forms
 
         }
 
-        private void btnOnTop_Click(object sender, EventArgs e)
+        private void button2_Click(object sender, EventArgs e)
         {
-            pnlHero.VerticalScroll.Value = 0;
-            pnlHero.PerformLayout();
-        }
-        private void pnlMain_Scroll(object sender, ScrollEventArgs e)
-        {
-            btnOnTop.Visible = pnlHero.VerticalScroll.Value > 200;
+            pnlHero.AutoScrollPosition = new Point(0, 0);
+
+            // Cuộn tới vị trí của pnlDichVu
+            pnlHero.ScrollControlIntoView(pnlDichVu);
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void pnlCacLoaiSan_Click(object sender, EventArgs e)
+        {
+            pnlHero.AutoScrollPosition = new Point(0, 0);
+
+            // Cuộn tới vị trí của pnlDichVu
+            pnlHero.ScrollControlIntoView(pnlLoaiSan);
+        }
+
+
+        private void button1_Click(object sender, EventArgs e)
         {
             this.Hide(); // Ẩn trang Intro
             FormDangKy frm = new FormDangKy();
             frm.ShowDialog(); // Chờ đăng ký
-            this.Show(); 
+            this.Show();
         }
     }
 }

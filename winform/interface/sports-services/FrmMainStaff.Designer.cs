@@ -69,95 +69,103 @@
             this.panel1.Controls.Add(this.btnLichLamViec);
             this.panel1.Location = new System.Drawing.Point(0, 84);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(544, 950);
+            this.panel1.Size = new System.Drawing.Size(525, 950);
             this.panel1.TabIndex = 0;
             // 
             // btnBaoCaoThongKe
             // 
             this.btnBaoCaoThongKe.Font = new System.Drawing.Font("Bahnschrift SemiBold", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.btnBaoCaoThongKe.Location = new System.Drawing.Point(287, 571);
+            this.btnBaoCaoThongKe.Location = new System.Drawing.Point(277, 570);
             this.btnBaoCaoThongKe.Name = "btnBaoCaoThongKe";
             this.btnBaoCaoThongKe.Size = new System.Drawing.Size(228, 86);
             this.btnBaoCaoThongKe.TabIndex = 13;
             this.btnBaoCaoThongKe.Text = "Lập báo cáo";
             this.btnBaoCaoThongKe.UseVisualStyleBackColor = true;
+            this.btnBaoCaoThongKe.Click += new System.EventHandler(this.btnBaoCaoThongKe_Click);
             // 
             // btnBaoCaoLoi
             // 
             this.btnBaoCaoLoi.Font = new System.Drawing.Font("Bahnschrift SemiBold", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.btnBaoCaoLoi.Location = new System.Drawing.Point(29, 571);
+            this.btnBaoCaoLoi.Location = new System.Drawing.Point(19, 570);
             this.btnBaoCaoLoi.Name = "btnBaoCaoLoi";
             this.btnBaoCaoLoi.Size = new System.Drawing.Size(228, 86);
             this.btnBaoCaoLoi.TabIndex = 12;
             this.btnBaoCaoLoi.Text = "Báo cáo sân";
             this.btnBaoCaoLoi.UseVisualStyleBackColor = true;
+            this.btnBaoCaoLoi.Click += new System.EventHandler(this.btnBaoCaoLoi_Click);
             // 
             // btnDuyetPhep
             // 
             this.btnDuyetPhep.Font = new System.Drawing.Font("Bahnschrift SemiBold", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.btnDuyetPhep.Location = new System.Drawing.Point(29, 435);
+            this.btnDuyetPhep.Location = new System.Drawing.Point(19, 434);
             this.btnDuyetPhep.Name = "btnDuyetPhep";
             this.btnDuyetPhep.Size = new System.Drawing.Size(228, 86);
             this.btnDuyetPhep.TabIndex = 11;
             this.btnDuyetPhep.Text = "Phê duyệt";
             this.btnDuyetPhep.UseVisualStyleBackColor = true;
+            this.btnDuyetPhep.Click += new System.EventHandler(this.btnDuyetPhep_Click);
             // 
             // btnPhanCa
             // 
             this.btnPhanCa.Font = new System.Drawing.Font("Bahnschrift SemiBold", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.btnPhanCa.Location = new System.Drawing.Point(287, 435);
+            this.btnPhanCa.Location = new System.Drawing.Point(277, 434);
             this.btnPhanCa.Name = "btnPhanCa";
             this.btnPhanCa.Size = new System.Drawing.Size(228, 86);
             this.btnPhanCa.TabIndex = 10;
             this.btnPhanCa.Text = "Phân công ca";
             this.btnPhanCa.UseVisualStyleBackColor = true;
+            this.btnPhanCa.Click += new System.EventHandler(this.btnPhanCa_Click);
             // 
             // btnNhanSu
             // 
             this.btnNhanSu.Font = new System.Drawing.Font("Bahnschrift SemiBold", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.btnNhanSu.Location = new System.Drawing.Point(287, 298);
+            this.btnNhanSu.Location = new System.Drawing.Point(277, 297);
             this.btnNhanSu.Name = "btnNhanSu";
             this.btnNhanSu.Size = new System.Drawing.Size(228, 86);
             this.btnNhanSu.TabIndex = 9;
             this.btnNhanSu.Text = "Nhân sự";
             this.btnNhanSu.UseVisualStyleBackColor = true;
+            this.btnNhanSu.Click += new System.EventHandler(this.btnNhanSu_Click);
             // 
             // btnBaoTri
             // 
             this.btnBaoTri.Font = new System.Drawing.Font("Bahnschrift SemiBold", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.btnBaoTri.Location = new System.Drawing.Point(29, 298);
+            this.btnBaoTri.Location = new System.Drawing.Point(19, 297);
             this.btnBaoTri.Name = "btnBaoTri";
             this.btnBaoTri.Size = new System.Drawing.Size(228, 86);
             this.btnBaoTri.TabIndex = 8;
             this.btnBaoTri.Text = "Bảo trì sân";
             this.btnBaoTri.UseVisualStyleBackColor = true;
+            this.btnBaoTri.Click += new System.EventHandler(this.btnBaoTri_Click);
             // 
             // btnHeThong
             // 
             this.btnHeThong.Font = new System.Drawing.Font("Bahnschrift SemiBold", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.btnHeThong.Location = new System.Drawing.Point(29, 171);
+            this.btnHeThong.Location = new System.Drawing.Point(19, 170);
             this.btnHeThong.Name = "btnHeThong";
             this.btnHeThong.Size = new System.Drawing.Size(228, 86);
             this.btnHeThong.TabIndex = 7;
             this.btnHeThong.Text = "Thay đổi hệ thống";
             this.btnHeThong.UseVisualStyleBackColor = true;
+            this.btnHeThong.Click += new System.EventHandler(this.btnHeThong_Click);
             // 
             // btnThanhToan
             // 
             this.btnThanhToan.Font = new System.Drawing.Font("Bahnschrift SemiBold", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.btnThanhToan.Location = new System.Drawing.Point(287, 171);
+            this.btnThanhToan.Location = new System.Drawing.Point(277, 170);
             this.btnThanhToan.Name = "btnThanhToan";
             this.btnThanhToan.Size = new System.Drawing.Size(228, 86);
             this.btnThanhToan.TabIndex = 6;
             this.btnThanhToan.Text = "Lập hóa đơn";
             this.btnThanhToan.UseVisualStyleBackColor = true;
+            this.btnThanhToan.Click += new System.EventHandler(this.btnThanhToan_Click);
             // 
             // btnDangXuat
             // 
             this.btnDangXuat.BackColor = System.Drawing.Color.LightSalmon;
             this.btnDangXuat.Font = new System.Drawing.Font("Bahnschrift SemiBold", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.btnDangXuat.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.btnDangXuat.Location = new System.Drawing.Point(136, 872);
+            this.btnDangXuat.Location = new System.Drawing.Point(126, 803);
             this.btnDangXuat.Name = "btnDangXuat";
             this.btnDangXuat.Size = new System.Drawing.Size(217, 65);
             this.btnDangXuat.TabIndex = 5;
@@ -168,7 +176,7 @@
             // button4
             // 
             this.button4.Font = new System.Drawing.Font("Bahnschrift SemiBold", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.button4.Location = new System.Drawing.Point(287, 765);
+            this.button4.Location = new System.Drawing.Point(277, 696);
             this.button4.Name = "button4";
             this.button4.Size = new System.Drawing.Size(228, 86);
             this.button4.TabIndex = 4;
@@ -178,7 +186,7 @@
             // btnCaNhan
             // 
             this.btnCaNhan.Font = new System.Drawing.Font("Bahnschrift SemiBold", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.btnCaNhan.Location = new System.Drawing.Point(29, 765);
+            this.btnCaNhan.Location = new System.Drawing.Point(19, 696);
             this.btnCaNhan.Name = "btnCaNhan";
             this.btnCaNhan.Size = new System.Drawing.Size(228, 86);
             this.btnCaNhan.TabIndex = 3;
@@ -189,7 +197,7 @@
             // btnDatSan
             // 
             this.btnDatSan.Font = new System.Drawing.Font("Bahnschrift SemiBold", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.btnDatSan.Location = new System.Drawing.Point(287, 36);
+            this.btnDatSan.Location = new System.Drawing.Point(277, 35);
             this.btnDatSan.Name = "btnDatSan";
             this.btnDatSan.Size = new System.Drawing.Size(228, 86);
             this.btnDatSan.TabIndex = 2;
@@ -200,7 +208,7 @@
             // btnLichLamViec
             // 
             this.btnLichLamViec.Font = new System.Drawing.Font("Bahnschrift SemiBold", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.btnLichLamViec.Location = new System.Drawing.Point(29, 36);
+            this.btnLichLamViec.Location = new System.Drawing.Point(19, 35);
             this.btnLichLamViec.Name = "btnLichLamViec";
             this.btnLichLamViec.Size = new System.Drawing.Size(228, 86);
             this.btnLichLamViec.TabIndex = 1;
@@ -216,7 +224,7 @@
             this.panel2.Dock = System.Windows.Forms.DockStyle.Top;
             this.panel2.Location = new System.Drawing.Point(0, 0);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(1924, 85);
+            this.panel2.Size = new System.Drawing.Size(1902, 85);
             this.panel2.TabIndex = 0;
             // 
             // lblXinChao
@@ -244,9 +252,9 @@
             // 
             this.panelDesktop.AutoScroll = true;
             this.panelDesktop.BackColor = System.Drawing.SystemColors.ButtonFace;
-            this.panelDesktop.Location = new System.Drawing.Point(543, 84);
+            this.panelDesktop.Location = new System.Drawing.Point(519, 84);
             this.panelDesktop.Name = "panelDesktop";
-            this.panelDesktop.Size = new System.Drawing.Size(1376, 1000);
+            this.panelDesktop.Size = new System.Drawing.Size(1383, 1000);
             this.panelDesktop.TabIndex = 1;
             // 
             // FrmMainStaff
@@ -254,7 +262,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Cornsilk;
-            this.ClientSize = new System.Drawing.Size(1924, 1033);
+            this.ClientSize = new System.Drawing.Size(1902, 971);
             this.Controls.Add(this.panelDesktop);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.panel1);

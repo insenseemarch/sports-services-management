@@ -28,7 +28,7 @@ namespace SportsServices.Forms
             this.pnlHero = new System.Windows.Forms.Panel();
             this.pnlHer0 = new System.Windows.Forms.Panel();
             this.button2 = new System.Windows.Forms.Button();
-            this.button1 = new System.Windows.Forms.Button();
+            this.pnlCacLoaiSan = new System.Windows.Forms.Button();
             this.picBanner = new System.Windows.Forms.PictureBox();
             this.pnlLoaiSan = new System.Windows.Forms.Panel();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
@@ -58,7 +58,6 @@ namespace SportsServices.Forms
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.pnlDichVu = new System.Windows.Forms.Panel();
-            this.btnOnTop = new System.Windows.Forms.Button();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.panel9 = new System.Windows.Forms.Panel();
             this.label19 = new System.Windows.Forms.Label();
@@ -77,6 +76,7 @@ namespace SportsServices.Forms
             this.label14 = new System.Windows.Forms.Label();
             this.pictureBox5 = new System.Windows.Forms.PictureBox();
             this.label12 = new System.Windows.Forms.Label();
+            this.button1 = new System.Windows.Forms.Button();
             this.pnlHeader.SuspendLayout();
             this.pnlHero.SuspendLayout();
             this.pnlHer0.SuspendLayout();
@@ -154,27 +154,26 @@ namespace SportsServices.Forms
             this.pnlHero.AutoScroll = true;
             this.pnlHero.BackColor = System.Drawing.Color.White;
             this.pnlHero.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.pnlHero.Controls.Add(this.pnlHer0);
-            this.pnlHero.Controls.Add(this.pnlLoaiSan);
             this.pnlHero.Controls.Add(this.pnlDichVu);
+            this.pnlHero.Controls.Add(this.pnlLoaiSan);
+            this.pnlHero.Controls.Add(this.pnlHer0);
             this.pnlHero.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlHero.Location = new System.Drawing.Point(0, 70);
             this.pnlHero.Name = "pnlHero";
-            this.pnlHero.Size = new System.Drawing.Size(1902, 985);
+            this.pnlHero.Size = new System.Drawing.Size(1902, 901);
             this.pnlHero.TabIndex = 1;
-            this.pnlHero.Scroll += new System.Windows.Forms.ScrollEventHandler(this.pnlMain_Scroll);
             this.pnlHero.Paint += new System.Windows.Forms.PaintEventHandler(this.pnlHero_Paint);
             // 
             // pnlHer0
             // 
             this.pnlHer0.BackColor = System.Drawing.Color.Tan;
             this.pnlHer0.Controls.Add(this.button2);
-            this.pnlHer0.Controls.Add(this.button1);
+            this.pnlHer0.Controls.Add(this.pnlCacLoaiSan);
             this.pnlHer0.Controls.Add(this.picBanner);
             this.pnlHer0.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnlHer0.Location = new System.Drawing.Point(0, 0);
             this.pnlHer0.Name = "pnlHer0";
-            this.pnlHer0.Size = new System.Drawing.Size(2257, 621);
+            this.pnlHer0.Size = new System.Drawing.Size(1881, 621);
             this.pnlHer0.TabIndex = 8;
             // 
             // button2
@@ -185,20 +184,21 @@ namespace SportsServices.Forms
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(541, 103);
             this.button2.TabIndex = 4;
-            this.button2.Text = "THAM GIA HỆ THỐNG";
+            this.button2.Text = "CÁC LOẠI DỊCH VỤ";
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
-            // button1
+            // pnlCacLoaiSan
             // 
-            this.button1.Font = new System.Drawing.Font("Bahnschrift", 22.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.button1.ForeColor = System.Drawing.Color.ForestGreen;
-            this.button1.Location = new System.Drawing.Point(686, 193);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(541, 103);
-            this.button1.TabIndex = 3;
-            this.button1.Text = "ĐẶT SÂN NGAY";
-            this.button1.UseVisualStyleBackColor = true;
+            this.pnlCacLoaiSan.Font = new System.Drawing.Font("Bahnschrift", 22.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.pnlCacLoaiSan.ForeColor = System.Drawing.Color.ForestGreen;
+            this.pnlCacLoaiSan.Location = new System.Drawing.Point(686, 193);
+            this.pnlCacLoaiSan.Name = "pnlCacLoaiSan";
+            this.pnlCacLoaiSan.Size = new System.Drawing.Size(541, 103);
+            this.pnlCacLoaiSan.TabIndex = 3;
+            this.pnlCacLoaiSan.Text = "CÁC LOẠI SÂN";
+            this.pnlCacLoaiSan.UseVisualStyleBackColor = true;
+            this.pnlCacLoaiSan.Click += new System.EventHandler(this.pnlCacLoaiSan_Click);
             // 
             // picBanner
             // 
@@ -206,7 +206,7 @@ namespace SportsServices.Forms
             this.picBanner.Image = global::SportsServices.Properties.Resources.Bioscapes_Blog_header_1_1080x400;
             this.picBanner.Location = new System.Drawing.Point(0, 0);
             this.picBanner.Name = "picBanner";
-            this.picBanner.Size = new System.Drawing.Size(2257, 621);
+            this.picBanner.Size = new System.Drawing.Size(1881, 621);
             this.picBanner.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.picBanner.TabIndex = 2;
             this.picBanner.TabStop = false;
@@ -220,9 +220,10 @@ namespace SportsServices.Forms
             this.pnlLoaiSan.Controls.Add(this.tb_LoaiSan_BongDa);
             this.pnlLoaiSan.Controls.Add(this.tblLoaiSan_Tennis);
             this.pnlLoaiSan.Controls.Add(this.label1);
-            this.pnlLoaiSan.Location = new System.Drawing.Point(0, 620);
+            this.pnlLoaiSan.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnlLoaiSan.Location = new System.Drawing.Point(0, 621);
             this.pnlLoaiSan.Name = "pnlLoaiSan";
-            this.pnlLoaiSan.Size = new System.Drawing.Size(2257, 2362);
+            this.pnlLoaiSan.Size = new System.Drawing.Size(1881, 2376);
             this.pnlLoaiSan.TabIndex = 6;
             this.pnlLoaiSan.Paint += new System.Windows.Forms.PaintEventHandler(this.pnlLoaiSan_Paint);
             // 
@@ -253,6 +254,7 @@ namespace SportsServices.Forms
             // 
             // panel4
             // 
+            this.panel4.BackColor = System.Drawing.Color.Ivory;
             this.panel4.Controls.Add(this.label10);
             this.panel4.Controls.Add(this.label11);
             this.panel4.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -310,6 +312,7 @@ namespace SportsServices.Forms
             // 
             // panel3
             // 
+            this.panel3.BackColor = System.Drawing.Color.Ivory;
             this.panel3.Controls.Add(this.label8);
             this.panel3.Controls.Add(this.label9);
             this.panel3.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -365,6 +368,7 @@ namespace SportsServices.Forms
             // 
             // panel2
             // 
+            this.panel2.BackColor = System.Drawing.Color.Ivory;
             this.panel2.Controls.Add(this.label6);
             this.panel2.Controls.Add(this.label7);
             this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -413,6 +417,7 @@ namespace SportsServices.Forms
             // 
             // pictureBox1
             // 
+            this.pictureBox1.BackColor = System.Drawing.Color.OldLace;
             this.pictureBox1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pictureBox1.Image = global::SportsServices.Properties.Resources.sân_bóng_đá_mini_1;
             this.pictureBox1.Location = new System.Drawing.Point(802, 3);
@@ -424,6 +429,7 @@ namespace SportsServices.Forms
             // 
             // panel1
             // 
+            this.panel1.BackColor = System.Drawing.Color.Ivory;
             this.panel1.Controls.Add(this.label4);
             this.panel1.Controls.Add(this.label5);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -482,6 +488,7 @@ namespace SportsServices.Forms
             // 
             // pnlLoaiSanText_Tennis
             // 
+            this.pnlLoaiSanText_Tennis.BackColor = System.Drawing.Color.Ivory;
             this.pnlLoaiSanText_Tennis.Controls.Add(this.label3);
             this.pnlLoaiSanText_Tennis.Controls.Add(this.label2);
             this.pnlLoaiSanText_Tennis.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -525,28 +532,14 @@ namespace SportsServices.Forms
             // 
             // pnlDichVu
             // 
-            this.pnlDichVu.Controls.Add(this.btnOnTop);
+            this.pnlDichVu.Controls.Add(this.button1);
             this.pnlDichVu.Controls.Add(this.tableLayoutPanel2);
             this.pnlDichVu.Controls.Add(this.label12);
-            this.pnlDichVu.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pnlDichVu.Location = new System.Drawing.Point(0, 2982);
+            this.pnlDichVu.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnlDichVu.Location = new System.Drawing.Point(0, 2997);
             this.pnlDichVu.Name = "pnlDichVu";
-            this.pnlDichVu.Size = new System.Drawing.Size(2257, 2000);
+            this.pnlDichVu.Size = new System.Drawing.Size(1881, 1000);
             this.pnlDichVu.TabIndex = 6;
-            // 
-            // btnOnTop
-            // 
-            this.btnOnTop.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnOnTop.BackColor = System.Drawing.Color.WhiteSmoke;
-            this.btnOnTop.Font = new System.Drawing.Font("Bahnschrift", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.btnOnTop.ForeColor = System.Drawing.Color.ForestGreen;
-            this.btnOnTop.Location = new System.Drawing.Point(963, 838);
-            this.btnOnTop.Name = "btnOnTop";
-            this.btnOnTop.Size = new System.Drawing.Size(174, 55);
-            this.btnOnTop.TabIndex = 3;
-            this.btnOnTop.Text = "Đầu trang";
-            this.btnOnTop.UseVisualStyleBackColor = false;
-            this.btnOnTop.Click += new System.EventHandler(this.btnOnTop_Click);
             // 
             // tableLayoutPanel2
             // 
@@ -567,7 +560,7 @@ namespace SportsServices.Forms
             // 
             // panel9
             // 
-            this.panel9.BackColor = System.Drawing.Color.Transparent;
+            this.panel9.BackColor = System.Drawing.Color.LightCyan;
             this.panel9.Controls.Add(this.label19);
             this.panel9.Controls.Add(this.label20);
             this.panel9.Controls.Add(this.pictureBox8);
@@ -614,7 +607,7 @@ namespace SportsServices.Forms
             // 
             // panel8
             // 
-            this.panel8.BackColor = System.Drawing.Color.Transparent;
+            this.panel8.BackColor = System.Drawing.Color.Azure;
             this.panel8.Controls.Add(this.label17);
             this.panel8.Controls.Add(this.label18);
             this.panel8.Controls.Add(this.pictureBox7);
@@ -661,7 +654,7 @@ namespace SportsServices.Forms
             // 
             // panel7
             // 
-            this.panel7.BackColor = System.Drawing.Color.Transparent;
+            this.panel7.BackColor = System.Drawing.Color.Azure;
             this.panel7.Controls.Add(this.label15);
             this.panel7.Controls.Add(this.label16);
             this.panel7.Controls.Add(this.pictureBox6);
@@ -708,7 +701,7 @@ namespace SportsServices.Forms
             // 
             // panel6
             // 
-            this.panel6.BackColor = System.Drawing.Color.Transparent;
+            this.panel6.BackColor = System.Drawing.Color.LightCyan;
             this.panel6.Controls.Add(this.label13);
             this.panel6.Controls.Add(this.label14);
             this.panel6.Controls.Add(this.pictureBox5);
@@ -765,12 +758,25 @@ namespace SportsServices.Forms
             this.label12.Text = "TIỆN ÍCH VÀ DỊCH VỤ ĐI KÈM";
             this.label12.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
+            // button1
+            // 
+            this.button1.BackColor = System.Drawing.Color.Yellow;
+            this.button1.Font = new System.Drawing.Font("Bahnschrift", 22.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.button1.ForeColor = System.Drawing.Color.Black;
+            this.button1.Location = new System.Drawing.Point(797, 746);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(541, 103);
+            this.button1.TabIndex = 5;
+            this.button1.Text = "ĐĂNG KÝ SỬ DỤNG";
+            this.button1.UseVisualStyleBackColor = false;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
             // FrmIntro
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
-            this.ClientSize = new System.Drawing.Size(1902, 1055);
+            this.ClientSize = new System.Drawing.Size(1902, 971);
             this.Controls.Add(this.pnlHero);
             this.Controls.Add(this.pnlHeader);
             this.Name = "FrmIntro";
@@ -828,7 +834,7 @@ namespace SportsServices.Forms
         private System.Windows.Forms.Label lblLogo;
         private System.Windows.Forms.Button btnLoginHeader;
         private Panel pnlHero;
-        private Button button1;
+        private Button pnlCacLoaiSan;
         private Button button2;
         private Panel pnlLoaiSan;
         private Panel pnlHer0;
@@ -878,6 +884,6 @@ namespace SportsServices.Forms
         private Label label19;
         private Label label20;
         private PictureBox pictureBox8;
-        private Button btnOnTop;
+        private Button button1;
     }
 }

@@ -8,8 +8,25 @@ using System.Threading.Tasks;
 
 namespace SportsServices.Dto
 {
+    public class TaiKhoan
+    {
+        public string Username { get; set; }
+        public string Password { get; set; }
+        public string HoTen { get; set; }
+        public string Role { get; set; } // "KHACH_HANG" hoặc "NHAN_VIEN" hoặc "QUAN_LY"
+    }
+
+    // Class Khách hàng (bổ sung nếu chưa có đủ trường)
+    public class KhachHang
+    {
+        public string HoTen { get; set; }
+        public string SDT { get; set; }
+        public string Email { get; set; }
+        // ... các trường khác
+    }
 
 }
+
 public static class DbHelper
 {
     private static string _connectionString =
@@ -47,4 +64,5 @@ public static class DbHelper
             }
         }
     }
+
 }

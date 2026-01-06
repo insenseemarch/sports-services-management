@@ -20,6 +20,7 @@ namespace SportsServices.Forms
             this.Load += FormDatDichVu_Load;
             dgdDichVu.CellValueChanged += dgdDichVu_CellValueChanged;
             dgdDichVu.CurrentCellDirtyStateChanged += dgdDichVu_CurrentCellDirtyStateChanged;
+            this.Text = "Chọn Dịch Vụ Đi Kèm - ViệtSports";
         }
 
         // =============== LOAD FAKE DATA ===============
@@ -92,6 +93,23 @@ namespace SportsServices.Forms
         // nếu Designer còn gắn CellContentClick thì giữ hàm rỗng này
         private void dgdDichVu_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
+        }
+
+        private void btnXacNhanDat_Click(object sender, EventArgs e)
+        {
+            // 1. Kiểm tra xem khách có chọn dịch vụ nào chưa
+            // if (gridDichVu.SelectedRows.Count == 0) { ... }
+
+            // 2. Lưu dịch vụ vào Database (gắn với Mã đơn hàng từ bước trước)
+            // FakeDatabase.ChiTietDichVu.Add(...);
+
+            MessageBox.Show("Đã ghi nhận dịch vụ đi kèm!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void btnKhongDat_Click(object sender, EventArgs e)
+        {
+            DialogResult dr = MessageBox.Show("Bạn muốn hoàn tất đặt sân mà không cần dịch vụ?",
+                                              "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
         }
     }
 }

@@ -236,6 +236,7 @@
             this.btnDatSan.TabIndex = 14;
             this.btnDatSan.Text = "Đặt sân";
             this.btnDatSan.UseVisualStyleBackColor = false;
+            this.btnDatSan.Click += new System.EventHandler(this.btnDatSan_Click_1);
             // 
             // cboHinhThucTT
             // 

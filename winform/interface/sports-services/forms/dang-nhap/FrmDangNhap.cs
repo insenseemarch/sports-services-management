@@ -1,6 +1,8 @@
-﻿using System;
+﻿using SportsServices.Dto;
+using System;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace SportsServices.Forms
@@ -22,68 +24,47 @@ namespace SportsServices.Forms
 
         private void btnDangNhap_Click(object sender, EventArgs e)
         {
-            string username = txtUsername.Text.Trim();
-            string password = txtPassword.Text.Trim();
+            string u = txtUsername.Text;
+            string p = txtPassword.Text;
 
-            // 1. Validate dữ liệu
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            // 1. Tìm kiếm trong FakeDatabase
+            // Tìm user khớp username và password
+            var user = FakeDatabase.TaiKhoans.FirstOrDefault(t => t.Username == u && t.Password == p);
+
+            if (user != null)
             {
-                MessageBox.Show("Vui lòng nhập đầy đủ Tên đăng nhập và Mật khẩu!",
-                                "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
+                MessageBox.Show($"Xin chào {user.Role}: {user.HoTen}", "Đăng nhập thành công");
 
-            // 2. Kiểm tra đăng nhập với CSDL (Khớp với bảng TAI_KHOAN bên FrmDangKy)
-            // Lưu ý: Nếu bạn có hàm DbHelper.ExecuteQuery hoặc GetDataTable thì dùng nó nhé.
-            // Ở đây mình viết code SQL thuần để đảm bảo chạy được.
-            try
-            {
-                // Giả sử DbHelper.ConnectionString là chuỗi kết nối của bạn
-                // Nếu DbHelper chưa public chuỗi này, bạn hãy thay bằng chuỗi kết nối thật
-                string query = "SELECT Count(*) FROM TAI_KHOAN WHERE Username = @User AND PasswordHash = @Pass";
+                this.Hide(); // Ẩn form đăng nhập
 
-                // Cách gọi qua DbHelper (nếu có hàm trả về giá trị):
-                // int count = (int)DbHelper.ExecuteScalar(query, ...);
-
-                // Hoặc viết trực tiếp để test:
-                // using (SqlConnection conn = new SqlConnection("CHUOI_KET_NOI_CUA_BAN"))
-                // {
-                //     conn.Open();
-                //     SqlCommand cmd = new SqlCommand(query, conn);
-                //     cmd.Parameters.AddWithValue("@User", username);
-                //     cmd.Parameters.AddWithValue("@Pass", password);
-                //     int count = (int)cmd.ExecuteScalar();
-                // }
-
-                // --- LOGIC GIẢ LẬP ĐỂ BẠN CHẠY TEST GIAO DIỆN ---
-                // (Xóa đoạn if này và dùng code SQL thật ở trên khi đã kết nối DB)
-                bool loginSuccess = false;
-
-                // Check admin cứng hoặc check DB
-                if (username == "admin" && password == "admin") loginSuccess = true;
-
-                // Nếu DB trả về > 0 dòng thì loginSuccess = true;
-
-                if (loginSuccess)
+                // 2. PHÂN QUYỀN ĐIỀU HƯỚNG
+                if (user.Role == "KHACH_HANG")
                 {
-                    MessageBox.Show("Đăng nhập thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                    this.Hide(); // Ẩn form đăng nhập
-
-                    // Mở Form Main (Lưu ý tên class Form chính của bạn, vd: Form1 hoặc FrmMain)
-                    Form1 frmMain = new Form1();
-                    frmMain.ShowDialog();
-
-                    this.Close(); // Đóng hẳn khi form main tắt
+                    // Mở giao diện cho Khách
+                    FrmMainCustomer frmKhach = new FrmMainCustomer(user);
+                    this.Hide();
+                    frmKhach.ShowDialog();
+                    this.Show();
                 }
-                else
+                else if (user.Role == "NHAN_VIEN" || user.Role == "QUAN_LY")
                 {
-                    MessageBox.Show("Sai tên đăng nhập hoặc mật khẩu!", "Lỗi đăng nhập", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    // Mở giao diện cho Nhân viên/Quản lý
+                    // Ví dụ bạn có FrmMainStaff
+                    // Nếu chưa có, tạm thời mở Form1 nhưng hiển thị khác, hoặc mở 1 form khác
+                    // Ví dụ:
+                    // FrmQuanLy frmAdmin = new FrmQuanLy();
+                    // frmAdmin.ShowDialog();
+                    MessageBox.Show("Đang mở giao diện Quản lý (Bạn cần tạo Form này)");
+                    Form1 frmAdmin = new Form1(); // Tạm thời mở Form1
+                    frmAdmin.ShowDialog();
                 }
+
+                // Khi Form chính đóng lại thì hiện lại Login hoặc thoát luôn tuỳ logic
+                this.Close();
             }
-            catch (Exception ex)
+            else
             {
-                MessageBox.Show("Lỗi kết nối: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Sai tên đăng nhập hoặc mật khẩu!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

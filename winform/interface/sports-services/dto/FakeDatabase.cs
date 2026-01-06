@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using static DbHelper;
 
 namespace SportsServices.Dto
 {
@@ -11,6 +12,9 @@ namespace SportsServices.Dto
         public static List<NhanVien> NhanViens { get; set; } = new List<NhanVien>();
 
         public static List<SanTheThao> Sans { get; set; } = new List<SanTheThao>();
+
+        public static List<TaiKhoan> TaiKhoans { get; set; } = new List<TaiKhoan>();
+        public static List<KhachHang> KhachHangs { get; set; } = new List<KhachHang>();
 
 
         // Hàm này chạy 1 lần lúc mở App để nạp dữ liệu mẫu
@@ -43,6 +47,16 @@ namespace SportsServices.Dto
                 new SanTheThao { LoaiSan="Futsal", ChiNhanh="Cần Thơ", GioMo=new TimeSpan(6,0,0), GioDong=new TimeSpan(22,0,0), DangTrong=true },
                 new SanTheThao { LoaiSan="Bóng rổ", ChiNhanh="TP.HCM", GioMo=new TimeSpan(8,0,0), GioDong=new TimeSpan(20,0,0), DangTrong=false },
             };
+
+            if (TaiKhoans.Count == 0)
+            {
+                // 1. Tài khoản Quản lý/Nhân viên mẫu
+                TaiKhoans.Add(new TaiKhoan { Username = "admin", Password = "123", Role = "QUAN_LY", HoTen = "Quản Lý A" });
+                TaiKhoans.Add(new TaiKhoan { Username = "nv01", Password = "123", Role = "NHAN_VIEN", HoTen = "Nhân Viên B" });
+
+                // 2. Tài khoản Khách hàng mẫu (nếu muốn test sẵn)
+                TaiKhoans.Add(new TaiKhoan { Username = "khach01", Password = "123", Role = "KHACH_HANG", HoTen = "Khách Hàng C" });
+            }
         }
     }
     public static class KhoDuLieuBaoCao
@@ -209,4 +223,5 @@ namespace SportsServices.Dto
         public TimeSpan GioDong { get; set; }
         public bool DangTrong { get; set; }
     }
+
 }

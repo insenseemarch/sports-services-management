@@ -1,14 +1,16 @@
-﻿using System;
+﻿using SportsServices.Dto;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static DbHelper;
 
 namespace SportsServices.Forms
 {
@@ -93,49 +95,48 @@ namespace SportsServices.Forms
         /// </summary>
         private void btnDangKy_Click(object sender, EventArgs e)
         {
-            // 1. Kiểm tra dữ liệu
-            if (!ValidateForm())
-                return;
+            // 1. Kiểm tra dữ liệu (ValidateForm)
+            if (!ValidateForm()) return;
 
-            // 2. Câu lệnh SQL (tùy bạn đã tạo bảng KHACH_HANG như thế nào)
-            string sql = @"
-                INSERT INTO KHACH_HANG
-                    (HoTen, NgaySinh, CMND, SDT, Email, DiaChi, IsHSSV, AnhGiayTo)
-                VALUES
-                    (@HoTen, @NgaySinh, @CMND, @SDT, @Email, @DiaChi, @IsHSSV, @AnhGiayTo);
-
-                INSERT INTO TAI_KHOAN(Username, PasswordHash, MaKhachHang)
-                VALUES (@Username, @Password, SCOPE_IDENTITY());
-            ";
-
-            var p = new[]
+            // 2. Kiểm tra xem username đã tồn tại trong Mock Data chưa
+            bool daTonTai = FakeDatabase.TaiKhoans.Any(x => x.Username == txtUsername.Text);
+            if (daTonTai)
             {
-                new SqlParameter("@HoTen", txtHoTen.Text),
-                new SqlParameter("@NgaySinh", dtpNgaySinh.Value),
-                // Đảm bảo TextBox CCCD của bạn tên là txtCCCD, nếu không thì đổi cho khớp
-                new SqlParameter("@CMND", (object)txtCCCD.Text ?? DBNull.Value),
-                new SqlParameter("@SDT", txtSDT.Text),
-                new SqlParameter("@Email", txtEmail.Text),
-                new SqlParameter("@DiaChi", (object)txtDiaChi.Text ?? DBNull.Value),
+                MessageBox.Show("Tên đăng nhập đã tồn tại!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
-                new SqlParameter("@IsHSSV", chkHSSV.Checked),
-                new SqlParameter("@AnhGiayTo", (object)_giayToBytes ?? DBNull.Value),
-
-                new SqlParameter("@Username", txtUsername.Text),
-                new SqlParameter("@Password", txtPassword.Text) // demo: sau này nên hash
-            };
-
+            // 3. LƯU VÀO MOCK DATABASE (Thay thế đoạn code SQL cũ)
             try
             {
-                DbHelper.ExecuteNonQuery(sql, p);
-                MessageBox.Show("Đăng ký thành công!", "Thành công",
-                                MessageBoxButtons.OK, MessageBoxIcon.Information);
+                // Lưu thông tin khách hàng
+                KhachHang khMoi = new KhachHang
+                {
+                    HoTen = txtHoTen.Text,
+                    SDT = txtSDT.Text,
+                    Email = txtEmail.Text
+                    // Lưu thêm các trường khác nếu cần
+                };
+                FakeDatabase.KhachHangs.Add(khMoi);
+
+                // Lưu tài khoản đăng nhập
+                TaiKhoan tkMoi = new TaiKhoan
+                {
+                    Username = txtUsername.Text,
+                    Password = txtPassword.Text, // Demo thì lưu plain text
+                    HoTen = txtHoTen.Text,
+                    Role = "KHACH_HANG" // Mặc định đăng ký mới là Khách hàng
+                };
+                FakeDatabase.TaiKhoans.Add(tkMoi);
+
+                MessageBox.Show("Đăng ký thành công (Mock Data)!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                // Đóng form đăng ký để quay về form đăng nhập
                 this.Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi đăng ký: " + ex.Message,
-                                "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Lỗi: " + ex.Message);
             }
         }
 

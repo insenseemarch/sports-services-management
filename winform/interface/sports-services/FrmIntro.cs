@@ -63,7 +63,7 @@ namespace SportsServices.Forms
             this.Hide(); // Ẩn trang Intro
             FrmDangNhap frm = new FrmDangNhap();
             frm.ShowDialog(); // Chờ đăng nhập
-            this.Close(); // Đóng hẳn ứng dụng sau khi form đăng nhập đóng (nếu user tắt form đăng nhập)
+            this.Show(); // Đóng hẳn ứng dụng sau khi form đăng nhập đóng (nếu user tắt form đăng nhập)
         }
         private void lblLogo_Click(object sender, EventArgs e)
         {
@@ -133,6 +133,14 @@ namespace SportsServices.Forms
         private void pnlMain_Scroll(object sender, ScrollEventArgs e)
         {
             btnOnTop.Visible = pnlHero.VerticalScroll.Value > 200;
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            this.Hide(); // Ẩn trang Intro
+            FormDangKy frm = new FormDangKy();
+            frm.ShowDialog(); // Chờ đăng ký
+            this.Show(); 
         }
     }
 }

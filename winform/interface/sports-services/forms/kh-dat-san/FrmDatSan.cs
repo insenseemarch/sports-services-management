@@ -12,6 +12,8 @@ namespace SportsServices.Forms
 {
     public partial class FormDatSan : Form
     {
+        private Form currentChildForm;
+
         // Lớp nhỏ để giữ thông tin sân (theo CSDL: SAN, LOAISAN, COSO)
         private class SanInfo
         {
@@ -254,5 +256,39 @@ namespace SportsServices.Forms
         // Các handler cũ nếu muốn giữ lại thì để trống cũng được
         private void label3_Click(object sender, EventArgs e) { }
         private void dateTimePicker1_ValueChanged(object sender, EventArgs e) { }
+        private void btnDatSan_Click_1(object sender, EventArgs e)
+        {
+            // 1. Validate (Giữ nguyên như cũ)
+            if (_sanDangChon == null)
+            {
+                MessageBox.Show("Vui lòng chọn sân!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // 2. LƯU THÔNG TIN ĐẶT SÂN VÀO DATABASE (QUAN TRỌNG)
+            // Giả sử bạn có class DatSan trong Models.cs, nếu chưa có thì tạo tạm structure lưu trữ
+            // Ở đây mình lưu tạm vào một biến static hoặc FakeDatabase để màn hình sau có thể lấy ID đơn hàng
+
+            // Tạo mã đơn hàng ngẫu nhiên
+            string maDonHang = "DH" + DateTime.Now.ToString("ddHHmmss");
+
+            // TODO: Lưu vào FakeDatabase (Bạn cần bổ sung List<DonDatSan> trong FakeDatabase nếu muốn chuẩn)
+            // Ví dụ tạm thời: 
+            // FakeDatabase.DonDatSans.Add(new DonDatSan { MaDon = maDonHang, MaSan = _sanDangChon.MaSan ... });
+
+            // 3. CHUYỂN QUA MÀN HÌNH DỊCH VỤ
+            // Truyền mã đơn hàng qua để biết đang đặt dịch vụ cho đơn nào (nếu cần)
+            FormDatDichVu frmDichVu = new FormDatDichVu();
+
+            // Ẩn form đặt sân hiện tại đi (để người dùng tập trung vào form dịch vụ)
+            this.Hide();
+
+            // Mở form dịch vụ lên. ShowDialog giúp code dừng tại đây cho đến khi Form dịch vụ đóng lại
+            frmDichVu.ShowDialog();
+
+            // Sau khi Form Dịch vụ đóng (hoàn tất quy trình), đóng luôn form đặt sân này 
+            // hoặc reset lại để đặt tiếp tuỳ bạn.
+            this.Close();
+        }
     }
 }

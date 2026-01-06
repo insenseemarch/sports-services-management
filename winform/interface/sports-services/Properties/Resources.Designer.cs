@@ -133,6 +133,26 @@ namespace SportsServices.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Cover_GD1_2400x13501 {
+            get {
+                object obj = ResourceManager.GetObject("Cover GD1_2400x13501", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Cover_GD1_2400x135011 {
+            get {
+                object obj = ResourceManager.GetObject("Cover GD1_2400x135011", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap dich_vu_thi_cong_san_futsal_anh_bia {
             get {
                 object obj = ResourceManager.GetObject("dich-vu-thi-cong-san-futsal-anh-bia", resourceCulture);
@@ -153,9 +173,59 @@ namespace SportsServices.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap phong_nen_giai_cau_long_corel_x7_01 {
+            get {
+                object obj = ResourceManager.GetObject("phong-nen-giai-cau-long-corel-x7-01", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap quang_cao_the_thao_1 {
+            get {
+                object obj = ResourceManager.GetObject("quang-cao-the-thao-1", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap sân_bóng_đá_mini_1 {
             get {
                 object obj = ResourceManager.GetObject("sân-bóng-đá-mini-1", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap slide_show_banner_02 {
+            get {
+                object obj = ResourceManager.GetObject("slide-show-banner-02", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap slider_21_pc {
+            get {
+                object obj = ResourceManager.GetObject("slider_21_pc", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap slider_21_pc1 {
+            get {
+                object obj = ResourceManager.GetObject("slider_21_pc1", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

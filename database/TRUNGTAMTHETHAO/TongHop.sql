@@ -443,10 +443,10 @@ FOREIGN KEY (MaTK) REFERENCES TAIKHOAN(MaTK)
 GO
 
 -- BAOCAOTHONGKE
-
 ALTER TABLE BAOCAOTHONGKE ADD CONSTRAINT FK_BCTK_NHANVIEN FOREIGN KEY (NguoiLapPhieu) REFERENCES NHANVIEN(MaNV);
 ALTER TABLE BAOCAOTHONGKE ADD CONSTRAINT FK_BCTK_COSO FOREIGN KEY (MaCS) REFERENCES COSO(MaCS);
 GO
+
 -- DOANHTHU
 ALTER TABLE DOANHTHU ADD CONSTRAINT FK_DT_BAOCAO FOREIGN KEY (MaBaoCao) REFERENCES BAOCAOTHONGKE(MaBaoCao);
 GO
@@ -933,7 +933,6 @@ GO
 -- ==                                                                               ==
 -- ==					CÁC STORED PROCEDURE XỬ LÝ TRANH CHẤP                       ==
 -- ==																                ==
--- ==                                                                               ==
 -- ===================================================================================
 
 -- =============================================================
@@ -1446,7 +1445,8 @@ END
 GO
 
 -- ===================================================================================
--- ==             PHẦN 3: CÁC STORED PROCEDURE NGHIỆP VỤ CHÍNH		                ==
+-- ==																			    ==
+-- ==					CÁC STORED PROCEDURE NGHIỆP VỤ CHÍNH		                ==
 -- ==																			    ==																	==
 -- ===================================================================================
 
@@ -1921,7 +1921,9 @@ END;
 GO
 
 --	===================================================================================
+--	==																				 ==
 --	==								BẢO MẬT & PHÂN QUYỀN							 ==
+--	==																				 ==
 --	===================================================================================
 
 CREATE ROLE Role_QuanLy;

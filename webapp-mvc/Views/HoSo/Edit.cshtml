@@ -1,0 +1,137 @@
+@model webapp_mvc.Models.HoSoViewModel
+
+@{
+    ViewData["Title"] = "Chỉnh Sửa Hồ Sơ";
+}
+
+<!-- Thêm padding-top để tránh bị navbar che khuất -->
+<div class="container py-5" style="padding-top: 100px !important;">
+    <div class="row justify-content-center">
+        <!-- Edit Profile Card -->
+        <div class="col-lg-9">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden" 
+                 style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px);">
+                
+                <!-- Header / Banner -->
+                <div class="position-relative" style="height: 150px; background: linear-gradient(135deg, var(--color-dark) 0%, #1a4d44 100%);">
+                    <div class="position-absolute bottom-0 start-0 w-100 h-100" 
+                         style="background-image: radial-gradient(circle at 10% 20%, rgba(204, 255, 0, 0.1) 0%, transparent 20%);"></div>
+                </div>
+
+                <div class="card-body px-4 px-md-5 pb-5 pt-0 position-relative">
+                    <!-- Avatar Section (Small) -->
+                    <div class="text-center position-absolute start-50 translate-middle-x" style="top: -50px;">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center shadow-lg mx-auto" 
+                             style="width: 100px; height: 100px; background: white; padding: 3px;">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center w-100 h-100" 
+                                 style="background: var(--bg-body);">
+                                <i class="fas fa-user-edit" style="font-size: 50px; color: var(--color-dark);"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Spacer -->
+                    <div style="margin-top: 60px;"></div>
+
+                    <div class="text-center mb-4">
+                        <h4 class="fw-bold" style="color: var(--color-dark);">Cập Nhật Thông Tin</h4>
+                        <p class="text-muted small">Thay đổi thông tin cá nhân của bạn</p>
+                    </div>
+
+                    <!-- Edit Form -->
+                    <form asp-action="Edit" method="post" class="needs-validation" novalidate>
+                        
+                        <div class="row g-4">
+                            <!-- Họ Tên -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="HoTen" class="form-label fw-bold text-muted small text-uppercase">Họ Và Tên</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-0"><i class="fas fa-user text-muted"></i></span>
+                                        <input asp-for="HoTen" class="form-control form-control-lg border-0 bg-light" placeholder="Nhập họ tên..." />
+                                    </div>
+                                    <span asp-validation-for="HoTen" class="text-danger small mt-1"></span>
+                                </div>
+                            </div>
+
+                            <!-- Ngày Sinh -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="NgaySinh" class="form-label fw-bold text-muted small text-uppercase">Ngày Sinh</label>
+                                     <div class="input-group">
+                                        <span class="input-group-text bg-light border-0"><i class="fas fa-calendar-alt text-muted"></i></span>
+                                        <input asp-for="NgaySinh" type="date" class="form-control form-control-lg border-0 bg-light" />
+                                    </div>
+                                    <span asp-validation-for="NgaySinh" class="text-danger small mt-1"></span>
+                                </div>
+                            </div>
+
+                            <!-- CCCD -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="CCCD" class="form-label fw-bold text-muted small text-uppercase">CCCD / CMND</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-0"><i class="fas fa-id-badge text-muted"></i></span>
+                                        <input asp-for="CCCD" class="form-control form-control-lg border-0 bg-light" placeholder="Số CCCD..." />
+                                    </div>
+                                    <span asp-validation-for="CCCD" class="text-danger small mt-1"></span>
+                                </div>
+                            </div>
+
+                             <!-- Số Điện Thoại -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="SDT" class="form-label fw-bold text-muted small text-uppercase">Số Điện Thoại</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-0"><i class="fas fa-phone text-muted"></i></span>
+                                        <input asp-for="SDT" class="form-control form-control-lg border-0 bg-light" placeholder="Số điện thoại..." />
+                                    </div>
+                                    <span asp-validation-for="SDT" class="text-danger small mt-1"></span>
+                                </div>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label asp-for="Email" class="form-label fw-bold text-muted small text-uppercase">Email</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-0"><i class="fas fa-envelope text-muted"></i></span>
+                                        <input asp-for="Email" class="form-control form-control-lg border-0 bg-light" placeholder="Địa chỉ email..." />
+                                    </div>
+                                    <span asp-validation-for="Email" class="text-danger small mt-1"></span>
+                                </div>
+                            </div>
+
+                            <!-- Địa Chỉ -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label asp-for="DiaChi" class="form-label fw-bold text-muted small text-uppercase">Địa Chỉ</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-0"><i class="fas fa-map-marker-alt text-muted"></i></span>
+                                        <input asp-for="DiaChi" class="form-control form-control-lg border-0 bg-light" placeholder="Địa chỉ liên hệ..." />
+                                    </div>
+                                    <span asp-validation-for="DiaChi" class="text-danger small mt-1"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-end mt-5 gap-3">
+                            <a asp-action="Index" class="btn btn-light fw-bold px-4 py-2 rounded-pill text-muted">
+                                <i class="fas fa-times me-2"></i> Hủy Bỏ
+                            </a>
+                            <button type="submit" class="btn fw-bold px-5 py-2 rounded-pill shadow-sm d-flex align-items-center" 
+                                    style="background-color: var(--color-lime); color: var(--color-dark); border: none; transition: all 0.2s;">
+                                <i class="fas fa-save me-2"></i> Lưu Thay Đổi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

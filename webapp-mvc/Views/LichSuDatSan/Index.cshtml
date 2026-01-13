@@ -1,0 +1,605 @@
+@model webapp_mvc.Models.LichSuViewModel
+@{
+    ViewData["Title"] = "Lịch sử đặt sân";
+}
+
+<div class="position-relative w-100 d-flex align-items-center justify-content-center mb-5" 
+     style="height: 350px; background: linear-gradient(135deg, #20bf55 0%, #01baef 100%); padding-top: 85px;">
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: rgba(0,0,0,0.2);"></div>
+    
+    <div class="text-center position-relative" style="z-index: 2;">
+        <h1 class="display-3 fw-bold text-white mb-3">
+            <i class="fas fa-history me-3"></i>LỊCH SỬ ĐẶT SÂN
+        </h1>
+        <p class="lead text-light fs-5">Theo dõi tất cả các phiếu đặt sân của bạn</p>
+    </div>
+</div>
+
+<div class="container pb-5">
+    @if (Model.LichSuDat.Any())
+    {
+        <div class="row g-4">
+            @foreach (var item in Model.LichSuDat)
+            {
+                var statusColor = item.TrangThai == "Đã thanh toán" || item.TrangThai == "Đã đặt" ? "success" : 
+                                  item.TrangThai == "Chờ thanh toán" ? "warning" :
+                                  item.TrangThai == "Đã hủy" || item.TrangThai == "Không hợp lệ" ? "danger" : "secondary";
+                var displayStatus = item.TrangThai == "Đã đặt" ? "Đã thanh toán" : item.TrangThai;
+                
+                var endTime = item.NgayDat.Date + item.GioKetThuc;
+                var isFuture = endTime > DateTime.Now;
+                var allowReview = !isFuture && item.TrangThai != "Đã hủy";
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border-0 shadow-sm hover-elevate h-100" style="border-radius: 15px; transition: all 0.3s ease;">
+                        <div class="card-header py-3" style="background: linear-gradient(135deg, var(--color-lime) 0%, #b8d906 100%); border-radius: 15px 15px 0 0;">
+                            <h5 class="mb-0 fw-bold text-dark">
+                                <i class="fas fa-receipt me-2"></i>Đơn #@item.MaDatSan
+                            </h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="mb-3">
+                                <span class="badge bg-@statusColor px-3 py-2 fs-6">@displayStatus</span>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <i class="fas fa-basketball-ball text-primary me-2"></i>
+                                <strong>Sân:</strong> @item.MaSan
+                            </div>
+                            <div class="mb-2">
+                                <i class="fas fa-calendar text-info me-2"></i>
+                                <strong>Ngày:</strong> @item.NgayDat.ToString("dd/MM/yyyy")
+                            </div>
+                            <div class="mb-2">
+                                <i class="fas fa-clock text-warning me-2"></i>
+                                <strong>Giờ:</strong> @item.GioBatDau.ToString(@"hh\:mm") - @item.GioKetThuc.ToString(@"hh\:mm")
+                            </div>
+                            <div class="mt-3 pt-3 border-top">
+                                <h5 class="text-primary mb-0">
+                                    <i class="fas fa-money-bill-wave me-2"></i>@item.ThanhTien.ToString("N0") đ
+                                </h5>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light border-0" style="border-radius: 0 0 15px 15px;">
+                            <button type="button" class="btn btn-sm btn-outline-primary" 
+                                    data-bs-toggle="modal" data-bs-target="#detailModal"
+                                    data-ma="@item.MaDatSan"
+                                    data-san="@item.MaSan"
+                                    data-ngay="@item.NgayDat.ToString("dd/MM/yyyy")"
+                                    data-gio="@item.GioBatDau.ToString(@"hh\:mm") - @item.GioKetThuc.ToString(@"hh\:mm")"
+                                    data-tien="@item.ThanhTien.ToString("N0")"
+                                    data-status="@displayStatus"
+                                    data-color="@statusColor"
+                                    data-is-future="@isFuture"
+                                    data-allow-review="@allowReview"
+                                    data-remaining="@item.RemainingSeconds">
+                                <i class="fas fa-eye me-1"></i>Chi tiết
+                            </button>
+
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-inbox fa-5x text-muted mb-4"></i>
+            <h3 class="text-muted">Chưa có lịch sử đặt sân</h3>
+            <p class="text-muted mb-4">Bạn chưa có phiếu đặt sân nào.</p>
+            <a asp-action="Index" asp-controller="DatSan" class="btn btn-primary btn-lg px-5" 
+               style="background: var(--color-lime); border: none; color: var(--color-dark);">
+                <i class="fas fa-plus-circle me-2"></i>Đặt sân ngay
+            </a>
+        </div>
+    }
+</div>
+
+<style>
+    .hover-elevate:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+    }
+</style>
+
+<!-- Modal Chi tiết -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 20px; border: none;">
+            <div class="modal-header text-white border-0" style="background: linear-gradient(135deg, #20bf55 0%, #01baef 100%); border-radius: 20px 20px 0 0;">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-file-invoice me-2"></i>Chi tiết đơn đặt sân
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="text-center mb-4">
+                    <span id="modalStatus" class="badge px-4 py-2 fs-5"></span>
+                </div>
+                
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="p-3 rounded" style="background: #f8f9fa;">
+                            <small class="text-muted d-block mb-1">Mã đơn</small>
+                            <h6 class="mb-0 fw-bold" id="modalMa">#</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 rounded" style="background: #f8f9fa;">
+                            <small class="text-muted d-block mb-1">Sân</small>
+                            <h6 class="mb-0 fw-bold" id="modalSan"></h6>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 rounded" style="background: #f8f9fa;">
+                            <small class="text-muted d-block mb-1">Ngày đặt</small>
+                            <h6 class="mb-0 fw-bold" id="modalNgay"></h6>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 rounded" style="background: #f8f9fa;">
+                            <small class="text-muted d-block mb-1">Giờ</small>
+                            <h6 class="mb-0 fw-bold" id="modalGio"></h6>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4 p-4 text-center rounded" style="background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);">
+                    <small class="text-muted d-block mb-2">Tổng tiền</small>
+                    <h3 class="mb-0 fw-bold text-success" id="modalTien"></h3>
+                </div>
+
+                <!-- Action Zone -->
+                <div id="actionZone" class="mt-4 text-center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <script>
+        var countdownInterval;
+
+        // Populate modal with booking details
+        document.getElementById('detailModal').addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var maDatSan = button.getAttribute('data-ma');
+            var maSan = button.getAttribute('data-san');
+            var ngay = button.getAttribute('data-ngay'); 
+            var gio = button.getAttribute('data-gio');
+            var tien = button.getAttribute('data-tien');
+            var status = button.getAttribute('data-status');
+            var color = button.getAttribute('data-color');
+            
+            // Parse date to check if future (simple string compare or pass generic format)
+            // Better: button.getAttribute('data-is-future')
+            var isFuture = button.getAttribute('data-is-future') === 'True';
+            var allowReview = button.getAttribute('data-allow-review') === 'True';
+
+            // Fill Info
+            document.getElementById('modalMa').textContent = '#' + maDatSan;
+            document.getElementById('modalSan').textContent = maSan;
+            document.getElementById('modalNgay').textContent = ngay;
+            document.getElementById('modalGio').textContent = gio;
+            document.getElementById('modalTien').textContent = tien + ' đ';
+            
+            var statusBadge = document.getElementById('modalStatus');
+            statusBadge.textContent = status;
+            statusBadge.className = 'badge px-4 py-2 fs-5 bg-' + color;
+
+            // Reset Actions
+            document.getElementById('actionZone').innerHTML = '';
+
+            // 1. Action Logic
+            // 1. Action Logic
+            if (countdownInterval) clearInterval(countdownInterval); // Clear prev timer
+
+            if (status === 'Chờ thanh toán') { // Pending
+                var remainingSeconds = parseFloat(button.getAttribute('data-remaining'));
+                var expiryTime = new Date(Date.now() + remainingSeconds * 1000);
+                
+                function updateCountdown() {
+                    var now = new Date();
+                    var diff = expiryTime - now;
+
+                    if (diff <= 0) {
+                        clearInterval(countdownInterval);
+                        var expiredHtml = `<div class="alert alert-danger border-danger d-inline-block text-start shadow-sm" style="background-color: #fff5f5; border-radius: 10px;">
+                                            <div class="d-flex align-items-center fw-bold">
+                                                <i class="fas fa-times-circle me-2 fa-lg"></i>
+                                                <span>Quý khách đã quá hạn thanh toán</span>
+                                            </div>
+                                        </div>`;
+                        document.getElementById('actionZone').innerHTML = expiredHtml;
+                        
+                        // Update Visual Status
+                        var badge = document.getElementById('modalStatus');
+                        badge.textContent = "Không hợp lệ";
+                        badge.className = "badge px-4 py-2 fs-5 bg-danger";
+                    } else {
+                        var minutes = Math.floor(diff / 60000);
+                        var seconds = Math.floor((diff % 60000) / 1000);
+                        var timeStr = minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+
+                        var warningHtml = `<div class="alert alert-warning border-warning d-inline-block text-start shadow-sm" style="background-color: #fffbf0; border-radius: 10px;">
+                                            <div class="d-flex align-items-center text-danger fw-bold">
+                                                <i class="fas fa-exclamation-circle me-2 fa-lg"></i>
+                                                <span>Vui lòng đến quầy thực hiện thanh toán (${timeStr})</span>
+                                            </div>
+                                            <div class="small text-muted mt-1 text-center">Tự động hủy sau 30 phút</div>
+                                        </div>`;
+                        document.getElementById('actionZone').innerHTML = warningHtml;
+                    }
+                }
+                
+                updateCountdown(); // Run immediately
+                countdownInterval = setInterval(updateCountdown, 1000);
+            }
+            else if (status === 'Đã thanh toán' && isFuture) { // Paid & Future
+                 var btnCancel = `<button class="btn btn-danger me-2 shadow-sm" onclick="confirmCancel(${maDatSan})" style="border-radius: 10px;">
+                                    <i class="fas fa-trash-alt me-2"></i>Hủy sân
+                                 </button>`;
+                var btnChange = `<button class="btn btn-warning shadow-sm text-white" onclick="showChangeForm(${maDatSan})" style="border-radius: 10px;">
+                                    <i class="fas fa-sync-alt me-2"></i>Đổi giờ
+                                 </button>`;
+                document.getElementById('actionZone').innerHTML = btnCancel + btnChange;
+            }
+            else if (allowReview) { // Past & Not Cancelled
+                 var btnReview = `<button class="btn btn-success shadow-sm" onclick="showReviewForm(${maDatSan})" style="border-radius: 10px; background: linear-gradient(135deg, var(--color-lime) 0%, #b8d906 100%); border:none;">
+                                    <i class="fas fa-star me-2"></i>Đánh giá ngay
+                                 </button>`;
+                 document.getElementById('actionZone').innerHTML = btnReview;
+            }
+        });
+
+        function confirmCancel(id) {
+            // Confirmation Overlay with Penalty Rules
+            var confirmHtml = `
+                <div id="cancelConfirmPopup" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+                            background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px);
+                            z-index: 1060; border-radius: 15px;
+                            display: flex; justify-content: center; align-items: center; animation: fadeIn 0.2s;">
+                     <div style="background: #fff; border-radius: 15px; width: 90%; max-width: 400px; padding: 25px; 
+                                 box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center;">
+                        <div class="mb-3 text-warning">
+                            <i class="fas fa-exclamation-triangle fa-3x"></i>
+                        </div>
+                        <h5 class="fw-bold text-danger mb-3">Xác nhận hủy sân?</h5>
+                        <div class="alert alert-light border border-warning text-start small mb-4" style="background-color: #fffbf0;">
+                            <strong><i class="fas fa-info-circle me-1"></i>Quy định phạt:</strong><br>
+                            - Hủy trước 24h: <b>Phạt 10%</b><br>
+                            - Hủy trong vòng 24h: <b>Phạt 50%</b><br>
+                            - Không đến (No-show): <b>Mất 100%</b>
+                        </div>
+                        <div class="d-flex justify-content-center gap-2">
+                            <button class="btn btn-danger px-4" onclick="executeCancel(${id})">Hủy sân ngay</button>
+                            <button class="btn btn-secondary px-4" onclick="$('#cancelConfirmPopup').remove()">Quay lại</button>
+                        </div>
+                     </div>
+                </div>
+                <style>
+                    @@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+                </style>
+            `;
+            $('#detailModal .modal-content').append(confirmHtml);
+        }
+
+        function executeCancel(id) {
+            // Remove confirm popup to show loading or keep it and disable buttons? 
+            // Let's just run the request.
+            $.post('/LichSuDatSan/HuySan', { maDatSan: id }, function(res) {
+                 $('#cancelConfirmPopup').remove(); // Remove confirm popup
+                 
+                 if(res.success) {
+                    // Show Success Popup (Green Overlay)
+                    var successHtml = `
+                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+                                    background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(1px);
+                                    z-index: 1070; border-radius: 15px;
+                                    display: flex; justify-content: center; align-items: center;">
+                             <div style="background: rgba(230, 255, 230, 0.98); 
+                                         border: 1px solid #28a745; 
+                                         border-radius: 12px; 
+                                         padding: 20px 40px; 
+                                         text-align: center; 
+                                         box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
+                                         min-width: 220px;
+                                         animation: zoomIn 0.3s;">
+                                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                                <h5 class="fw-bold text-success m-0">Đã hủy thành công!</h5>
+                                <p class="text-muted small mt-2 mb-0">${res.message}</p>
+                             </div>
+                        </div>
+                    `;
+                    $('#detailModal .modal-content').append(successHtml);
+                    
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000);
+                 } else {
+                     alert(res.message);
+                 }
+            });
+        }
+
+        function showReviewForm(id) {
+             var html = `
+                <div id="reviewFormContainer" class="mt-3 p-4 border-0 rounded shadow-sm" style="background-color: #f8f9fa; position: relative; animation: slideDown 0.3s ease-out;">
+                    <h5 class="text-center fw-bold mb-3" style="color: #2c3e50;">Đánh giá trải nghiệm</h5>
+                    
+                    <div class="mb-3 text-center">
+                        <div class="star-rating">
+                            <i class="fas fa-star fa-2x star-item" data-value="1"></i>
+                            <i class="fas fa-star fa-2x star-item" data-value="2"></i>
+                            <i class="fas fa-star fa-2x star-item" data-value="3"></i>
+                            <i class="fas fa-star fa-2x star-item" data-value="4"></i>
+                            <i class="fas fa-star fa-2x star-item" data-value="5"></i>
+                        </div>
+                        <input type="hidden" id="reviewScore" value="5">
+                        <div id="star-text" class="mt-2 text-warning fw-bold small">Tuyệt vời</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <textarea id="reviewContent" class="form-control border-0 shadow-sm" rows="3" 
+                            style="resize: none; background-color: #fff; font-style: italic;"
+                            placeholder="Cảm ơn quý khách đã sử dụng dịch vụ. Chúng tôi rất mong được biết trải nghiệm của bạn..."></textarea>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button class="btn text-white fw-bold px-4 shadow-sm" 
+                                style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); border: none; border-radius: 10px;"
+                                onclick="submitReview(${id})">
+                            <i class="fas fa-paper-plane me-2"></i>Gửi đánh giá
+                        </button>
+                        <button class="btn btn-secondary border-0 px-3 shadow-sm" style="border-radius: 10px;" onclick="resetActions()">Đóng</button>
+                    </div>
+                </div>
+                <style>
+                    @@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+                    .star-item { 
+                        cursor: pointer; 
+                        color: #fff; /* White inactive */
+                        text-shadow: 0 0 2px #999; /* Outline effect */
+                        transition: all 0.2s; 
+                        margin: 0 5px; 
+                    }
+                    .star-item.active { 
+                        color: #ffd700; /* Gold active */
+                        text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+                        transform: scale(1.1);
+                    }
+                    .star-item:hover { transform: scale(1.3); }
+                </style>
+            `;
+            document.getElementById('actionZone').innerHTML = html;
+            // ... (rest of start listeners same as before)
+            document.querySelectorAll('.star-item').forEach(star => {
+                star.classList.add('active'); 
+                star.addEventListener('click', function() {
+                    var val = this.getAttribute('data-value');
+                    document.getElementById('reviewScore').value = val;
+                    updateStars(val);
+                });
+                star.addEventListener('mouseover', function() {
+                    updateStars(this.getAttribute('data-value'));
+                });
+                star.addEventListener('mouseout', function() {
+                    updateStars(document.getElementById('reviewScore').value);
+                });
+            });
+        }
+
+        function updateStars(value) {
+            var textMap = {1: 'Rất tệ', 2: 'Tệ', 3: 'Bình thường', 4: 'Tốt', 5: 'Tuyệt vời'};
+            document.getElementById('star-text').textContent = textMap[value];
+            document.querySelectorAll('.star-item').forEach(s => {
+                if(s.getAttribute('data-value') <= value) s.classList.add('active');
+                else s.classList.remove('active');
+            });
+        }
+
+        function submitReview(id) {
+            var score = $('#reviewScore').val();
+            var content = $('#reviewContent').val();
+            
+            $.post('/LichSuDatSan/DanhGia', { maDatSan: id, diem: score, noiDung: content }, function(res) {
+                if(res.success) {
+                    // Create minimal overlay popup
+                    var successHtml = `
+                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+                                    background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(1px);
+                                    z-index: 1055; border-radius: 15px;
+                                    display: flex; justify-content: center; align-items: center;">
+                             <div style="background: rgba(230, 255, 230, 0.98); 
+                                         border: 1px solid #28a745; 
+                                         border-radius: 12px; 
+                                         padding: 20px 40px; 
+                                         text-align: center; 
+                                         box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
+                                         min-width: 220px;
+                                         animation: zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                                <h5 class="fw-bold text-success mb-2">Cảm ơn bạn!</h5>
+                                <p class="mb-0 text-dark small fw-bold">Rất mong được gặp lại bạn.</p>
+                             </div>
+                        </div>
+                        <style>
+                            @@keyframes zoomIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+                        </style>
+                    `;
+                    // Append to the Main Modal Content to center it in the whole form
+                    $('#detailModal .modal-content').append(successHtml);
+
+                    setTimeout(function() {
+                        $('#detailModal').modal('hide');
+                        location.reload();
+                    }, 1500);
+                } else {
+                    alert(res.message);
+                }
+            });
+        }
+
+        function showChangeForm(id) {
+            var oldDateStr = $('#modalNgay').text(); // dd/MM/yyyy
+            // Convert to yyyy-MM-dd
+            var parts = oldDateStr.split('/');
+            var isoDate = parts[2] + '-' + parts[1] + '-' + parts[0];
+
+             var html = `
+                <div id="changeFormContainer" class="mt-4 p-4 border-0 rounded-4 shadow-lg position-relative overflow-hidden bg-white" 
+                     style="animation: slideUp 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); border-top: 5px solid #ff9800;">
+                    
+                    <!-- Header -->
+                    <div class="text-center mb-4">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-2 shadow-sm" 
+                             style="width: 50px; height: 50px; background: linear-gradient(135deg, #fff3cd, #ffe69c); color: #e67e22;">
+                            <i class="fas fa-sync-alt fa-lg"></i>
+                        </div>
+                        <h5 class="fw-bold m-0 text-dark">Đổi Lịch Đặt Sân</h5>
+                        <div class="small text-muted mt-1">Chọn khung giờ mới phù hợp hơn</div>
+                    </div>
+                    
+                    <!-- Date Input -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-secondary small text-uppercase ls-1" style="font-size: 0.75rem;">Ngày đặt (Cố định)</label>
+                        <div class="input-group shadow-sm rounded-3 overflow-hidden">
+                            <span class="input-group-text border-0 text-white" style="background: #95a5a6;"><i class="fas fa-calendar-day"></i></span>
+                            <input type="text" class="form-control border-0 bg-light fw-bold text-secondary" value="${oldDateStr}" readonly disabled>
+                            <input type="hidden" id="fixedDate" value="${isoDate}">
+                        </div>
+                    </div>
+
+                    <!-- Time Inputs -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <label class="form-label fw-bold text-secondary small text-uppercase ls-1" style="font-size: 0.75rem;">Giờ Bắt đầu</label>
+                            <div class="input-group shadow-sm rounded-3 overflow-hidden" style="border: 1px solid #ffeeba;">
+                                 <span class="input-group-text border-0 text-white" style="background: linear-gradient(45deg, #f1c40f, #f39c12);"><i class="fas fa-clock"></i></span>
+                                 <input type="time" id="newStart" class="form-control border-0 bg-white text-center fw-bold text-dark" required>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold text-secondary small text-uppercase ls-1" style="font-size: 0.75rem;">Giờ Kết thúc</label>
+                            <div class="input-group shadow-sm rounded-3 overflow-hidden" style="border: 1px solid #ffeeba;">
+                                 <span class="input-group-text border-0 text-white" style="background: linear-gradient(45deg, #f39c12, #e67e22);"><i class="fas fa-clock"></i></span>
+                                 <input type="time" id="newEnd" class="form-control border-0 bg-white text-center fw-bold text-dark" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="d-grid gap-2 d-flex justify-content-center">
+                         <button class="btn border-0 py-2 px-5 rounded-pill shadow-sm fw-bold text-white flex-grow-1" 
+                                style="background: linear-gradient(90deg, #20bf55, #01baef); transition: all 0.2s;"
+                                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 15px rgba(32, 191, 85, 0.3)';" 
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';"
+                                onclick="submitChange(${id})">
+                            <i class="fas fa-check-circle me-2"></i>Xác nhận đổi
+                        </button>
+                        <button class="btn btn-light border py-2 px-4 rounded-pill shadow-sm fw-bold text-muted bg-light" 
+                                onclick="resetActions()">
+                            Hủy
+                        </button>
+                    </div>
+                </div>
+                <style>
+                    @@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+                </style>
+            `;
+            document.getElementById('actionZone').innerHTML = html;
+        }
+
+        // Helper: Custom Popup (Updated)
+        function showPopupJS(message, type = 'success') {
+            var color, bgInner, icon, textColor;
+            
+            if (type === 'success') {
+                color = '#28a745'; 
+                bgInner = 'rgba(230, 255, 230, 0.98)';
+                icon = 'fa-check-circle';
+                textColor = 'text-success';
+            } else { // Warning
+                color = '#ffc107'; 
+                bgInner = 'rgba(255, 253, 230, 0.98)';
+                icon = 'fa-exclamation-triangle';
+                textColor = 'text-warning'; // Will override styling
+            }
+
+            var closeBtn = '';
+            if (type !== 'success') {
+                closeBtn = `<div class="position-absolute top-0 end-0 p-2 px-3" onclick="$('#customPopupJS').remove(); event.stopPropagation();" style="cursor: pointer;">
+                                <i class="fas fa-times text-muted hover-scale"></i>
+                            </div>`;
+            }
+
+            var customStyle = type !== 'success' ? 'color: #856404 !important;' : ''; 
+            var iconStyle = type !== 'success' ? 'color: #ffc107 !important;' : '';
+
+            var html = `
+                <div id="customPopupJS" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+                            background: rgba(0, 0, 0, 0.15); backdrop-filter: blur(1px);
+                            z-index: 1080; border-radius: 15px;
+                            display: flex; justify-content: center; align-items: center;"
+                            ${type === 'success' ? '' : 'onclick="$(\'#customPopupJS\').remove()"'} >
+                        <div style="background: ${bgInner}; 
+                                    border: 1px solid ${color}; 
+                                    border-radius: 12px; 
+                                    padding: 30px 40px; 
+                                    text-align: center; 
+                                    box-shadow: 0 10px 40px rgba(0,0,0,0.2); 
+                                    min-width: 300px;
+                                    max-width: 80%;
+                                    position: relative;
+                                    cursor: default;
+                                    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                        ${closeBtn}
+                        <i class="fas ${icon} fa-3x ${textColor} mb-3" style="${iconStyle}"></i>
+                        <h5 class="fw-bold ${textColor} m-0" style="${customStyle}">${message}</h5>
+                        </div>
+                </div>
+                <style>
+                    @@keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+                    .hover-scale:hover { transform: scale(1.2); color: #333 !important; }
+                </style>
+            `;
+            
+            $('#customPopupJS').remove();
+            $('#detailModal .modal-content').append(html);
+            
+            if(type === 'success') {
+                setTimeout(function() { 
+                    $('#customPopupJS').fadeOut(200, function(){ 
+                        $(this).remove(); 
+                        location.reload(); 
+                    }); 
+                }, 1500);
+            }
+        }
+
+        function submitChange(id) {
+            var date = $('#fixedDate').val();
+            var start = $('#newStart').val();
+            var end = $('#newEnd').val();
+            
+            // Use warning type for validation
+            if(!start || !end) { showPopupJS('Vui lòng chọn đủ giờ bắt đầu và kết thúc!', 'warning'); return; }
+
+            $.post('/LichSuDatSan/DoiSan', { maDatSan: id, ngayMoi: date, gioBatDauMoi: start, gioKetThucMoi: end }, function(res) {
+                if(res.success) {
+                     showPopupJS('Đổi giờ thành công!', 'success');
+                } else {
+                    // Use warning type for server errors
+                    showPopupJS(res.message, 'warning');
+                }
+            }).fail(function() {
+                showPopupJS('Lỗi kết nối đến server!', 'warning');
+            });
+        }
+        
+        function resetActions() {
+            location.reload(); 
+        }
+    </script>
+

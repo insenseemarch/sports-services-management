@@ -1,6 +1,13 @@
 USE master
 GO
 
+IF EXISTS (SELECT * FROM sys.databases WHERE name = 'TRUNGTAMTHETHAO')
+BEGIN
+    ALTER DATABASE TRUNGTAMTHETHAO SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE TRUNGTAMTHETHAO;
+END
+GO
+
 CREATE DATABASE TRUNGTAMTHETHAO
 GO
 
@@ -57,7 +64,8 @@ CREATE TABLE PHIEUDATSAN (
     GioBatDau TIME NOT NULL,
     GioKetThuc TIME NOT NULL,
     KenhDat NVARCHAR(50),
-	TrangThai NVARCHAR(50) NOT NULL
+    TrangThai NVARCHAR(50) NOT NULL,
+    NgayTao DATETIME DEFAULT GETDATE()
 )
 GO
 
@@ -73,6 +81,18 @@ CREATE TABLE HOADON (
     HinhThucTT NVARCHAR(50),
 	CONSTRAINT PK_HOADON PRIMARY KEY (MaHD, NgayLap)
 ) ON ps_NamHoaDon(NgayLap);
+GO
+
+-- 3.1. BẢNG ĐÁNH GIÁ (Update từ update_schema_actions.sql)
+CREATE TABLE DANHGIA (
+    MaDanhGia BIGINT IDENTITY(1,1) PRIMARY KEY,
+    MaDatSan BIGINT NOT NULL,
+    Diem INT CHECK (Diem >= 1 AND Diem <= 5),
+    NoiDung NVARCHAR(500),
+    NgayDanhGia DATETIME DEFAULT GETDATE(),
+    -- FK sẽ được check sau hoặc add ở cuối file constraint nếu có, ở đây add inline luôn nếu bảng PHIEUDATSAN đã có
+    FOREIGN KEY (MaDatSan) REFERENCES PHIEUDATSAN(MaDatSan)
+);
 GO
 
 -- 4. BẢNG CA TRỰC
@@ -159,7 +179,9 @@ CREATE TABLE COSO (
     MaCS VARCHAR(20) PRIMARY KEY,
     TenCS NVARCHAR(100) NOT NULL,
     DiaChi NVARCHAR(200),
-    ThanhPho NVARCHAR(100)
+    ThanhPho NVARCHAR(100),
+    GioMoCua TIME,
+    GioDongCua TIME
 )
 GO
 
@@ -443,10 +465,10 @@ FOREIGN KEY (MaTK) REFERENCES TAIKHOAN(MaTK)
 GO
 
 -- BAOCAOTHONGKE
+
 ALTER TABLE BAOCAOTHONGKE ADD CONSTRAINT FK_BCTK_NHANVIEN FOREIGN KEY (NguoiLapPhieu) REFERENCES NHANVIEN(MaNV);
 ALTER TABLE BAOCAOTHONGKE ADD CONSTRAINT FK_BCTK_COSO FOREIGN KEY (MaCS) REFERENCES COSO(MaCS);
 GO
-
 -- DOANHTHU
 ALTER TABLE DOANHTHU ADD CONSTRAINT FK_DT_BAOCAO FOREIGN KEY (MaBaoCao) REFERENCES BAOCAOTHONGKE(MaBaoCao);
 GO
@@ -933,6 +955,7 @@ GO
 -- ==                                                                               ==
 -- ==					CÁC STORED PROCEDURE XỬ LÝ TRANH CHẤP                       ==
 -- ==																                ==
+-- ==                                                                               ==
 -- ===================================================================================
 
 -- =============================================================
@@ -1445,8 +1468,7 @@ END
 GO
 
 -- ===================================================================================
--- ==																			    ==
--- ==					CÁC STORED PROCEDURE NGHIỆP VỤ CHÍNH		                ==
+-- ==             PHẦN 3: CÁC STORED PROCEDURE NGHIỆP VỤ CHÍNH		                ==
 -- ==																			    ==																	==
 -- ===================================================================================
 
@@ -1498,47 +1520,96 @@ GO
 CREATE OR ALTER PROCEDURE sp_ThemDichVu
     @MaDatSan BIGINT,
     @MaDV VARCHAR(20),
-    @SoLuong INT
+    @SoLuong INT,
+    @MaCSContext VARCHAR(20) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
-    SET TRAN ISOLATION LEVEL REPEATABLE READ; -- Giữ khóa tồn kho
+    SET TRAN ISOLATION LEVEL SERIALIZABLE; 
     
     BEGIN TRY
         BEGIN TRAN;
-        DECLARE @MaCS VARCHAR(20);
-        -- Lấy MaCS chính xác qua các bảng join
-        SELECT TOP 1 @MaCS = S.MaCS 
-        FROM PHIEUDATSAN P 
-        JOIN DATSAN D ON P.MaDatSan = D.MaDatSan 
-        JOIN SAN S ON D.MaSan = S.MaSan 
-        WHERE P.MaDatSan = @MaDatSan;
-
-        DECLARE @TonKho INT;
-        SELECT @TonKho = SoLuongTon FROM DV_COSO WHERE MaDV = @MaDV AND MaCS = @MaCS;
-        
-        IF @TonKho < @SoLuong
-        BEGIN
-            ROLLBACK TRAN;
-            RAISERROR(N'Lỗi: Không đủ tồn kho!', 16, 1);
-            RETURN;
-        END
         
         DECLARE @DonGia DECIMAL(18,2);
-        SELECT @DonGia = DonGia FROM DICHVU WHERE MaDV = @MaDV;
+        DECLARE @MaCS VARCHAR(20);
         
+        -- Lấy giá và Mã cơ sở của Sân đang đặt
+        SELECT @DonGia = DonGia, @MaCS = S.MaCS 
+        FROM DICHVU DV
+        LEFT JOIN DATSAN DS ON DS.MaDatSan = @MaDatSan
+        LEFT JOIN SAN S ON DS.MaSan = S.MaSan
+        WHERE DV.MaDV = @MaDV;
+
+        IF @DonGia IS NULL
+        BEGIN
+             ROLLBACK TRAN;
+             RAISERROR(N'Dịch vụ không tồn tại!', 16, 1);
+             RETURN;
+        END
+        
+        -- Nếu không có MaCS từ sân (service-only order), dùng @MaCSContext
+        IF @MaCS IS NULL AND @MaCSContext IS NOT NULL
+        BEGIN
+            SET @MaCS = @MaCSContext;
+        END
+
+        -- MẶC ĐỊNH LÀ CÓ TRỪ KHO (IsStockItem = 1)
+        DECLARE @IsStockItem BIT = 1;
+        
+        -- LOGIC FIX: Kiểm tra nếu là HLV (LDV001), VIP (LDV004), Locker (LDV005) thì KHÔNG TRỪ KHO
+        IF EXISTS (
+            SELECT 1 FROM DICHVU DV 
+            JOIN LOAIDV L ON DV.MaLoaiDV = L.MaLoaiDV
+            WHERE DV.MaDV = @MaDV 
+            AND (
+                L.MaLoaiDV IN ('LDV001', 'LDV004', 'LDV005') 
+                OR L.MaLoaiDV LIKE 'LDV001%' 
+                OR L.MaLoaiDV LIKE 'LDV004%' 
+                OR L.MaLoaiDV LIKE 'LDV005%'
+                OR L.TenLoai LIKE N'%Huấn luyện viên%' 
+                OR L.TenLoai LIKE N'%VIP%' 
+                OR L.TenLoai LIKE N'%Tủ đồ%'
+            )
+        )
+        BEGIN
+            SET @IsStockItem = 0; 
+        END
+
+        -- CHỈ KIỂM TRA TỒN KHO NẾU LÀ SẢN PHẨM VẬT LÝ VÀ ĐANG THÊM (DELTA DƯƠNG)
+        IF @IsStockItem = 1 AND @SoLuong > 0
+        BEGIN
+            DECLARE @TonKho INT;
+            SELECT @TonKho = SoLuongTon FROM DV_COSO WHERE MaDV = @MaDV AND MaCS = @MaCS;
+            
+            IF @TonKho IS NULL OR @TonKho < @SoLuong
+            BEGIN
+                ROLLBACK TRAN;
+                RAISERROR(N'Lỗi: Không đủ tồn kho cho dịch vụ này tại cơ sở hiện tại!', 16, 1);
+                RETURN;
+            END
+        END
+
+        -- CẬP NHẬT HOẶC THÊM MỚI VÀO CHI TIẾT DỊCH VỤ ĐẶT
         IF EXISTS (SELECT 1 FROM CT_DICHVUDAT WHERE MaDatSan = @MaDatSan AND MaDV = @MaDV)
         BEGIN
-            UPDATE CT_DICHVUDAT SET SoLuong = SoLuong + @SoLuong, ThanhTien = (SoLuong + @SoLuong) * @DonGia WHERE MaDatSan = @MaDatSan AND MaDV = @MaDV;
+            UPDATE CT_DICHVUDAT 
+            SET SoLuong = SoLuong + @SoLuong, 
+                ThanhTien = (SoLuong + @SoLuong) * @DonGia 
+            WHERE MaDatSan = @MaDatSan AND MaDV = @MaDV;
         END
         ELSE
         BEGIN
-            INSERT INTO CT_DICHVUDAT (MaDV, MaDatSan, SoLuong, ThanhTien, TrangThaiSuDung) VALUES (@MaDV, @MaDatSan, @SoLuong, @SoLuong * @DonGia, N'Chưa thanh toán');
+            INSERT INTO CT_DICHVUDAT (MaDV, MaDatSan, SoLuong, ThanhTien, TrangThaiSuDung) 
+            VALUES (@MaDV, @MaDatSan, @SoLuong, @SoLuong * @DonGia, N'Chưa thanh toán');
         END
         
-        UPDATE DV_COSO SET SoLuongTon = SoLuongTon - @SoLuong WHERE MaDV = @MaDV AND MaCS = @MaCS;
+        -- TRỪ/CỘNG KHO NẾU LÀ SẢN PHẨM VẬT LÝ
+        IF @IsStockItem = 1
+        BEGIN
+            UPDATE DV_COSO SET SoLuongTon = SoLuongTon - @SoLuong WHERE MaDV = @MaDV AND MaCS = @MaCS;
+        END
+
         COMMIT TRAN;
-        PRINT N'Thêm dịch vụ thành công!';
     END TRY
     BEGIN CATCH
         IF @@TRANCOUNT > 0 ROLLBACK TRAN;
@@ -1792,9 +1863,9 @@ BEGIN
     -- 2. Kiểm tra thời lượng theo loại sân
     SET @ThoiLuong = DATEDIFF(MINUTE, @GioBD, @GioKT);
 
-    IF @LoaiSan = N'Bóng đá mini' AND @ThoiLuong <> 90
+    IF @LoaiSan = N'Bóng đá mini' AND (@ThoiLuong % 90 <> 0 OR @ThoiLuong < 90)
     BEGIN
-        RAISERROR (N'Lỗi: Sân bóng đá mini phải đặt đúng 90 phút/trận!', 16, 1);
+        RAISERROR (N'Lỗi: Sân bóng đá mini phải đặt theo bội số của 90 phút (1 trận = 90 phút)!', 16, 1);
         ROLLBACK TRANSACTION;
         RETURN;
     END
@@ -1921,9 +1992,7 @@ END;
 GO
 
 --	===================================================================================
---	==																				 ==
 --	==								BẢO MẬT & PHÂN QUYỀN							 ==
---	==																				 ==
 --	===================================================================================
 
 CREATE ROLE Role_QuanLy;
@@ -1962,3 +2031,786 @@ GRANT SELECT ON THAMGIACATRUC TO Role_HLV;
 GRANT SELECT ON SAN TO Role_KhachHang;
 GRANT SELECT ON KHUNGGIO TO Role_KhachHang;
 GRANT SELECT, UPDATE ON KHACHHANG TO Role_KhachHang;
+-- ===================================================================================
+-- PHẦN BỔ SUNG: FUNCTIONS VÀ STORED PROCEDURES ĐÃ CẬP NHẬT MỚI NHẤT
+-- ===================================================================================
+GO
+
+-- ===================================================================================
+-- ==                                                                               ==
+-- ==                          PHẦN 1: FUNCTIONS                                    ==
+-- ==                                                                               ==
+-- ===================================================================================
+
+/*
+--------------------------------------------------------------------------------
+FUNCTION 1: f_TinhTienSan
+--------------------------------------------------------------------------------
+Mục đích: Tính tiền sân dựa vào loại sân và khung giờ
+Input: @MaDatSan (Mã phiếu đặt sân)
+Output: Tiền sân (DECIMAL)
+Sử dụng trong: Controllers (ThanhToanController, DichVuController, LichSuDatSanController)
+*/
+CREATE OR ALTER FUNCTION f_TinhTienSan (@MaDatSan BIGINT)
+RETURNS DECIMAL(18,2)
+AS
+BEGIN
+    DECLARE @TienSan DECIMAL(18,2) = 0;
+    DECLARE @MaLS VARCHAR(20);
+    DECLARE @TenLS NVARCHAR(50);
+    DECLARE @GioBatDau TIME;
+    DECLARE @GioKetThuc TIME;
+    DECLARE @GiaApDung DECIMAL(18,2);
+
+    -- Lấy thông tin phiếu đặt và loại sân
+    SELECT @MaLS = S.MaLS, @TenLS = LS.TenLS, @GioBatDau = P.GioBatDau, @GioKetThuc = P.GioKetThuc
+    FROM PHIEUDATSAN P
+    JOIN DATSAN D ON P.MaDatSan = D.MaDatSan
+    JOIN SAN S ON D.MaSan = S.MaSan
+    JOIN LOAISAN LS ON S.MaLS = LS.MaLS
+    WHERE P.MaDatSan = @MaDatSan;
+
+    -- Lấy giá theo khung giờ
+    SELECT TOP 1 @GiaApDung = K.GiaApDung
+    FROM KHUNGGIO K
+    WHERE K.MaLS = @MaLS 
+      AND @GioBatDau >= K.GioBatDau 
+      AND @GioBatDau < K.GioKetThuc
+      AND K.NgayApDung <= (SELECT NgayDat FROM PHIEUDATSAN WHERE MaDatSan = @MaDatSan)
+    ORDER BY K.NgayApDung DESC;
+
+    -- TÍNH TIỀN THEO QUY TẮC
+    IF @TenLS IN (N'Bóng đá mini', N'Sân Tennis')
+    BEGIN
+        -- Tính theo trận (90p) hoặc ca (2h) -> GIÁ TRỌN GÓI (Fixed Price)
+        SET @TienSan = ISNULL(@GiaApDung, 0);
+    END
+    ELSE
+    BEGIN
+        -- Tính theo giờ (Cầu lông, Bóng rổ...) -> GIÁ x SỐ GIỜ
+        SET @TienSan = ISNULL(@GiaApDung, 0) * (DATEDIFF(MINUTE, @GioBatDau, @GioKetThuc) / 60.0);
+    END
+
+    RETURN @TienSan;
+END
+GO
+
+/*
+--------------------------------------------------------------------------------
+FUNCTION 2: f_TinhTienDichVu
+--------------------------------------------------------------------------------
+Mục đích: Tính tổng tiền dịch vụ của một phiếu đặt
+Input: @MaDatSan (Mã phiếu đặt sân)
+Output: Tổng tiền dịch vụ (DECIMAL)
+*/
+CREATE OR ALTER FUNCTION f_TinhTienDichVu (@MaDatSan BIGINT)
+RETURNS DECIMAL(18,2)
+AS
+BEGIN
+    DECLARE @TongTienDV DECIMAL(18,2) = 0;
+    
+    SELECT @TongTienDV = SUM(ThanhTien)
+    FROM CT_DICHVUDAT
+    WHERE MaDatSan = @MaDatSan;
+    
+    RETURN ISNULL(@TongTienDV, 0);
+END
+GO
+
+/*
+--------------------------------------------------------------------------------
+FUNCTION 3: f_KiemTraSanTrong
+--------------------------------------------------------------------------------
+Mục đích: Kiểm tra sân có trống trong khung giờ không
+Input: @MaSan, @NgayDat, @GioBD, @GioKT, @MaDatSanExclude (optional)
+Output: 1 (Trống), 0 (Bận)
+*/
+CREATE OR ALTER FUNCTION f_KiemTraSanTrong 
+(
+    @MaSan VARCHAR(20), 
+    @NgayDat DATE, 
+    @GioBD TIME, 
+    @GioKT TIME,
+    @MaDatSanExclude BIGINT = NULL -- Tham số tùy chọn: Mã phiếu cần bỏ qua (để đổi lịch)
+)
+RETURNS BIT
+AS
+BEGIN
+    DECLARE @KetQua BIT = 1; -- Mặc định là trống (1)
+
+    IF EXISTS (
+        SELECT 1
+        FROM PHIEUDATSAN P
+        JOIN DATSAN D ON P.MaDatSan = D.MaDatSan
+        WHERE D.MaSan = @MaSan
+          AND P.NgayDat = @NgayDat
+          AND P.TrangThai <> N'Đã hủy' AND P.TrangThai <> N'Nháp'
+          AND (@MaDatSanExclude IS NULL OR P.MaDatSan <> @MaDatSanExclude) -- Bỏ qua chính nó
+          AND (
+              (@GioBD >= P.GioBatDau AND @GioBD < P.GioKetThuc) OR 
+              (@GioKT > P.GioBatDau AND @GioKT <= P.GioKetThuc) OR 
+              (P.GioBatDau >= @GioBD AND P.GioBatDau < @GioKT)      
+          )
+    )
+    BEGIN
+        SET @KetQua = 0; -- Đã bị trùng (0)
+    END
+
+    RETURN @KetQua;
+END
+GO
+
+/*
+--------------------------------------------------------------------------------
+FUNCTION 4: f_TinhTienPhat
+--------------------------------------------------------------------------------
+Mục đích: Tính tiền phạt khi hủy sân
+Input: @MaDatSan, @ThoiDiemHuy
+Output: Tiền phạt (DECIMAL)
+Quy tắc:
+  - Hủy trước >= 24h: Phạt 10%
+  - Hủy trước 0-24h: Phạt 50%
+  - No-show hoặc hủy sau giờ đá: Phạt 100%
+*/
+CREATE OR ALTER FUNCTION f_TinhTienPhat
+(
+    @MaDatSan BIGINT,
+    @ThoiDiemHuy DATETIME -- Thời điểm khách báo hủy
+)
+RETURNS DECIMAL(18,2)
+AS
+BEGIN
+    DECLARE @TienPhat DECIMAL(18,2) = 0;
+    DECLARE @NgayDa DATE;
+    DECLARE @GioDa TIME;
+    DECLARE @ThoiDiemDa DATETIME;
+    DECLARE @TongTienSan DECIMAL(18,2);
+
+    -- Lấy thông tin phiếu đặt
+    SELECT @NgayDa = P.NgayDat, @GioDa = P.GioBatDau 
+    FROM PHIEUDATSAN P WHERE MaDatSan = @MaDatSan;
+
+    -- Ghép Ngày + Giờ để ra thời điểm đá
+    SET @ThoiDiemDa = CAST(@NgayDa AS DATETIME) + CAST(@GioDa AS DATETIME);
+
+    -- Tính tổng tiền sân (gọi lại hàm cũ)
+    SET @TongTienSan = dbo.f_TinhTienSan(@MaDatSan);
+
+    -- Tính số giờ chênh lệch
+    DECLARE @GioChenhLech INT = DATEDIFF(HOUR, @ThoiDiemHuy, @ThoiDiemDa);
+
+    IF @GioChenhLech >= 24
+        SET @TienPhat = @TongTienSan * 0.1; -- Phạt 10%
+    ELSE IF @GioChenhLech >= 0
+        SET @TienPhat = @TongTienSan * 0.5; -- Phạt 50%
+    ELSE 
+        SET @TienPhat = @TongTienSan; -- No-show hoặc hủy sau khi đã bắt đầu (coi như 100%)
+
+    RETURN @TienPhat;
+END
+GO
+
+-- ===================================================================================
+-- ==                                                                               ==
+-- ==                    PHẦN 2: STORED PROCEDURES                                  ==
+-- ==                                                                               ==
+-- ===================================================================================
+
+/*
+--------------------------------------------------------------------------------
+SP 1: sp_DatSan
+--------------------------------------------------------------------------------
+Mục đích: Tạo phiếu đặt sân mới (trạng thái Nháp)
+Sử dụng trong: DatSanController.cs
+*/
+CREATE OR ALTER PROCEDURE sp_DatSan
+    @MaKH VARCHAR(20),
+    @NguoiLap VARCHAR(20), 
+    @MaSan VARCHAR(20),
+    @NgayDat DATE,
+    @GioBatDau TIME,
+    @GioKetThuc TIME,
+    @KenhDat NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET TRAN ISOLATION LEVEL SERIALIZABLE; -- Khóa phạm vi thời gian
+    
+    BEGIN TRY
+        BEGIN TRAN; 
+        IF dbo.f_KiemTraSanTrong(@MaSan, @NgayDat, @GioBatDau, @GioKetThuc, NULL) = 0
+        BEGIN
+            ROLLBACK TRAN; 
+            RAISERROR(N'Lỗi: Sân đã bị người khác đặt!', 16, 1);
+            RETURN;
+        END
+        IF @KenhDat = 'Online' AND DATEDIFF(HOUR, GETDATE(), CAST(@NgayDat AS DATETIME) + CAST(@GioBatDau AS DATETIME)) < 2
+        BEGIN
+             ROLLBACK TRAN;
+             RAISERROR(N'Lỗi: Đặt Online phải trước 2 tiếng!', 16, 1);
+             RETURN;
+        END
+        INSERT INTO PHIEUDATSAN (MaKH, NguoiLap, NgayDat, NgayKetThuc, GioBatDau, GioKetThuc, KenhDat, TrangThai)
+        VALUES (@MaKH, @NguoiLap, @NgayDat, @NgayDat, @GioBatDau, @GioKetThuc, @KenhDat, N'Nháp');
+        DECLARE @MaDatSan BIGINT = SCOPE_IDENTITY();
+        INSERT INTO DATSAN (MaDatSan, MaSan) VALUES (@MaDatSan, @MaSan);
+        COMMIT TRAN; 
+        PRINT N'Đặt sân thành công! Mã: ' + CAST(@MaDatSan AS VARCHAR(20));
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK TRAN;
+        DECLARE @Msg NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR(@Msg, 16, 1);
+    END CATCH
+END
+GO
+
+/*
+--------------------------------------------------------------------------------
+SP 2: sp_ThemDichVu
+--------------------------------------------------------------------------------
+Mục đích: Thêm dịch vụ vào phiếu đặt sân
+Sử dụng trong: DichVuController.cs
+Fix lỗi: Bỏ qua kiểm tra tồn kho cho HLV, VIP, Tủ đồ (dịch vụ vô hình)
+*/
+CREATE OR ALTER PROCEDURE sp_ThemDichVu
+    @MaDatSan BIGINT,
+    @MaDV VARCHAR(20),
+    @SoLuong INT,
+    @MaCSContext VARCHAR(20) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET TRAN ISOLATION LEVEL SERIALIZABLE; 
+    
+    BEGIN TRY
+        BEGIN TRAN;
+        
+        DECLARE @DonGia DECIMAL(18,2);
+        DECLARE @MaCS VARCHAR(20);
+        
+        -- Lấy giá và Mã cơ sở của Sân đang đặt
+        SELECT @DonGia = DonGia, @MaCS = S.MaCS 
+        FROM DICHVU DV
+        LEFT JOIN DATSAN DS ON DS.MaDatSan = @MaDatSan
+        LEFT JOIN SAN S ON DS.MaSan = S.MaSan
+        WHERE DV.MaDV = @MaDV;
+
+        IF @DonGia IS NULL
+        BEGIN
+             ROLLBACK TRAN;
+             RAISERROR(N'Dịch vụ không tồn tại!', 16, 1);
+             RETURN;
+        END
+        
+        -- Nếu không có MaCS từ sân (service-only order), dùng @MaCSContext
+        IF @MaCS IS NULL AND @MaCSContext IS NOT NULL
+        BEGIN
+            SET @MaCS = @MaCSContext;
+        END
+
+        -- MẶC ĐỊNH LÀ CÓ TRỪ KHO (IsStockItem = 1)
+        DECLARE @IsStockItem BIT = 1;
+        
+        -- LOGIC FIX: Kiểm tra nếu là HLV (LDV001), VIP (LDV004), Locker (LDV005) thì KHÔNG TRỪ KHO
+        IF EXISTS (
+            SELECT 1 FROM DICHVU DV 
+            JOIN LOAIDV L ON DV.MaLoaiDV = L.MaLoaiDV
+            WHERE DV.MaDV = @MaDV 
+            AND (
+                -- Check theo Mã Loại Cứng (Ưu tiên)
+                L.MaLoaiDV IN ('LDV001', 'LDV004', 'LDV005') 
+                OR L.MaLoaiDV LIKE 'LDV001%' 
+                OR L.MaLoaiDV LIKE 'LDV004%' 
+                OR L.MaLoaiDV LIKE 'LDV005%'
+                -- Check fallback theo Tên (Phòng trường hợp mã khác)
+                OR L.TenLoai LIKE N'%Huấn luyện viên%' 
+                OR L.TenLoai LIKE N'%VIP%' 
+                OR L.TenLoai LIKE N'%Tủ đồ%'
+            )
+        )
+        BEGIN
+            SET @IsStockItem = 0; 
+        END
+
+        -- CHỈ KIỂM TRA TỒN KHO NẾU LÀ SẢN PHẨM VẬT LÝ VÀ ĐANG THÊM (DELTA DƯƠNG)
+        IF @IsStockItem = 1 AND @SoLuong > 0
+        BEGIN
+            DECLARE @TonKho INT;
+            SELECT @TonKho = SoLuongTon FROM DV_COSO WHERE MaDV = @MaDV AND MaCS = @MaCS;
+            
+            -- Nếu không tìm thấy kho hoặc số lượng không đủ -> Báo lỗi chi tiết
+            IF @TonKho IS NULL OR @TonKho < @SoLuong
+            BEGIN
+                ROLLBACK TRAN;
+                RAISERROR(N'Lỗi: Không đủ tồn kho cho dịch vụ này tại cơ sở hiện tại!', 16, 1);
+                RETURN;
+            END
+        END
+
+        -- CẬP NHẬT HOẶC THÊM MỚI VÀO CHI TIẾT DỊCH VỤ ĐẶT
+        IF EXISTS (SELECT 1 FROM CT_DICHVUDAT WHERE MaDatSan = @MaDatSan AND MaDV = @MaDV)
+        BEGIN
+            -- Nếu đã có -> Cộng dồn số lượng và cập nhật thành tiền
+            UPDATE CT_DICHVUDAT 
+            SET SoLuong = SoLuong + @SoLuong, 
+                ThanhTien = (SoLuong + @SoLuong) * @DonGia 
+            WHERE MaDatSan = @MaDatSan AND MaDV = @MaDV;
+        END
+        ELSE
+        BEGIN
+            -- Nếu chưa có -> Thêm mới
+            INSERT INTO CT_DICHVUDAT (MaDV, MaDatSan, SoLuong, ThanhTien, TrangThaiSuDung) 
+            VALUES (@MaDV, @MaDatSan, @SoLuong, @SoLuong * @DonGia, N'Chưa thanh toán');
+        END
+        
+        -- TRỪ/CỘNG KHO NẾU LÀ SẢN PHẨM VẬT LÝ
+        IF @IsStockItem = 1
+        BEGIN
+            UPDATE DV_COSO SET SoLuongTon = SoLuongTon - @SoLuong WHERE MaDV = @MaDV AND MaCS = @MaCS;
+        END
+
+        COMMIT TRAN;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK TRAN;
+        DECLARE @Msg NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR(@Msg, 16, 1);
+    END CATCH
+END
+GO
+
+/*
+--------------------------------------------------------------------------------
+SP 3: sp_ThanhToanOnline
+--------------------------------------------------------------------------------
+Mục đích: Thanh toán online và xác nhận đặt sân (Nháp -> Đã đặt)
+Sử dụng trong: DatSanThanhToanController.cs
+*/
+CREATE OR ALTER PROCEDURE sp_ThanhToanOnline
+    @MaDatSan BIGINT,
+    @NguoiLap VARCHAR(20),
+    @HinhThucTT NVARCHAR(50), 
+    @MaUD VARCHAR(20) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET TRAN ISOLATION LEVEL REPEATABLE READ;
+    
+    BEGIN TRY
+        BEGIN TRAN;
+        
+        DECLARE @MaKH VARCHAR(20);
+        
+        -- 1. KIỂM TRA LẠI TÌNH TRẠNG SÂN (DOUBLE-CHECK)
+        DECLARE @MaSanCheck VARCHAR(20), @NgayDatCheck DATE, @GioBDCheck TIME, @GioKTCheck TIME;
+        
+        SELECT @MaSanCheck = D.MaSan, @NgayDatCheck = P.NgayDat, @GioBDCheck = P.GioBatDau, @GioKTCheck = P.GioKetThuc, @MaKH = P.MaKH
+        FROM PHIEUDATSAN P
+        JOIN DATSAN D ON P.MaDatSan = D.MaDatSan
+        WHERE P.MaDatSan = @MaDatSan;
+        
+        -- Kiểm tra nếu đã có người khác đặt (Trừ chính đơn này - dù đơn này đang là Nháp)
+        IF dbo.f_KiemTraSanTrong(@MaSanCheck, @NgayDatCheck, @GioBDCheck, @GioKTCheck, NULL) = 0
+        BEGIN
+            ROLLBACK TRAN;
+            RAISERROR(N'Rất tiếc! Sân đã bị người khác đặt trong lúc bạn đang thanh toán.', 16, 1);
+            RETURN;
+        END
+
+        DECLARE @TongCong DECIMAL(18,2) = dbo.f_TinhTienSan(@MaDatSan) + dbo.f_TinhTienDichVu(@MaDatSan);
+        DECLARE @GiamGia DECIMAL(18,2) = 0;
+        DECLARE @ThanhTien DECIMAL(18,2);
+        
+        IF @MaUD IS NOT NULL
+        BEGIN
+            DECLARE @TyLeGiam DECIMAL(5,2);
+            SELECT @TyLeGiam = TyLeGiamGia FROM UUDAI WHERE MaUD = @MaUD;
+            IF @TyLeGiam IS NOT NULL SET @GiamGia = @TongCong * (@TyLeGiam / 100.0);
+        END
+        
+        DECLARE @TyLeThanhVien DECIMAL(5,2) = 0;
+        SELECT @TyLeThanhVien = CB.UuDai FROM KHACHHANG KH JOIN CAPBAC CB ON KH.MaCB = CB.MaCB WHERE KH.MaKH = @MaKH;
+        SET @GiamGia = @GiamGia + (@TongCong * (@TyLeThanhVien / 100.0));
+        
+        SET @ThanhTien = @TongCong - @GiamGia;
+        IF @ThanhTien < 0 SET @ThanhTien = 0;
+        
+        INSERT INTO HOADON (MaPhieu, NguoiLap, NgayLap, TongTien, GiamGia, ThanhTien, HinhThucTT)
+        VALUES (@MaDatSan, @NguoiLap, GETDATE(), @TongCong, @GiamGia, @ThanhTien, @HinhThucTT);
+        DECLARE @MaHD BIGINT = SCOPE_IDENTITY();
+        
+        -- UPDATE TRẠNG THÁI: CHÍNH THỨC ĐÃ ĐẶT
+        UPDATE PHIEUDATSAN SET TrangThai = N'Đã đặt', NgayTao = GETDATE() WHERE MaDatSan = @MaDatSan;
+        UPDATE CT_DICHVUDAT SET TrangThaiSuDung = N'Đã thanh toán' WHERE MaDatSan = @MaDatSan;
+        
+        DECLARE @DiemCong INT = CAST(@ThanhTien / 100000 AS INT);
+        IF @DiemCong > 0
+        BEGIN
+            DECLARE @DiemCu INT;
+            SELECT @DiemCu = DiemTichLuy FROM KHACHHANG WHERE MaKH = @MaKH;
+            UPDATE KHACHHANG SET DiemTichLuy = @DiemCu + @DiemCong WHERE MaKH = @MaKH;
+        END
+
+        COMMIT TRAN;
+        PRINT N'Thanh toán thành công. Mã HĐ: ' + CAST(@MaHD AS VARCHAR(20));
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK TRAN;
+        DECLARE @Msg NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR(@Msg, 16, 1);
+    END CATCH
+END
+GO
+
+/*
+--------------------------------------------------------------------------------
+SP 4: sp_ThanhToanVaXuatHoaDon
+--------------------------------------------------------------------------------
+Mục đích: Thanh toán tại quầy và xuất hóa đơn (Check-out)
+Sử dụng trong: ThanhToanController.cs
+*/
+CREATE OR ALTER PROCEDURE sp_ThanhToanVaXuatHoaDon
+    @MaDatSan BIGINT,
+    @NguoiLap VARCHAR(20),
+    @HinhThucTT NVARCHAR(50), 
+    @MaUD VARCHAR(20) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET TRAN ISOLATION LEVEL REPEATABLE READ; -- Chặn thay đổi giá/điểm
+    
+    BEGIN TRY
+        BEGIN TRAN;
+        DECLARE @TongCong DECIMAL(18,2) = dbo.f_TinhTienSan(@MaDatSan) + dbo.f_TinhTienDichVu(@MaDatSan);
+        DECLARE @GiamGia DECIMAL(18,2) = 0;
+        DECLARE @ThanhTien DECIMAL(18,2);
+        DECLARE @MaKH VARCHAR(20);
+        SELECT @MaKH = MaKH FROM PHIEUDATSAN WHERE MaDatSan = @MaDatSan;
+        
+        IF @MaUD IS NOT NULL
+        BEGIN
+            DECLARE @TyLeGiam DECIMAL(5,2);
+            SELECT @TyLeGiam = TyLeGiamGia FROM UUDAI WHERE MaUD = @MaUD;
+            IF @TyLeGiam IS NOT NULL SET @GiamGia = @TongCong * (@TyLeGiam / 100.0);
+        END
+        
+        DECLARE @TyLeThanhVien DECIMAL(5,2) = 0;
+        SELECT @TyLeThanhVien = CB.UuDai FROM KHACHHANG KH JOIN CAPBAC CB ON KH.MaCB = CB.MaCB WHERE KH.MaKH = @MaKH;
+        SET @GiamGia = @GiamGia + (@TongCong * (@TyLeThanhVien / 100.0));
+        
+        SET @ThanhTien = @TongCong - @GiamGia;
+        IF @ThanhTien < 0 SET @ThanhTien = 0;
+        
+        INSERT INTO HOADON (MaPhieu, NguoiLap, NgayLap, TongTien, GiamGia, ThanhTien, HinhThucTT)
+        VALUES (@MaDatSan, @NguoiLap, GETDATE(), @TongCong, @GiamGia, @ThanhTien, @HinhThucTT);
+        DECLARE @MaHD BIGINT = SCOPE_IDENTITY();
+        
+        UPDATE PHIEUDATSAN SET TrangThai = N'Hoàn thành' WHERE MaDatSan = @MaDatSan;
+        UPDATE CT_DICHVUDAT SET TrangThaiSuDung = N'Đã thanh toán' WHERE MaDatSan = @MaDatSan;
+        
+        DECLARE @DiemCong INT = CAST(@ThanhTien / 100000 AS INT);
+        IF @DiemCong > 0
+        BEGIN
+            DECLARE @DiemCu INT;
+            SELECT @DiemCu = DiemTichLuy FROM KHACHHANG WHERE MaKH = @MaKH;
+            UPDATE KHACHHANG SET DiemTichLuy = @DiemCu + @DiemCong WHERE MaKH = @MaKH;
+        END
+        
+        UPDATE SAN SET TinhTrang = N'Còn Trống' 
+        FROM SAN S JOIN DATSAN D ON S.MaSan = D.MaSan WHERE D.MaDatSan = @MaDatSan;
+        
+        COMMIT TRAN;
+        PRINT N'Thanh toán thành công. Mã HĐ: ' + CAST(@MaHD AS VARCHAR(20));
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK TRAN;
+        DECLARE @Msg NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR(@Msg, 16, 1);
+    END CATCH
+END
+GO
+
+/*
+--------------------------------------------------------------------------------
+SP 5: sp_HuySan
+--------------------------------------------------------------------------------
+Mục đích: Hủy sân và tính tiền phạt (nếu có)
+Sử dụng trong: LichSuDatSanController.cs (sp_KhachHang_HuySan gọi SP này)
+*/
+CREATE OR ALTER PROCEDURE sp_HuySan
+    @MaDatSan BIGINT,
+    @NguoiThucHien VARCHAR(20) 
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET TRAN ISOLATION LEVEL REPEATABLE READ;
+    BEGIN TRY
+        BEGIN TRAN;
+        DECLARE @TienPhat DECIMAL(18,2) = dbo.f_TinhTienPhat(@MaDatSan, GETDATE());
+        
+        -- Nếu có tiền phạt -> Tạo hóa đơn phạt
+        IF @TienPhat > 0
+        BEGIN
+            INSERT INTO HOADON (MaPhieu, NguoiLap, NgayLap, TongTien, GiamGia, ThanhTien, HinhThucTT)
+            VALUES (@MaDatSan, @NguoiThucHien, GETDATE(), @TienPhat, 0, @TienPhat, N'Tiền phạt hủy sân');
+        END
+        
+        UPDATE PHIEUDATSAN SET TrangThai = N'Đã hủy' WHERE MaDatSan = @MaDatSan;
+        UPDATE SAN SET TinhTrang = N'Còn Trống' 
+        FROM SAN S JOIN DATSAN D ON S.MaSan = D.MaSan WHERE D.MaDatSan = @MaDatSan;
+        
+        COMMIT TRAN;
+        PRINT N'Hủy sân thành công. Tiền phạt: ' + CAST(@TienPhat AS VARCHAR(20));
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK TRAN;
+        DECLARE @Msg NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR(@Msg, 16, 1);
+    END CATCH
+END
+GO
+
+/*
+--------------------------------------------------------------------------------
+SP 6: sp_DoiLichDat
+--------------------------------------------------------------------------------
+Mục đích: Đổi lịch đặt sân (Reschedule)
+Sử dụng trong: LichSuDatSanController.cs
+*/
+CREATE OR ALTER PROCEDURE sp_DoiLichDat
+    @MaDatSan BIGINT,
+    @MaKH VARCHAR(20),
+    @NgayMoi DATE,
+    @GioBDMoi TIME,
+    @GioKTMoi TIME
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET TRAN ISOLATION LEVEL REPEATABLE READ;
+
+    BEGIN TRY
+        BEGIN TRAN;
+
+        -- 1. Kiểm tra tồn tại và quyền sở hữu
+        DECLARE @MaSan VARCHAR(20), @NgayCu DATE, @GioBDCu TIME, @TrangThai NVARCHAR(50);
+        
+        SELECT @MaSan = D.MaSan, @NgayCu = P.NgayDat, @GioBDCu = P.GioBatDau, @TrangThai = P.TrangThai
+        FROM PHIEUDATSAN P
+        JOIN DATSAN D ON P.MaDatSan = D.MaDatSan
+        WHERE P.MaDatSan = @MaDatSan AND P.MaKH = @MaKH;
+
+        IF @MaSan IS NULL
+        BEGIN
+            ROLLBACK TRAN;
+            RAISERROR(N'Không tìm thấy phiếu đặt hoặc bạn không có quyền thay đổi!', 16, 1);
+            RETURN;
+        END
+
+        -- 2. Kiểm tra trạng thái (Chỉ được đổi khi chưa hoàn thành/hủy)
+        IF @TrangThai IN (N'Đã hủy', N'Hoàn thành', N'No-Show')
+        BEGIN
+            ROLLBACK TRAN;
+            RAISERROR(N'Không thể đổi lịch cho đơn đã hủy hoặc đã hoàn thành!', 16, 1);
+            RETURN;
+        END
+        
+        -- 3. Kiểm tra Sân Trống cho Giờ Mới (Trừ chính đơn này ra)
+        IF dbo.f_KiemTraSanTrong(@MaSan, @NgayMoi, @GioBDMoi, @GioKTMoi, @MaDatSan) = 0
+        BEGIN
+            ROLLBACK TRAN;
+            RAISERROR(N'Khung giờ mới đã có người đặt! Vui lòng chọn giờ khác.', 16, 1);
+            RETURN;
+        END
+
+        -- 4. Cập nhật
+        UPDATE PHIEUDATSAN 
+        SET NgayDat = @NgayMoi, GioBatDau = @GioBDMoi, GioKetThuc = @GioKTMoi, NgayTao = GETDATE()
+        WHERE MaDatSan = @MaDatSan;
+
+        COMMIT TRAN;
+        PRINT N'Đổi lịch thành công!';
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK TRAN;
+        DECLARE @Msg NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR(@Msg, 16, 1);
+    END CATCH
+END
+GO
+
+/*
+--------------------------------------------------------------------------------
+SP 7: sp_TuDongHuyDonQuaHan
+--------------------------------------------------------------------------------
+Mục đích: Tự động hủy các đơn "Chờ thanh toán" quá hạn (> 30 phút)
+Sử dụng trong: Background job / Scheduled task
+Fix lỗi: Đổi trạng thái thành 'Đã hủy' thay vì 'Quá hạn thanh toán'
+*/
+CREATE OR ALTER PROCEDURE sp_TuDongHuyDonQuaHan
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @SoPhutGioiHan INT = 30; -- Thời gian cho phép giữ chỗ (phút)
+    
+    -- Cập nhật các đơn 'Chờ thanh toán' quá hạn thành 'Đã hủy'
+    UPDATE PHIEUDATSAN
+    SET TrangThai = N'Đã hủy'
+    WHERE TrangThai = N'Chờ thanh toán'
+      AND DATEDIFF(MINUTE, NgayTao, GETDATE()) > @SoPhutGioiHan;
+      
+    -- Trả về số lượng đơn đã hủy để log (nếu cần)
+    SELECT @@ROWCOUNT AS SoLuongHuy;
+END
+GO
+
+/*
+--------------------------------------------------------------------------------
+SP 8: sp_ThanhToanTaiQuay
+--------------------------------------------------------------------------------
+Mục đích: Xác nhận đặt sân tại quầy (Nháp -> Chờ thanh toán)
+Sử dụng trong: DatSanThanhToanController.cs
+*/
+CREATE OR ALTER PROCEDURE sp_ThanhToanTaiQuay
+    @MaDatSan BIGINT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET TRAN ISOLATION LEVEL REPEATABLE READ;
+    
+    BEGIN TRY
+        BEGIN TRAN;
+        
+        -- 1. DOUBLE-CHECK AVAILABILITY
+        DECLARE @MaSanCheck VARCHAR(20), @NgayDatCheck DATE, @GioBDCheck TIME, @GioKTCheck TIME;
+        
+        SELECT @MaSanCheck = D.MaSan, @NgayDatCheck = P.NgayDat, @GioBDCheck = P.GioBatDau, @GioKTCheck = P.GioKetThuc
+        FROM PHIEUDATSAN P
+        JOIN DATSAN D ON P.MaDatSan = D.MaDatSan
+        WHERE P.MaDatSan = @MaDatSan;
+        
+        IF dbo.f_KiemTraSanTrong(@MaSanCheck, @NgayDatCheck, @GioBDCheck, @GioKTCheck, NULL) = 0
+        BEGIN
+            ROLLBACK TRAN;
+            RAISERROR(N'Rất tiếc! Sân đã bị người khác đặt trong lúc bạn đang thanh toán.', 16, 1);
+            RETURN;
+        END
+
+        -- UPDATE STATUS: PENDING & REFRESH CREATED DATE
+        UPDATE PHIEUDATSAN SET TrangThai = N'Chờ thanh toán', NgayTao = GETDATE() WHERE MaDatSan = @MaDatSan;
+        
+        COMMIT TRAN;
+        PRINT N'Chuyển sang trạng thái chờ thanh toán thành công!';
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK TRAN;
+        DECLARE @Msg NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR(@Msg, 16, 1);
+    END CATCH
+END
+GO
+
+/*
+--------------------------------------------------------------------------------
+SP 9: sp_KhachHang_HuySan
+--------------------------------------------------------------------------------
+Mục đích: Khách hàng hủy sân với tính phạt theo thời gian
+Sử dụng trong: LichSuDatSanController.cs
+Quy tắc phạt:
+  - Hủy trước >= 24h: Phạt 10%
+  - Hủy trong vòng 24h: Phạt 50%
+  - No-show (hủy sau giờ bắt đầu): Phạt 100%
+*/
+CREATE OR ALTER PROCEDURE sp_KhachHang_HuySan
+    @MaDatSan BIGINT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @TienPhat DECIMAL(18,2);
+    
+    -- Calculate penalty using existing function
+    SET @TienPhat = dbo.f_TinhTienPhat(@MaDatSan, GETDATE());
+
+    -- Update status
+    UPDATE PHIEUDATSAN
+    SET TrangThai = N'Đã hủy'
+    WHERE MaDatSan = @MaDatSan;
+
+    -- Return penalty amount
+    SELECT @TienPhat AS TienPhat;
+END
+GO
+
+/*
+--------------------------------------------------------------------------------
+SP 10: sp_KhachHang_DanhGia
+--------------------------------------------------------------------------------
+*/
+CREATE OR ALTER PROCEDURE sp_KhachHang_DanhGia
+    @MaDatSan BIGINT,
+    @Diem INT,
+    @NoiDung NVARCHAR(500)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    INSERT INTO DANHGIA (MaDatSan, Diem, NoiDung)
+    VALUES (@MaDatSan, @Diem, @NoiDung);
+END
+GO
+
+/*
+--------------------------------------------------------------------------------
+SP 11: sp_KhachHang_DoiSan (Logic đổi lịch check trùng)
+--------------------------------------------------------------------------------
+*/
+CREATE OR ALTER PROCEDURE sp_KhachHang_DoiSan
+    @MaDatSan BIGINT,
+    @NgayMoi DATE,
+    @GioBatDauMoi TIME,
+    @GioKetThucMoi TIME
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @MaSan VARCHAR(20);
+    SELECT @MaSan = D.MaSan 
+    FROM PHIEUDATSAN P JOIN DATSAN D ON P.MaDatSan = D.MaDatSan 
+    WHERE P.MaDatSan = @MaDatSan;
+
+    -- Check if new time is available (Truyền 5 tham số để exclude chính mã phiếu này)
+    -- Hàm f_KiemTraSanTrong(@MaSan, @Ngay, @BD, @KT, @MaDatSanExclude)
+    IF dbo.f_KiemTraSanTrong(@MaSan, @NgayMoi, @GioBatDauMoi, @GioKetThucMoi, @MaDatSan) = 0
+    BEGIN
+        SELECT 0 AS Result, N'Sân đã bị đặt trong khung giờ này.' AS Message;
+        RETURN;
+    END
+
+    -- Update
+    UPDATE PHIEUDATSAN
+    SET NgayDat = @NgayMoi, GioBatDau = @GioBatDauMoi, GioKetThuc = @GioKetThucMoi
+    WHERE MaDatSan = @MaDatSan;
+
+    SELECT 1 AS Result, N'Đổi giờ thành công.' AS Message;
+END
+GO
+
+/*
+--------------------------------------------------------------------------------
+SCRIPT FIX DATA: HLV KHÔNG CẦN QUẢN LÝ TỒN KHO
+--------------------------------------------------------------------------------
+*/
+-- XÓA HLV RA KHỎI BẢNG DV_COSO (vì HLV không cần quản lý tồn kho)
+DELETE FROM DV_COSO 
+WHERE MaDV IN (
+    SELECT DV.MaDV 
+    FROM DICHVU DV 
+    JOIN LOAIDV L ON DV.MaLoaiDV = L.MaLoaiDV
+    WHERE L.MaLoaiDV IN ('LDV001', 'LDV004', 'LDV005')
+       OR L.MaLoaiDV LIKE 'LDV001%' -- Huấn luyện viên
+       OR L.MaLoaiDV LIKE 'LDV004%' -- Gói VIP
+       OR L.MaLoaiDV LIKE 'LDV005%' -- Tủ đồ
+       OR L.TenLoai LIKE N'%Huấn luyện viên%'
+);
+
+PRINT N'Đã chạy FIX_HLV_DATA: Xóa HLV/VIP/Tủ đồ khỏi kho!';
+GO
+

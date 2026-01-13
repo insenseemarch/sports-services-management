@@ -1,0 +1,162 @@
+@model webapp_mvc.Models.HoSoViewModel
+
+@{
+    ViewData["Title"] = "Hồ Sơ Cá Nhân";
+}
+
+<!-- Thêm padding-top để tránh bị navbar che khuất -->
+<div class="container py-5" style="padding-top: 100px !important;">
+    <div class="row justify-content-center">
+        <!-- Profile Card -->
+        <div class="col-lg-9">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden" 
+                 style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px);">
+                
+                <!-- Header / Banner -->
+                <div class="position-relative" style="height: 180px; background: linear-gradient(135deg, var(--color-dark) 0%, #1a4d44 100%);">
+                    <div class="position-absolute bottom-0 start-0 w-100 h-100" 
+                         style="background-image: radial-gradient(circle at 10% 20%, rgba(204, 255, 0, 0.1) 0%, transparent 20%);"></div>
+                </div>
+
+                <div class="card-body px-4 px-md-5 pb-5 pt-0 position-relative">
+                    <!-- Avatar Section -->
+                    <div class="text-center position-absolute start-50 translate-middle-x" style="top: -70px;">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center shadow-lg position-relative mx-auto" 
+                             style="width: 140px; height: 140px; background: white; padding: 4px;">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center w-100 h-100" 
+                                 style="background: var(--bg-body);">
+                                <i class="fas fa-user-circle" style="font-size: 90px; color: var(--color-lime-dark, #8cbd00);"></i>
+                            </div>
+                        </div>
+                        
+                        <h3 class="mt-3 mb-1 fw-bold" style="color: var(--color-dark);">@Model.HoTen</h3>
+                        
+                        <div class="d-flex justify-content-center gap-2 mt-2">
+                             <span class="badge rounded-pill px-3 py-2 border" 
+                                  style="background: rgba(255, 255, 255, 0.8); border-color: var(--color-lime) !important; color: var(--color-dark);">
+                                <i class="fas fa-star me-1 text-warning"></i> @(string.IsNullOrEmpty(Model.TenCB) ? "Thành Viên Mới" : Model.TenCB)
+                            </span>
+                            <span class="badge rounded-pill px-3 py-2" 
+                                  style="background: rgba(204, 255, 0, 0.2); color: #7a9c00;">
+                                <i class="fas fa-coins me-1"></i> @Model.DiemTichLuy điểm
+                            </span>
+                            @if(Model.LaHSSV)
+                            {
+                                <span class="badge rounded-pill px-3 py-2 bg-info text-dark bg-opacity-25">
+                                    <i class="fas fa-graduation-cap me-1"></i> Sinh Viên
+                                </span>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Spacer for Avatar -->
+                    <div style="margin-top: 100px;"></div>
+
+                    <!-- Notification -->
+                    @if (ViewBag.Message != null)
+                    {
+                        <div class="alert alert-success border-0 shadow-sm d-flex align-items-center mb-4 rounded-3" 
+                             style="background-color: rgba(25, 135, 84, 0.1); color: #0f5132;">
+                            <i class="fas fa-check-circle me-2 fs-5"></i>
+                            <div>@ViewBag.Message</div>
+                        </div>
+                    }
+
+                    <!-- Profile Details (Read Only) -->
+                    <div class="mt-4">
+                        <h5 class="fw-bold mb-4 d-flex align-items-center pb-2 border-bottom" style="color: var(--color-dark); border-color: rgba(0,0,0,0.05) !important;">
+                            <span class="rounded-circle d-flex align-items-center justify-content-center me-2" 
+                                  style="width: 32px; height: 32px; background: rgba(204, 255, 0, 0.3);">
+                                <i class="fas fa-id-card small" style="color: var(--color-dark);"></i>
+                            </span>
+                            Thông Tin Cá Nhân
+                        </h5>
+
+                        <div class="row g-4">
+                            <!-- Họ Tên -->
+                            <div class="col-md-6">
+                                <div class="p-3 rounded-3 bg-light h-100">
+                                    <label class="fw-bold text-muted small text-uppercase d-block mb-1">Họ Và Tên</label>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-user text-muted me-3"></i>
+                                        <span class="fs-5 fw-semibold text-dark">@Model.HoTen</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Ngày Sinh -->
+                            <div class="col-md-6">
+                                <div class="p-3 rounded-3 bg-light h-100">
+                                    <label class="fw-bold text-muted small text-uppercase d-block mb-1">Ngày Sinh</label>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-birthday-cake text-muted me-3"></i>
+                                        <span class="fs-5 fw-semibold text-dark">
+                                            @(Model.NgaySinh.HasValue ? Model.NgaySinh.Value.ToString("dd/MM/yyyy") : "Chưa cập nhật")
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- CCCD -->
+                            <div class="col-md-6">
+                                <div class="p-3 rounded-3 bg-light h-100">
+                                    <label class="fw-bold text-muted small text-uppercase d-block mb-1">CCCD / CMND</label>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-id-badge text-muted me-3"></i>
+                                        <span class="fs-5 fw-semibold text-dark">
+                                            @(string.IsNullOrEmpty(Model.CCCD) ? "Chưa cập nhật" : Model.CCCD)
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                             <!-- Số Điện Thoại -->
+                            <div class="col-md-6">
+                                <div class="p-3 rounded-3 bg-light h-100">
+                                    <label class="fw-bold text-muted small text-uppercase d-block mb-1">Số Điện Thoại</label>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-phone text-muted me-3"></i>
+                                        <span class="fs-5 fw-semibold text-dark">@Model.SDT</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="col-md-12">
+                                <div class="p-3 rounded-3 bg-light h-100">
+                                    <label class="fw-bold text-muted small text-uppercase d-block mb-1">Email</label>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-envelope text-muted me-3"></i>
+                                        <span class="fs-5 fw-semibold text-dark">@Model.Email</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Địa Chỉ -->
+                            <div class="col-md-12">
+                                <div class="p-3 rounded-3 bg-light h-100">
+                                    <label class="fw-bold text-muted small text-uppercase d-block mb-1">Địa Chỉ</label>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-map-marker-alt text-muted me-3"></i>
+                                        <span class="fs-5 fw-semibold text-dark">@Model.DiaChi</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-end mt-5 gap-3">
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-light fw-bold px-4 py-2 rounded-pill text-muted">
+                                <i class="fas fa-arrow-left me-2"></i> Trang Chủ
+                            </a>
+                            <a asp-action="Edit" class="btn fw-bold px-5 py-2 rounded-pill shadow-sm d-flex align-items-center" 
+                                    style="background-color: var(--color-lime); color: var(--color-dark); border: none; transition: all 0.2s;">
+                                <i class="fas fa-pen me-2"></i> Chỉnh Sửa Hồ Sơ
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

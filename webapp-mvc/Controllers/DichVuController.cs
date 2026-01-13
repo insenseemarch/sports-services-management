@@ -125,18 +125,26 @@ namespace webapp_mvc.Controllers
 
                 // Determine Active Filter
                 string activeMaCS = "";
+                string activeTenCS = dbTenCS; // Tên cơ sở để hiển thị
+                
                 if (filterMaCS == "ALL") 
                 {
                     activeMaCS = ""; // Explicitly view all
+                    activeTenCS = "Tất cả cơ sở";
                 }
                 else if (!string.IsNullOrEmpty(filterMaCS))
                 {
                     activeMaCS = filterMaCS; // User selected specific
+                    // Tìm tên cơ sở từ list
+                    var csItem = listCS.FirstOrDefault(x => x.MaCS == filterMaCS);
+                    if (csItem != null) activeTenCS = csItem.TenCS;
                 }
                 else
                 {
                     activeMaCS = dbMaCS; // Default to Booking's Facility (if any)
                 }
+                
+                ViewBag.TenCoSo = activeTenCS;
 
                 // Populate ViewBag for View State
                 ViewBag.CurrentMaCS = string.IsNullOrEmpty(activeMaCS) ? "ALL" : activeMaCS;

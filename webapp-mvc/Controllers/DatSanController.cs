@@ -78,10 +78,11 @@ namespace webapp_mvc.Controllers
                 return RedirectToAction("DangNhap", "TaiKhoan");
             }
 
-            // Gọi SP đặt sân theo đúng chuẩn Transaction
+            // TẠO PHIẾU NHÁP NGAY (để có maDatSan)
+            // Phiếu nháp sẽ không bị tính vào trigger kiểm tra trùng lịch
             var p = new SqlParameter[] {
                 new SqlParameter("@MaKH", maUser), 
-                new SqlParameter("@NguoiLap", maUser), // Khách tự đặt
+                new SqlParameter("@NguoiLap", maUser),
                 new SqlParameter("@MaSan", model.SelectedMaSan),
                 new SqlParameter("@NgayDat", model.NgayDat),
                 new SqlParameter("@GioBatDau", model.GioBatDau),
@@ -125,15 +126,10 @@ namespace webapp_mvc.Controllers
                     return Json(new { success = false, message = errorMessage });
                 }
                 
-                // Regular request - use TempData
-                TempData["ErrorMessage"] = errorMessage;
-                TempData["ToastType"] = "error";
-                TempData["BookingMaSan"] = model.SelectedMaSan;
-                TempData["BookingNgayDat"] = model.NgayDat.ToString("yyyy-MM-dd");
-                TempData["BookingGioBatDau"] = model.GioBatDau.ToString(@"hh\:mm");
-                TempData["BookingGioKetThuc"] = model.GioKetThuc.ToString(@"hh\:mm");
-                
-                return RedirectToAction("Index", new { maCS = model.MaCS, maLS = model.MaLS });
+                ModelState.AddModelError("", errorMessage);
+                LoadDropdownData(model);
+                LoadDanhSachSan(model);
+                return View(model);
             }
             catch (Exception ex)
             {

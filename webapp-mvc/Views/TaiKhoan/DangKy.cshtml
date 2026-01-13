@@ -285,6 +285,7 @@
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script>
         // Toggle upload section khi tick HSSV
@@ -310,6 +311,59 @@
                 };
                 reader.readAsDataURL(file);
             }
+        });
+
+        // AJAX Submit Form
+        $('#registerForm').on('submit', function(e) {
+            e.preventDefault();
+            var form = this;
+            
+            // Xóa thông báo lỗi cũ
+            $('.alert-danger').remove();
+            $('.is-invalid').removeClass('is-invalid');
+            $('.text-danger.small').remove();
+
+            var btn = $(form).find('button[type="submit"]');
+            var originalText = btn.html();
+            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang xử lý...');
+
+            var formData = new FormData(form);
+
+            $.ajax({
+                url: $(form).attr('action'),
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        alert(response.message); // Hoặc hiển thị đẹp hơn tùy ý
+                        window.location.href = '/TaiKhoan/DangNhap'; // Chuyển về trang đăng nhập (hoặc home)
+                    } else {
+                        if (response.field) {
+                            var input = $(form).find('[name="' + response.field + '"]');
+                            input.addClass('is-invalid');
+                            input.after('<div class="text-danger small mt-1">' + response.message + '</div>');
+                        } else {
+                            var errorHtml = `
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                    <strong>Có lỗi xảy ra!</strong> ${response.message}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            `;
+                            $('.register-body').prepend(errorHtml);
+                            $('.register-body').scrollTop(0);
+                        }
+                    }
+                },
+                error: function() {
+                    alert('Có lỗi kết nối server!');
+                },
+                complete: function() {
+                    btn.prop('disabled', false).html(originalText);
+                }
+            });
         });
     </script>
 </body>

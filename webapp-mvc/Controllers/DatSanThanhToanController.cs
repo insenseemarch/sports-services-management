@@ -29,7 +29,7 @@ namespace webapp_mvc.Controllers
                 MaDatSan = maDatSan
             };
 
-            // Lấy thông tin phiếu đặt sân - SIMPLIFIED FOR TESTING
+            // Lấy thông tin phiếu đặt sân
             string sqlPhieu = @"
                 SELECT p.MaDatSan, p.MaKH, p.NgayDat, p.GioBatDau, p.GioKetThuc, p.TrangThai,
                        s.MaSan, ls.TenLS, ls.DVT, cs.TenCS
@@ -51,7 +51,6 @@ namespace webapp_mvc.Controllers
             }
 
             var row = dtPhieu.Rows[0];
-            // Handle service-only bookings (no court)
             model.MaSan = row["MaSan"] != DBNull.Value ? row["MaSan"].ToString() : "";
             model.TenSan = row["MaSan"] != DBNull.Value ? $"{row["TenLS"]} - {row["MaSan"]}" : "Dịch vụ lẻ";
             model.TenCoSo = row["TenCS"].ToString();

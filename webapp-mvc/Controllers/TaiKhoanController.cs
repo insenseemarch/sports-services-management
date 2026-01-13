@@ -98,6 +98,8 @@ namespace webapp_mvc.Controllers
                 ";
                 
                 var result = _db.ExecuteQuery(query, new SqlParameter("@Username", model.Username), new SqlParameter("@Password", model.Password));
+                
+                Console.WriteLine($"Login attempt: User={model.Username}, Pass={model.Password}, Found={result.Rows.Count}");
 
                 if (result.Rows.Count == 0)
                 {

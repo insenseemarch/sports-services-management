@@ -50,19 +50,12 @@
             <form method="get" asp-action="Index" class="row g-2 align-items-end">
                 <input type="hidden" name="maDatSan" value="@Model.MaDatSan" />
                 
-                <!-- Facility -->
+                <!-- Facility (Read-only) -->
                 <div class="col-md-3">
                     <label class="form-label text-dark fw-bold ms-1 small" style="font-size: 0.8rem;"><i class="fas fa-map-marker-alt me-1 text-warning"></i>CƠ SỞ</label>
-                    <select name="filterMaCS" class="form-select form-select-sm py-2 fw-bold shadow-sm border-2">
-                        <option value="ALL" selected="@(ViewBag.CurrentMaCS == "ALL" || string.IsNullOrEmpty(ViewBag.CurrentMaCS) ? "selected" : null)">-- Tất cả --</option>
-                        @if (ViewBag.DanhSachCoSo != null)
-                        {
-                            foreach (dynamic cs in ViewBag.DanhSachCoSo)
-                            {
-                                <option value="@cs.MaCS" selected="@(ViewBag.CurrentMaCS == cs.MaCS ? "selected" : null)">@cs.TenCS</option>
-                            }
-                        }
-                    </select>
+                    <input type="text" class="form-control form-control-sm py-2 fw-bold shadow-sm border-2 bg-light" 
+                           value="@(ViewBag.TenCoSo ?? "Đang tải...")" readonly style="cursor: not-allowed;">
+                    <input type="hidden" name="filterMaCS" value="@ViewBag.CurrentMaCS" />
                 </div>
                 
                 <!-- Date -->

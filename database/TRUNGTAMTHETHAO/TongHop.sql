@@ -1735,7 +1735,7 @@ BEGIN
         JOIN PHIEUDATSAN P_Cu ON D_Cu.MaDatSan = P_Cu.MaDatSan -- Lấy giờ của các phiếu cũ
         WHERE P_Cu.MaDatSan <> P_Moi.MaDatSan -- Khác chính nó
           AND P_Cu.NgayDat = P_Moi.NgayDat -- Cùng ngày
-          AND P_Cu.TrangThai NOT IN (N'Đã hủy', N'No-Show') -- Phiếu cũ chưa hủy
+          AND P_Cu.TrangThai NOT IN (N'Đã hủy', N'No-Show', N'Nháp') -- Phiếu cũ chưa hủy và không phải nháp
           AND (
               (P_Moi.GioBatDau >= P_Cu.GioBatDau AND P_Moi.GioBatDau < P_Cu.GioKetThuc) -- Giờ bắt đầu lọt vào ca cũ
               OR
@@ -1839,6 +1839,13 @@ ON PHIEUDATSAN
 FOR INSERT, UPDATE
 AS
 BEGIN
+    -- Nếu là UPDATE và KHÔNG đổi giờ thì bỏ qua (cho phép Hủy sân thoải mái)
+    IF EXISTS (SELECT 1 FROM deleted) 
+    BEGIN
+        IF NOT UPDATE(GioBatDau) AND NOT UPDATE(GioKetThuc)
+            RETURN;
+    END
+
     IF NOT EXISTS (SELECT 1 FROM inserted) RETURN;
 
     DECLARE @GioBD TIME, @GioKT TIME, @LoaiSan NVARCHAR(50);
@@ -1892,6 +1899,13 @@ ON CT_DICHVUDAT
 FOR INSERT, UPDATE
 AS
 BEGIN
+    -- Nếu là UPDATE và KHÔNG đổi giờ thì bỏ qua (cho phép Hủy sân thoải mái)
+    IF EXISTS (SELECT 1 FROM deleted) 
+    BEGIN
+        IF NOT UPDATE(GioBatDau) AND NOT UPDATE(GioKetThuc)
+            RETURN;
+    END
+
     IF NOT EXISTS (SELECT 1 FROM inserted) RETURN;
 
     -- Chỉ kiểm tra các dịch vụ có tính chất "Chiếm chỗ" (HLV, Phòng, Tủ)
@@ -1908,7 +1922,7 @@ BEGIN
         
         WHERE I.MaDatSan <> CT_Cu.MaDatSan -- Khác phiếu hiện tại
           AND P_Cu.NgayDat = P_Moi.NgayDat -- Cùng ngày
-          AND P_Cu.TrangThai NOT IN (N'Đã hủy', N'No-Show') -- Phiếu cũ chưa hủy
+          AND P_Cu.TrangThai NOT IN (N'Đã hủy', N'No-Show', N'Nháp') -- Phiếu cũ chưa hủy và không phải nháp
           
           -- Kiểm tra loại dịch vụ dựa trên tên trong bảng LOAIDV
           AND (LDV.TenLoai IN (N'Huấn luyện viên', N'Phòng VIP', N'Tủ đồ')) 
@@ -1991,6 +2005,44 @@ BEGIN
 END;
 GO
 
+-- 11. Hoàn trả tồn kho dịch vụ khi hủy phiếu
+CREATE OR ALTER TRIGGER trg_HoanTraDichVuKhiHuy
+ON PHIEUDATSAN
+AFTER UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Chỉ xử lý khi trạng thái chuyển sang 'Đã hủy', 'No-Show', hoặc 'Không hợp lệ'
+    IF EXISTS (
+        SELECT 1 
+        FROM inserted i
+        JOIN deleted d ON i.MaDatSan = d.MaDatSan
+        WHERE i.TrangThai IN (N'Đã hủy', N'No-Show', N'Không hợp lệ')
+          AND d.TrangThai NOT IN (N'Đã hủy', N'No-Show', N'Không hợp lệ', N'Nháp')
+    )
+    BEGIN
+        SELECT i.MaDatSan
+        INTO #CancelledBookings
+        FROM inserted i
+        JOIN deleted d ON i.MaDatSan = d.MaDatSan
+        WHERE i.TrangThai IN (N'Đã hủy', N'No-Show', N'Không hợp lệ')
+          AND d.TrangThai NOT IN (N'Đã hủy', N'No-Show', N'Không hợp lệ', N'Nháp');
+
+        UPDATE KHO
+        SET KHO.SoLuongTon = KHO.SoLuongTon + CT.SoLuong
+        FROM DV_COSO KHO
+        JOIN CT_DICHVUDAT CT ON KHO.MaDV = CT.MaDV
+        JOIN #CancelledBookings C ON CT.MaDatSan = C.MaDatSan
+        JOIN DATSAN DS ON C.MaDatSan = DS.MaDatSan
+        JOIN SAN S ON DS.MaSan = S.MaSan
+        WHERE KHO.MaCS = S.MaCS;
+        
+        DROP TABLE #CancelledBookings;
+    END
+END
+GO
+
 --	===================================================================================
 --	==								BẢO MẬT & PHÂN QUYỀN							 ==
 --	===================================================================================
@@ -2060,35 +2112,67 @@ BEGIN
     DECLARE @TenLS NVARCHAR(50);
     DECLARE @GioBatDau TIME;
     DECLARE @GioKetThuc TIME;
-    DECLARE @GiaApDung DECIMAL(18,2);
+    DECLARE @NgayDat DATE;
+    DECLARE @CurrentHour TIME;
+    DECLARE @NextHour TIME;
+    DECLARE @GiaKhung DECIMAL(18,2);
+    DECLARE @DurationMinutes INT;
 
     -- Lấy thông tin phiếu đặt và loại sân
-    SELECT @MaLS = S.MaLS, @TenLS = LS.TenLS, @GioBatDau = P.GioBatDau, @GioKetThuc = P.GioKetThuc
+    SELECT @MaLS = S.MaLS, @TenLS = LS.TenLS, 
+           @GioBatDau = P.GioBatDau, @GioKetThuc = P.GioKetThuc,
+           @NgayDat = P.NgayDat
     FROM PHIEUDATSAN P
     JOIN DATSAN D ON P.MaDatSan = D.MaDatSan
     JOIN SAN S ON D.MaSan = S.MaSan
     JOIN LOAISAN LS ON S.MaLS = LS.MaLS
     WHERE P.MaDatSan = @MaDatSan;
 
-    -- Lấy giá theo khung giờ
-    SELECT TOP 1 @GiaApDung = K.GiaApDung
-    FROM KHUNGGIO K
-    WHERE K.MaLS = @MaLS 
-      AND @GioBatDau >= K.GioBatDau 
-      AND @GioBatDau < K.GioKetThuc
-      AND K.NgayApDung <= (SELECT NgayDat FROM PHIEUDATSAN WHERE MaDatSan = @MaDatSan)
-    ORDER BY K.NgayApDung DESC;
+    -- Tính thời lượng (phút)
+    SET @DurationMinutes = DATEDIFF(MINUTE, @GioBatDau, @GioKetThuc);
 
-    -- TÍNH TIỀN THEO QUY TẮC
-    IF @TenLS IN (N'Bóng đá mini', N'Sân Tennis')
+    -- TÍNH TIỀN THEO TỪNG KHUNG GIỜ
+    -- Duyệt từng giờ từ GioBatDau đến GioKetThuc
+    SET @CurrentHour = @GioBatDau;
+    
+    WHILE @CurrentHour < @GioKetThuc
     BEGIN
-        -- Tính theo trận (90p) hoặc ca (2h) -> GIÁ TRỌN GÓI (Fixed Price)
-        SET @TienSan = ISNULL(@GiaApDung, 0);
-    END
-    ELSE
-    BEGIN
-        -- Tính theo giờ (Cầu lông, Bóng rổ...) -> GIÁ x SỐ GIỜ
-        SET @TienSan = ISNULL(@GiaApDung, 0) * (DATEDIFF(MINUTE, @GioBatDau, @GioKetThuc) / 60.0);
+        -- Tính giờ tiếp theo (mỗi lần tăng 1 giờ)
+        SET @NextHour = DATEADD(HOUR, 1, @CurrentHour);
+        IF @NextHour > @GioKetThuc
+            SET @NextHour = @GioKetThuc;
+        
+        -- Tìm giá khung giờ chứa @CurrentHour
+        SELECT TOP 1 @GiaKhung = K.GiaApDung
+        FROM KHUNGGIO K
+        WHERE K.MaLS = @MaLS 
+          AND @CurrentHour >= K.GioBatDau 
+          AND @CurrentHour < K.GioKetThuc
+          AND K.NgayApDung <= @NgayDat
+        ORDER BY K.NgayApDung DESC;
+        
+        -- Nếu không tìm thấy khung giờ phù hợp, lấy khung GẦN NHẤT
+        IF @GiaKhung IS NULL
+        BEGIN
+            -- Tìm khung giờ gần nhất (trước hoặc sau)
+            SELECT TOP 1 @GiaKhung = K.GiaApDung
+            FROM KHUNGGIO K
+            WHERE K.MaLS = @MaLS 
+              AND K.NgayApDung <= @NgayDat
+            ORDER BY 
+                ABS(DATEDIFF(MINUTE, @CurrentHour, K.GioBatDau)),
+                K.NgayApDung DESC;
+        END
+        
+        -- Cộng giá vào tổng (tính theo tỷ lệ thời gian thực tế)
+        DECLARE @ActualMinutes INT = DATEDIFF(MINUTE, @CurrentHour, @NextHour);
+        SET @TienSan = @TienSan + (ISNULL(@GiaKhung, 0) * @ActualMinutes / 60.0);
+        
+        -- Reset giá cho vòng lặp tiếp theo
+        SET @GiaKhung = NULL;
+        
+        -- Tăng giờ
+        SET @CurrentHour = @NextHour;
     END
 
     RETURN @TienSan;
@@ -2250,8 +2334,8 @@ BEGIN
              RAISERROR(N'Lỗi: Đặt Online phải trước 2 tiếng!', 16, 1);
              RETURN;
         END
-        INSERT INTO PHIEUDATSAN (MaKH, NguoiLap, NgayDat, NgayKetThuc, GioBatDau, GioKetThuc, KenhDat, TrangThai)
-        VALUES (@MaKH, @NguoiLap, @NgayDat, @NgayDat, @GioBatDau, @GioKetThuc, @KenhDat, N'Nháp');
+        INSERT INTO PHIEUDATSAN (MaKH, NguoiLap, NgayDat, NgayKetThuc, GioBatDau, GioKetThuc, KenhDat, TrangThai, NgayTao)
+        VALUES (@MaKH, @NguoiLap, @NgayDat, @NgayDat, @GioBatDau, @GioKetThuc, @KenhDat, N'Nháp', GETDATE());
         DECLARE @MaDatSan BIGINT = SCOPE_IDENTITY();
         INSERT INTO DATSAN (MaDatSan, MaSan) VALUES (@MaDatSan, @MaSan);
         COMMIT TRAN; 

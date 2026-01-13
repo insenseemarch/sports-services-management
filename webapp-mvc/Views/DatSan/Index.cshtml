@@ -192,6 +192,7 @@
                                         data-masan="@san.MaSan" 
                                         data-tensan="@san.TenSan" 
                                         data-tencoso="@san.TenCoSo" 
+                                        data-loaisan="@san.TenLoaiSan"
                                         data-gia="@san.GiaGio.ToString("F0")"
                                         data-dvt="@san.DonViTinh">
                                     Đặt Sân Ngay
@@ -246,7 +247,8 @@
                             <span class="fw-bold" id="modalTenSan">Sân A</span>
                             <span class="badge bg-success" id="modalGia"></span>
                         </div>
-                        <small class="text-secondary" id="modalTenCoSo">Cơ sở 1</small>
+                        <small class="text-secondary" id="modalTenCoSo">Cơ sở 1</small><br>
+                        <small class="text-muted" id="modalLoaiSan">Loại sân</small>
                     </div>
 
                     <div class="mb-3">
@@ -317,6 +319,33 @@
                     $('#modalErrorAlert').removeClass('d-none');
                     $('#modalErrorAlert')[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                     return;
+                }
+                
+                // Kiểm tra thời lượng theo loại sân (Bội số)
+                var loaiSan = $('#modalLoaiSan').text().trim();
+                var durationMinutes = (bookingEnd - bookingStart) / (1000 * 60);
+                
+                if (loaiSan.toLowerCase().includes('bóng đá')) {
+                    if (durationMinutes % 90 !== 0 || durationMinutes < 90) {
+                        $('#modalErrorMessage').html('<strong>Sân bóng đá mini phải đặt theo bội số 90 phút (1 trận = 90p)!</strong><br>Thời lượng hiện tại: ' + durationMinutes + ' phút.');
+                        $('#modalErrorAlert').removeClass('d-none');
+                        $('#modalErrorAlert')[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        return;
+                    }
+                } else if (loaiSan.toLowerCase().includes('tennis')) {
+                    if (durationMinutes % 120 !== 0) {
+                        $('#modalErrorMessage').html('<strong>Sân Tennis phải đặt theo ca 2 giờ (120 phút)!</strong><br>Thời lượng hiện tại: ' + durationMinutes + ' phút.');
+                        $('#modalErrorAlert').removeClass('d-none');
+                        $('#modalErrorAlert')[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        return;
+                    }
+                } else if (loaiSan.toLowerCase().includes('cầu lông') || loaiSan.toLowerCase().includes('bóng rổ')) {
+                    if (durationMinutes % 60 !== 0) {
+                        $('#modalErrorMessage').html('<strong>Sân ' + loaiSan + ' phải đặt theo bội số 1 giờ (60 phút)!</strong><br>Thời lượng hiện tại: ' + durationMinutes + ' phút.');
+                        $('#modalErrorAlert').removeClass('d-none');
+                        $('#modalErrorAlert')[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        return;
+                    }
                 }
                 
                 // Kiểm tra đặt Online phải trước 2 tiếng (120 phút)
@@ -406,6 +435,7 @@
                 $('#modalMaSan').val(maSan);
                 $('#modalTenSan').text(tenSan);
                 $('#modalTenCoSo').text(tenCoSo);
+                $('#modalLoaiSan').text($(this).data('loaisan') || 'Không rõ');
                 
                 // Format price display in header
                 var formattedPrice = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(currentCourt.gia);

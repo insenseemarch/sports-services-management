@@ -72,10 +72,10 @@
                                     data-color="@statusColor"
                                     data-is-future="@isFuture"
                                     data-allow-review="@allowReview"
-                                    data-remaining="@item.RemainingSeconds">
+                                    data-remaining="@item.RemainingSeconds"
+                                    data-expiry="@((item.NgayTao ?? item.NgayDat.Add(item.GioBatDau)).AddMinutes(30).ToString("yyyy-MM-ddTHH:mm:ss"))Z">
                                 <i class="fas fa-eye me-1"></i>Chi tiết
                             </button>
-
                         </div>
                     </div>
                 </div>
@@ -196,8 +196,14 @@
             if (countdownInterval) clearInterval(countdownInterval); // Clear prev timer
 
             if (status === 'Chờ thanh toán') { // Pending
-                var remainingSeconds = parseFloat(button.getAttribute('data-remaining'));
-                var expiryTime = new Date(Date.now() + remainingSeconds * 1000);
+                var expiryStr = button.getAttribute('data-expiry');
+                var expiryTime = new Date(expiryStr);
+                
+                // Fallback nếu ngày không hợp lệ (dù hiếm khi xảy ra)
+                if (isNaN(expiryTime.getTime())) {
+                    var remainingSeconds = parseFloat(button.getAttribute('data-remaining'));
+                    expiryTime = new Date(Date.now() + remainingSeconds * 1000);
+                }
                 
                 function updateCountdown() {
                     var now = new Date();
@@ -208,15 +214,26 @@
                         var expiredHtml = `<div class="alert alert-danger border-danger d-inline-block text-start shadow-sm" style="background-color: #fff5f5; border-radius: 10px;">
                                             <div class="d-flex align-items-center fw-bold">
                                                 <i class="fas fa-times-circle me-2 fa-lg"></i>
-                                                <span>Quý khách đã quá hạn thanh toán</span>
+                                                <span>Quý khách đã quá hạn thanh toán lúc ${expiryTime.toLocaleTimeString()}</span>
                                             </div>
+                                            <div class="small mt-1 text-danger">Đơn đặt sân đã bị hủy tự động.</div>
                                         </div>`;
                         document.getElementById('actionZone').innerHTML = expiredHtml;
                         
                         // Update Visual Status
                         var badge = document.getElementById('modalStatus');
-                        badge.textContent = "Không hợp lệ";
+                        badge.textContent = "Đã hủy"; // Hoặc "Không hợp lệ"
                         badge.className = "badge px-4 py-2 fs-5 bg-danger";
+                        
+                        // Tự động gọi API hủy đơn nếu chưa hủy
+                        if (!window.hasAutoCancelled) {
+                             window.hasAutoCancelled = true;
+                             $.post('/LichSuDatSan/HuySan', { maDatSan: maDatSan }, function(res) {
+                                 console.log('Auto cancel response:', res);
+                                 // Cập nhật lại list bên ngoài nếu cần (reload)
+                                 // setTimeout(() => location.reload(), 2000); 
+                             });
+                        }
                     } else {
                         var minutes = Math.floor(diff / 60000);
                         var seconds = Math.floor((diff % 60000) / 1000);
@@ -225,14 +242,19 @@
                         var warningHtml = `<div class="alert alert-warning border-warning d-inline-block text-start shadow-sm" style="background-color: #fffbf0; border-radius: 10px;">
                                             <div class="d-flex align-items-center text-danger fw-bold">
                                                 <i class="fas fa-exclamation-circle me-2 fa-lg"></i>
-                                                <span>Vui lòng đến quầy thực hiện thanh toán (${timeStr})</span>
+                                                <span>Vui lòng thanh toán trước ${expiryTime.toLocaleTimeString()}</span>
                                             </div>
+                                            <div class="fs-4 fw-bold text-center mt-2 text-dark">${timeStr}</div>
                                             <div class="small text-muted mt-1 text-center">Tự động hủy sau 30 phút</div>
                                         </div>`;
                         document.getElementById('actionZone').innerHTML = warningHtml;
                     }
                 }
                 
+                console.log("Now:", new Date().toString());
+                console.log("Expiry:", expiryTime.toString());
+                console.log("Diff:", expiryTime - new Date());
+
                 updateCountdown(); // Run immediately
                 countdownInterval = setInterval(updateCountdown, 1000);
             }
@@ -286,37 +308,41 @@
         }
 
         function executeCancel(id) {
-            // Remove confirm popup to show loading or keep it and disable buttons? 
-            // Let's just run the request.
             $.post('/LichSuDatSan/HuySan', { maDatSan: id }, function(res) {
                  $('#cancelConfirmPopup').remove(); // Remove confirm popup
                  
                  if(res.success) {
-                    // Show Success Popup (Green Overlay)
+                    // Show Success Popup (Green Overlay) with Detailed Message
                     var successHtml = `
-                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+                        <div id="cancelSuccessPopup" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
                                     background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(1px);
                                     z-index: 1070; border-radius: 15px;
                                     display: flex; justify-content: center; align-items: center;">
                              <div style="background: rgba(230, 255, 230, 0.98); 
                                          border: 1px solid #28a745; 
                                          border-radius: 12px; 
-                                         padding: 20px 40px; 
+                                         padding: 30px; 
                                          text-align: center; 
                                          box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
-                                         min-width: 220px;
+                                         width: 80%;
+                                         max-width: 400px;
                                          animation: zoomIn 0.3s;">
-                                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
-                                <h5 class="fw-bold text-success m-0">Đã hủy thành công!</h5>
-                                <p class="text-muted small mt-2 mb-0">${res.message}</p>
+                                <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                                <h5 class="fw-bold text-success mb-3">Hủy sân thành công!</h5>
+                                <p class="text-dark mb-0" style="font-size: 0.95rem;">
+                                    Bạn đã huỷ sân. Tiền sẽ được hoàn vào tài khoản của bạn nếu thanh toán online hoặc đến quầy để nhận lại tiền nếu thanh toán trực tiếp.
+                                </p>
                              </div>
                         </div>
                     `;
                     $('#detailModal .modal-content').append(successHtml);
                     
+                    // Auto close after 3.5 seconds to give time to read
                     setTimeout(function() {
-                        location.reload();
-                    }, 2000);
+                        $('#cancelSuccessPopup').fadeOut(300, function() {
+                             location.reload(); // Reload page to update status
+                        });
+                    }, 3500);
                  } else {
                      alert(res.message);
                  }

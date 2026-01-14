@@ -1,0 +1,238 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phiếu Xác Nhận Đặt Sân - ViệtSport</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .print-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #cce830;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #1a1a1a;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .header .subtitle {
+            color: #666;
+            font-size: 18px;
+        }
+        
+        .booking-id {
+            background: #cce830;
+            color: #1a1a1a;
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: inline-block;
+            font-weight: bold;
+            font-size: 16px;
+            margin-top: 15px;
+        }
+        
+        .info-section {
+            margin-bottom: 25px;
+        }
+        
+        .info-section h3 {
+            color: #1a1a1a;
+            font-size: 18px;
+            margin-bottom: 15px;
+            border-left: 4px solid #cce830;
+            padding-left: 10px;
+        }
+        
+        .info-row {
+            display: flex;
+            margin-bottom: 12px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #555;
+            width: 180px;
+            flex-shrink: 0;
+        }
+        
+        .info-value {
+            color: #1a1a1a;
+            flex: 1;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-confirmed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px dashed #ddd;
+            text-align: center;
+            color: #666;
+        }
+        
+        .footer p {
+            margin-bottom: 10px;
+        }
+        
+        .print-btn {
+            background: #cce830;
+            color: #1a1a1a;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        
+        .print-btn:hover {
+            background: #b5d122;
+        }
+        
+        @@media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .print-container {
+                box-shadow: none;
+                padding: 20px;
+            }
+            
+            .print-btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-container">
+        <div class="header">
+            <h1>🏃 VIỆTSPORT</h1>
+            <div class="subtitle">PHIẾU XÁC NHẬN ĐẶT SÂN</div>
+            <div class="booking-id">Mã Phiếu: @ViewBag.MaDatSan</div>
+        </div>
+        
+        <div class="info-section">
+            <h3>Thông Tin Khách Hàng</h3>
+            <div class="info-row">
+                <div class="info-label">Họ Tên:</div>
+                <div class="info-value">@ViewBag.TenKH</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Số Điện Thoại:</div>
+                <div class="info-value">@ViewBag.SdtKH</div>
+            </div>
+            @if (!string.IsNullOrEmpty(ViewBag.EmailKH))
+            {
+                <div class="info-row">
+                    <div class="info-label">Email:</div>
+                    <div class="info-value">@ViewBag.EmailKH</div>
+                </div>
+            }
+        </div>
+        
+        <div class="info-section">
+            <h3>Thông Tin Đặt Sân</h3>
+            <div class="info-row">
+                <div class="info-label">Cơ Sở:</div>
+                <div class="info-value">@ViewBag.TenCS</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Loại Sân:</div>
+                <div class="info-value">@ViewBag.TenLS</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Sân:</div>
+                <div class="info-value">@ViewBag.DanhSachSan</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Ngày Đặt:</div>
+                <div class="info-value">@ViewBag.NgayDat</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Khung Giờ:</div>
+                <div class="info-value">@ViewBag.GioBatDau - @ViewBag.GioKetThuc</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Trạng Thái:</div>
+                <div class="info-value">
+                    @{
+                        var statusClass = ViewBag.TrangThai == "Chờ thanh toán" ? "status-pending" : "status-confirmed";
+                    }
+                    <span class="status-badge @statusClass">@ViewBag.TrangThai</span>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Ngày Tạo Phiếu:</div>
+                <div class="info-value">@ViewBag.NgayTao</div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><strong>Lưu ý:</strong> Vui lòng mang phiếu này đến quầy thanh toán trước giờ chơi.</p>
+            <p>Hotline: <strong>1900-xxxx</strong> | Email: <strong>support@vietsport.vn</strong></p>
+            <p style="margin-top: 20px; font-style: italic;">Cảm ơn quý khách đã sử dụng dịch vụ của ViệtSport!</p>
+        </div>
+        
+        <div style="text-align: center;">
+            <button class="print-btn" onclick="window.print()">
+                🖨️ In Phiếu
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        // Auto print dialog when page loads (optional)
+        // window.onload = function() { window.print(); };
+    </script>
+</body>
+</html>

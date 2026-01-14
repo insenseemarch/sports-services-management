@@ -126,7 +126,33 @@ namespace webapp_mvc.Controllers
                     Response.Cookies.Append("UserInfo", row["MaTK"].ToString(), cookieOptions);
                 }
 
-                return Json(new { success = true, message = "Đăng nhập thành công!" });
+                // Determine redirect URL based on role
+                var vaiTro = row["VaiTro"].ToString() ?? "Khách hàng";
+                Console.WriteLine($"VaiTro from DB: [{vaiTro}]");
+                
+                string redirectUrl = vaiTro.ToLower() switch
+                {
+                    "khách hàng" => Url.Action("Index", "Home"),
+                    "lễ tân" => Url.Action("Index", "HomeStaff"),
+                    "thu ngân" => Url.Action("Index", "HomeStaff"),
+                    "kỹ thuật" => Url.Action("Index", "HomeStaff"),
+                    "quản lý" => Url.Action("Index", "HomeStaff"),
+                    "it" => Url.Action("Index", "HomeStaff"),
+                    _ => Url.Action("Index", "Home")
+                };
+                
+                Console.WriteLine($"Redirect URL: {redirectUrl}");
+
+                // If this is an AJAX request (fetch), return JSON with redirectUrl, else do a server-side redirect
+                var isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+                if (isAjax)
+                {
+                    return Json(new { success = true, message = "Đăng nhập thành công!", redirectUrl = redirectUrl });
+                }
+                else
+                {
+                    return Redirect(redirectUrl ?? Url.Action("Index", "Home"));
+                }
             }
             catch (Exception ex)
             {

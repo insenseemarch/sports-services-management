@@ -233,7 +233,7 @@
                         </label>
                     </div>
 
-                    <button type="submit" class="btn-login">
+                    <button type="button" class="btn-login" onclick="handleLogin(event)">
                         <i class="fas fa-sign-in-alt me-2"></i>Đăng Nhập
                     </button>
                 </form>
@@ -256,5 +256,39 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const form = event.target.closest('form');
+            const formData = new FormData(form);
+            
+            fetch('@Url.Action("DangNhap", "TaiKhoan")', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                                console.log('Login response:', data);
+                if (data.success) {
+                                        console.log('Redirect URL:', data.redirectUrl);
+                    if (data.redirectUrl) {
+                        window.location.href = data.redirectUrl;
+                    } else {
+                        window.location.href = '@Url.Action("Index", "Home")';
+                    }
+                } else {
+                    alert('Lỗi: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra!');
+            });
+        }
+    </script>
 </body>
 </html>

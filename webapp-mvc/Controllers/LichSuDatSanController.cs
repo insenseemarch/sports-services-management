@@ -119,11 +119,54 @@ namespace webapp_mvc.Controllers
         {
             try
             {
-                // 1. Tạm tắt Trigger kiểm tra thời lượng (Nguyên nhân chính gây lỗi Conversion Failed)
-                // Cần quyền ALTER, nhưng nếu user DB có quyền db_owner hoặc table owner thì ok.
-                try { _db.ExecuteNonQuery("DISABLE TRIGGER trg_KiemTraThoiLuongDat ON PHIEUDATSAN"); } catch { }
+                // 1. Kiểm tra khung giờ hoạt động (6h-22h)
+                if (gioBatDauMoi < new TimeSpan(6, 0, 0) || gioKetThucMoi > new TimeSpan(22, 0, 0))
+                {
+                    return Json(new { success = false, message = "Thời gian đặt phải trong khung giờ hoạt động (6h-22h)!" });
+                }
 
-                // 2. Kiểm tra trùng giờ (Logic SQL thuần túy, không qua SP)
+                // 2. Lấy thông tin loại sân để kiểm tra thời lượng
+                string getCourtTypeSql = @"
+                    SELECT ls.TenLS
+                    FROM PHIEUDATSAN p
+                    JOIN DATSAN d ON p.MaDatSan = d.MaDatSan
+                    JOIN SAN s ON d.MaSan = s.MaSan
+                    JOIN LOAISAN ls ON s.MaLS = ls.MaLS
+                    WHERE p.MaDatSan = @MaDatSan";
+                
+                var dtCourtType = _db.ExecuteQuery(getCourtTypeSql, new SqlParameter("@MaDatSan", maDatSan));
+                if (dtCourtType.Rows.Count == 0)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy thông tin phiếu đặt!" });
+                }
+
+                string tenLoaiSan = dtCourtType.Rows[0]["TenLS"].ToString().ToLower();
+                int thoiLuongPhut = (int)(gioKetThucMoi - gioBatDauMoi).TotalMinutes;
+
+                // 3. Kiểm tra thời lượng theo loại sân
+                if (tenLoaiSan.Contains("bóng đá") || tenLoaiSan.Contains("mini"))
+                {
+                    if (thoiLuongPhut % 90 != 0 || thoiLuongPhut < 90)
+                    {
+                        return Json(new { success = false, message = "Sân bóng đá mini phải đặt theo bội số của 90 phút (1 trận = 90 phút)!" });
+                    }
+                }
+                else if (tenLoaiSan.Contains("tennis"))
+                {
+                    if (thoiLuongPhut % 120 != 0)
+                    {
+                        return Json(new { success = false, message = "Sân Tennis phải đặt theo bội số của 2 giờ (120 phút)!" });
+                    }
+                }
+                else if (tenLoaiSan.Contains("cầu lông") || tenLoaiSan.Contains("bóng rổ"))
+                {
+                    if (thoiLuongPhut % 60 != 0)
+                    {
+                        return Json(new { success = false, message = "Sân Cầu lông/Bóng rổ phải đặt theo bội số của 1 giờ!" });
+                    }
+                }
+
+                // 4. Kiểm tra trùng giờ (Logic SQL thuần túy, không qua SP)
                 string checkSql = @"
                     SELECT COUNT(*)
                     FROM PHIEUDATSAN p
@@ -154,8 +197,6 @@ namespace webapp_mvc.Controllers
                 
                 if (dtCheck.Rows.Count > 0 && Convert.ToInt32(dtCheck.Rows[0][0]) > 0)
                 {
-                    // Có trùng -> Bật lại trigger và báo lỗi
-                    try { _db.ExecuteNonQuery("ENABLE TRIGGER trg_KiemTraThoiLuongDat ON PHIEUDATSAN"); } catch { }
                     return Json(new { success = false, message = "Giờ này đã có người đặt rồi! Vui lòng chọn giờ khác." });
                 }
 
@@ -172,16 +213,11 @@ namespace webapp_mvc.Controllers
                 var pEnd2 = new SqlParameter("@End", System.Data.SqlDbType.Time) { Value = gioKetThucMoi };
 
                 _db.ExecuteNonQuery(updateSql, pMa2, pNgay2, pStart2, pEnd2);
-
-                // 4. Bật lại Trigger
-                try { _db.ExecuteNonQuery("ENABLE TRIGGER trg_KiemTraThoiLuongDat ON PHIEUDATSAN"); } catch { }
                 
                 return Json(new { success = true, message = "Đổi sân thành công!" });
             }
             catch (Exception ex)
             {
-                // Dọn dẹp
-                try { _db.ExecuteNonQuery("ENABLE TRIGGER trg_KiemTraThoiLuongDat ON PHIEUDATSAN"); } catch { }
                 return Json(new { success = false, message = "Lỗi: " + ex.Message });
             }
         }

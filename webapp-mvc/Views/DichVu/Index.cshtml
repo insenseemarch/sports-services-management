@@ -61,16 +61,16 @@
                 <!-- Date -->
                 <div class="col-md-2">
                     <label class="form-label text-dark fw-bold ms-1 small" style="font-size: 0.8rem;"><i class="fas fa-calendar me-1 text-primary"></i>NGÀY</label>
-                    <input type="date" name="ngayDat" value="@Model.NgayDat.ToString("yyyy-MM-dd")" class="form-control form-control-sm py-2 fw-bold shadow-sm border-2">
+                    <input type="date" name="ngayDat" value="@Model.NgayDat.ToString("yyyy-MM-dd")" class="form-control form-control-sm py-2 fw-bold shadow-sm border-2" @(Model.MaDatSan > 0 ? "readonly" : "")>
                 </div>
                 
                 <!-- Time Range -->
                 <div class="col-md-5">
                      <label class="form-label text-dark fw-bold ms-1 small" style="font-size: 0.8rem;"><i class="fas fa-clock me-1 text-info"></i>KHUNG GIỜ</label>
                      <div class="input-group input-group-sm">
-                        <input type="time" name="gioBatDau" value="@Model.GioBatDau.ToString(@"hh\:mm")" class="form-control py-2 fw-bold shadow-sm border-end-0 border-2">
+                        <input type="time" name="gioBatDau" value="@Model.GioBatDau.ToString(@"hh\:mm")" class="form-control py-2 fw-bold shadow-sm border-end-0 border-2" @(Model.MaDatSan > 0 ? "readonly" : "")>
                         <span class="input-group-text bg-white border-top border-bottom border-2 text-secondary px-1">➜</span>
-                        <input type="time" name="gioKetThuc" value="@Model.GioKetThuc.ToString(@"hh\:mm")" class="form-control py-2 fw-bold shadow-sm border-start-0 border-2">
+                        <input type="time" name="gioKetThuc" value="@Model.GioKetThuc.ToString(@"hh\:mm")" class="form-control py-2 fw-bold shadow-sm border-start-0 border-2" @(Model.MaDatSan > 0 ? "readonly" : "")>
                      </div>
                 </div>
                 

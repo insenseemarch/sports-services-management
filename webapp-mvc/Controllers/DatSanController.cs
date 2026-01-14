@@ -260,17 +260,23 @@ namespace webapp_mvc.Controllers
                 // Hiển thị giá: Luôn là giá/giờ hoặc giá/trận (min-max nếu có nhiều khung giờ)
                 string dvt = row["DVT"] != DBNull.Value ? row["DVT"].ToString() : "Giờ";
                 
-                if (item.MinGia == item.MaxGia)
+                // Không hiển thị giá 0, luôn hiển thị khoảng min-max nếu có
+                if (item.MinGia > 0 && item.MaxGia > 0 && item.MinGia == item.MaxGia)
                 {
                     item.HienThiGia = item.MinGia.ToString("N0");
                 }
-                else
+                else if (item.MinGia > 0 && item.MaxGia > 0)
                 {
                     item.HienThiGia = $"{item.MinGia:N0} - {item.MaxGia:N0}";
                 }
+                else
+                {
+                    // Nếu không có giá trong khung giờ hiện tại, hiển thị khoảng biến động
+                    item.HienThiGia = "Liên hệ";
+                }
                 
                 item.DonViTinh = dvt;
-                item.GiaGio = item.MinGia; // Dùng giá min làm giá đại diện
+                item.GiaGio = item.MinGia > 0 ? item.MinGia : item.MaxGia; // Dùng giá min làm giá đại diện
 
                 model.DanhSachSanTrong.Add(item);
             }

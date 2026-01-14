@@ -3,6 +3,67 @@
     ViewData["Title"] = "Đặt Sân Trực Tuyến";
 }
 
+<style>
+    /* Smooth Animations */
+    .fade-in-up {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    }
+    
+    .fade-in-up.active {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    .scale-in {
+        opacity: 0;
+        transform: scale(0.95);
+        transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+    
+    .scale-in.active {
+        opacity: 1;
+        transform: scale(1);
+    }
+    
+    /* Card Hover Effects */
+    .court-card {
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .court-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2) !important;
+    }
+    
+    .court-card img {
+        transition: transform 0.4s ease;
+    }
+    
+    .court-card:hover img {
+        transform: scale(1.05);
+    }
+    
+    /* Button Hover */
+    .btn-dat-san {
+        transition: all 0.3s ease;
+    }
+    
+    .btn-dat-san:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.3) !important;
+    }
+    
+    /* Stagger Animation Delays */
+    .stagger-1 { transition-delay: 0.1s; }
+    .stagger-2 { transition-delay: 0.2s; }
+    .stagger-3 { transition-delay: 0.3s; }
+    .stagger-4 { transition-delay: 0.4s; }
+    .stagger-5 { transition-delay: 0.5s; }
+    .stagger-6 { transition-delay: 0.6s; }
+</style>
+
 <!-- Hero Banner -->
 <div class="position-relative w-100 d-flex align-items-center justify-content-center mb-5" 
      style="height: 500px; background: url('@Url.Content("~/images/hero_bg.jpg")') center/cover no-repeat; padding-top: 85px; z-index: 1;">
@@ -150,16 +211,38 @@
                             @san.HienThiGia đ/@san.DonViTinh
                         </div>
 
-                        <!-- Card Image Placeholder -->
-                        <div class="bg-light d-flex align-items-center justify-content-center" style="height: 180px;">
+                        <!-- Card Image -->
+                        <div class="overflow-hidden" style="height: 180px;">
                             @{
-                                var iconClass = "fa-futbol";
-                                var colorClass = "text-success";
-                                if (san.TenLoaiSan.ToLower().Contains("cầu lông")) { iconClass = "fa-badminton"; colorClass = "text-info"; }
-                                else if (san.TenLoaiSan.ToLower().Contains("tennis")) { iconClass = "fa-table-tennis"; colorClass = "text-warning"; }
-                                else if (san.TenLoaiSan.ToLower().Contains("bóng rổ")) { iconClass = "fa-basketball-ball"; colorClass = "text-danger"; }
+                                var courtImage = "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?q=80&w=800&auto=format&fit=crop";
+                                var tenLoaiSanLower = san.TenLoaiSan.ToLower();
+                                
+                                if (tenLoaiSanLower.Contains("bóng đá") || tenLoaiSanLower.Contains("futsal"))
+                                {
+                                    courtImage = "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?q=80&w=800&auto=format&fit=crop";
+                                }
+                                else if (tenLoaiSanLower.Contains("cầu lông"))
+                                {
+                                    courtImage = "https://thethaothienlong.vn/wp-content/uploads/2022/04/cau-long-co-bao-nhieu-canh-3.jpg";
+                                }
+                                else if (tenLoaiSanLower.Contains("tennis"))
+                                {
+                                    courtImage = "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?q=80&w=800&auto=format&fit=crop";
+                                }
+                                else if (tenLoaiSanLower.Contains("bóng rổ"))
+                                {
+                                    courtImage = "https://img.meta.com.vn/Data/image/2020/01/21/kich-thuoc-tru-bong-ro-tieu-chuan-3.jpg";
+                                }
+                                else if (tenLoaiSanLower.Contains("bóng chuyền"))
+                                {
+                                    courtImage = "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?q=80&w=800&auto=format&fit=crop";
+                                }
+                                else if (tenLoaiSanLower.Contains("bóng bàn"))
+                                {
+                                    courtImage = "https://images.unsplash.com/photo-1534158914592-062992fbe900?q=80&w=800&auto=format&fit=crop";
+                                }
                             }
-                            <i class="fas @iconClass fa-5x @colorClass opacity-50"></i>
+                            <img src="@courtImage" alt="@san.TenLoaiSan" class="w-100 h-100" style="object-fit: cover;">
                         </div>
 
                         <div class="card-body p-4">
@@ -459,5 +542,34 @@
                 $('#datSanModal').modal('show');
             });
         });
+        
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, observerOptions);
+        
+        // Observe all animation elements
+        document.querySelectorAll('.fade-in-up, .scale-in').forEach(el => {
+            observer.observe(el);
+        });
+        
+        // Trigger hero animations immediately
+        setTimeout(() => {
+            document.querySelectorAll('.fade-in-up').forEach((el, index) => {
+                setTimeout(() => {
+                    el.classList.add('active');
+                }, index * 100);
+            });
+        }, 300);
     </script>
 }

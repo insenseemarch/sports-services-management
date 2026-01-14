@@ -97,39 +97,41 @@
             {
                 var item = Model.DanhSachDichVu[i];
                 
-                // Determine Category for Image Mapping & Logic Control
+                // Determine Category for Image Mapping & Logic Control (10 Service Types)
                 var category = "other";
                 var loaiLower = item.LoaiDV?.ToLower() ?? "";
-                var nameLower = item.TenDV?.ToLower() ?? "";
                 var imgSrc = item.HinhAnh?.Trim();
 
-                if (loaiLower.Contains("nước") || loaiLower.Contains("đồ uống")) category = "Nước";
-                else if (loaiLower.Contains("vợt") || loaiLower.Contains("dụng cụ")) category = "Vợt"; 
-                else if (loaiLower.Contains("bóng")) category = "Bóng";
-                else if (loaiLower.Contains("huấn luyện") || loaiLower.Contains("hlv")) category = "Huấn luyện";
-                else if (loaiLower.Contains("vip") || loaiLower.Contains("phòng")) category = "Phòng";
-                else if (loaiLower.Contains("tủ") || loaiLower.Contains("locker")) category = "Tủ";
-                else if (loaiLower.Contains("ăn") || loaiLower.Contains("food")) category = "Food";
+                // Map to 10 service types from database
+                if (loaiLower.Contains("huấn luyện") || loaiLower.Contains("hlv")) category = "HuanLuyen";
+                else if (loaiLower.Contains("đồ uống") || loaiLower.Contains("nước")) category = "DoUong";
+                else if (loaiLower.Contains("dụng cụ") || loaiLower.Contains("thể thao")) category = "DungCu";
+                else if (loaiLower.Contains("phòng") || loaiLower.Contains("vip")) category = "Phong";
+                else if (loaiLower.Contains("tủ") || loaiLower.Contains("locker")) category = "Tu";
+                else if (loaiLower.Contains("ăn nhẹ") || loaiLower.Contains("ăn") || loaiLower.Contains("food")) category = "AnNhe";
+                else if (loaiLower.Contains("bảo hộ") || loaiLower.Contains("thiết bị")) category = "BaoHo";
                 else if (loaiLower.Contains("massage")) category = "Massage";
-                else if (loaiLower.Contains("xe")) category = "Xe";
+                else if (loaiLower.Contains("giặt") || loaiLower.Contains("laundry")) category = "GiatDo";
+                else if (loaiLower.Contains("xe") || loaiLower.Contains("cho thuê")) category = "XeCo";
 
-                // Fallback Image Logic (Using stable placeholders)
+                // Fallback Image Logic (Using high-quality images)
                 if (string.IsNullOrEmpty(imgSrc))
                 {
-                    if (category == "Huấn luyện") imgSrc = "https://placehold.co/600x400/2c3e50/ffffff?text=Huan+Luyen+Vien";
-                    else if (category == "Nước") imgSrc = "https://placehold.co/600x400/3498db/ffffff?text=Nuoc+Uong";
-                    else if (category == "Vợt") imgSrc = "https://placehold.co/600x400/e67e22/ffffff?text=Dung+Cu+The+Thao";
-                    else if (category == "Bóng") imgSrc = "https://placehold.co/600x400/2ecc71/ffffff?text=Bong+Thi+Dau";
-                    else if (category == "Phòng") imgSrc = "https://placehold.co/600x400/9b59b6/ffffff?text=Phong+VIP";
-                    else if (category == "Tủ") imgSrc = "https://placehold.co/600x400/95a5a6/ffffff?text=Tu+Do";
-                    else if (category == "Food") imgSrc = "https://placehold.co/600x400/f1c40f/ffffff?text=Do+An+Nhe";
-                    else if (category == "Massage") imgSrc = "https://placehold.co/600x400/e74c3c/ffffff?text=Massage";
-                    else if (category == "Xe") imgSrc = "https://placehold.co/600x400/34495e/ffffff?text=Thue+Xe";
-                    else imgSrc = "https://placehold.co/600x400/7f8c8d/ffffff?text=Dich+Vu+Khac";
+                    if (category == "HuanLuyen") imgSrc = "https://mbhfit.vn/wp-content/uploads/2019/05/huan-luyen-vien-the-hinh.jpg";
+                    else if (category == "DoUong") imgSrc = "https://cafefcdn.com/2017/photo-0-1503570267589.jpg";
+                    else if (category == "DungCu") imgSrc = "https://beskare.vn/wp-content/uploads/2025/01/a1-2.jpg";
+                    else if (category == "Phong") imgSrc = "https://images.pexels.com/photos/1457842/pexels-photo-1457842.jpeg?auto=compress&cs=tinysrgb&w=800";
+                    else if (category == "Tu") imgSrc = "https://images.pexels.com/photos/3945683/pexels-photo-3945683.jpeg?auto=compress&cs=tinysrgb&w=800";
+                    else if (category == "AnNhe") imgSrc = "https://images.pexels.com/photos/1410235/pexels-photo-1410235.jpeg?auto=compress&cs=tinysrgb&w=800";
+                    else if (category == "BaoHo") imgSrc = "https://pixnio.com/free-images/2019/09/23/2019-09-23-13-35-04-1200x800.jpg";
+                    else if (category == "Massage") imgSrc = "https://images.pexels.com/photos/3807517/pexels-photo-3807517.jpeg?auto=compress&cs=tinysrgb&w=800";
+                    else if (category == "GiatDo") imgSrc = "https://images.pexels.com/photos/5632399/pexels-photo-5632399.jpeg?auto=compress&cs=tinysrgb&w=800";
+                    else if (category == "XeCo") imgSrc = "https://images.pexels.com/photos/3802512/pexels-photo-3802512.jpeg?auto=compress&cs=tinysrgb&w=800";
+                    else imgSrc = "https://images.pexels.com/photos/1552668/pexels-photo-1552668.jpeg?auto=compress&cs=tinysrgb&w=800";
                 }
 
-                <div class="col-md-6 col-lg-4 col-xl-3 service-item fade-in-up" data-category="@item.LoaiDV">
-                    <div class="card h-100 border-0 shadow-sm hover-elevate position-relative overflow-hidden" 
+                <div class="col-md-6 col-lg-4 col-xl-3 service-item fade-in-up stagger-@((i % 8) + 1)" data-category="@item.LoaiDV">
+                    <div class="card service-card h-100 border-0 shadow-sm hover-elevate position-relative overflow-hidden" 
                          style="border-radius: 20px; background: rgba(255,255,255,0.95);">
                          
                         <input type="hidden" asp-for="DanhSachDichVu[i].MaDV" />
@@ -138,13 +140,13 @@
 
                         <!-- Badge Price (Top Right) -->
                         <div class="position-absolute top-0 end-0 m-3 px-3 py-1 rounded-pill fw-bold shadow-sm" 
-                             style="background: var(--color-lime); color: var(--color-dark); z-index: 2;">
+                             style="background: var(--color-lime); color: var(--color-dark); z-index: 2; transition: all 0.3s ease;">
                             @Model.DanhSachDichVu[i].DonGia.ToString("N0") đ @(string.IsNullOrEmpty(Model.DanhSachDichVu[i].DVT) ? "" : "/ " + Model.DanhSachDichVu[i].DVT)
                         </div>
 
                         <!-- Image Area -->
                         <div class="bg-light d-flex align-items-center justify-content-center position-relative overflow-hidden" style="height: 180px;">
-                            <img src="@imgSrc" alt="@item.TenDV" class="w-100 h-100 object-fit-cover transition-transform hover-zoom" referrerpolicy="no-referrer" loading="lazy">
+                            <img src="@imgSrc" alt="@item.TenDV" class="w-100 h-100 object-fit-cover transition-transform hover-zoom" referrerpolicy="no-referrer" loading="lazy" style="transition: transform 0.4s ease;">
                         </div>
 
                         <div class="card-body p-4 d-flex flex-column">
@@ -172,7 +174,7 @@
                                 {
                                     <input type="hidden" asp-for="DanhSachDichVu[i].SoLuong" id="qty-@i" value="0" />
                                     <!-- Button style Dark + No Icon Plus -->
-                                    <button type="button" class="btn w-100 py-2 fw-bold rounded-3 shadow-sm btn-hlv-toggle transition-all" 
+                                    <button type="button" class="btn w-100 py-2 fw-bold rounded-3 shadow-sm btn-hlv-toggle btn-service-action transition-all" 
                                             style="background: var(--color-dark); color: white; border: none;"
                                             id="btn-hlv-@i" onclick="toggleHLV(@i)">
                                         @if (category == "Huấn luyện") { <text>Chọn HLV</text> }
@@ -187,13 +189,13 @@
                                             <span class="text-secondary fw-bold small">Số lượng:</span>
                                             <span class="text-muted fst-italic" style="font-size: 0.7rem;">(Có sẵn: @item.SoLuongTon)</span>
                                         </div>
-                                        <div class="input-group input-group-sm w-50 border rounded-pill overflow-hidden shadow-sm">
-                                            <button type="button" class="btn btn-light bg-white border-end px-2" onclick="adjustQty(@i, -1)">
+                                        <div class="input-group input-group-sm w-50 border rounded-pill overflow-hidden shadow-sm" style="transition: all 0.3s ease;">
+                                            <button type="button" class="btn btn-light bg-white border-end px-2 btn-service-action" onclick="adjustQty(@i, -1)">
                                                 <i class="fas fa-minus text-secondary"></i>
                                             </button>
                                             <input type="number" asp-for="DanhSachDichVu[i].SoLuong" id="qty-@i" 
                                                    class="form-control text-center border-0 fw-bold bg-white p-0 text-dark" value="0" min="0" max="@item.SoLuongTon" readonly />
-                                            <button type="button" class="btn btn-light bg-white border-start px-2" onclick="adjustQty(@i, 1)">
+                                            <button type="button" class="btn btn-light bg-white border-start px-2 btn-service-action" onclick="adjustQty(@i, 1)">
                                                 <i class="fas fa-plus text-secondary"></i>
                                             </button>
                                         </div>
@@ -237,6 +239,67 @@
 </div>
 
 <style>
+    /* ====== SMOOTH ANIMATIONS ====== */
+    .fade-in-up {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    }
+    
+    .fade-in-up.active {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    .scale-in {
+        opacity: 0;
+        transform: scale(0.95);
+        transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+    
+    .scale-in.active {
+        opacity: 1;
+        transform: scale(1);
+    }
+    
+    /* Stagger Animation Delays */
+    .stagger-1 { transition-delay: 0.1s; }
+    .stagger-2 { transition-delay: 0.2s; }
+    .stagger-3 { transition-delay: 0.3s; }
+    .stagger-4 { transition-delay: 0.4s; }
+    .stagger-5 { transition-delay: 0.5s; }
+    .stagger-6 { transition-delay: 0.6s; }
+    .stagger-7 { transition-delay: 0.7s; }
+    .stagger-8 { transition-delay: 0.8s; }
+    
+    /* Card Animations */
+    .service-card {
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .service-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
+    }
+    
+    .service-card img {
+        transition: transform 0.4s ease;
+    }
+    
+    .service-card:hover img {
+        transform: scale(1.08);
+    }
+    
+    /* Button Hover */
+    .btn-service-action {
+        transition: all 0.3s ease;
+    }
+    
+    .btn-service-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.2) !important;
+    }
+    
     .text-lime { color: var(--color-lime) !important; text-shadow: 0 2px 10px rgba(0,0,0,0.1); }
     .border-lime { border-color: var(--color-lime) !important; }
     .bg-lime { background-color: var(--color-lime) !important; }
@@ -373,6 +436,31 @@
                      item.offsetHeight; 
                      item.style.animation = 'fadeInUp 0.5s ease forwards';
                 });
+            });
+        });
+
+        // ========== Intersection Observer for Scroll Animations ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px'
+            };
+
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // Add active class to trigger animation
+                        if (entry.target.classList.contains('fade-in-up') || entry.target.classList.contains('scale-in')) {
+                            entry.target.classList.add('active');
+                        }
+                        // Don't unobserve - keep watching for when it leaves and comes back
+                    }
+                });
+            }, observerOptions);
+
+            // Observe all fade-in-up and scale-in elements
+            document.querySelectorAll('.fade-in-up, .scale-in').forEach(el => {
+                observer.observe(el);
             });
         });
     </script>

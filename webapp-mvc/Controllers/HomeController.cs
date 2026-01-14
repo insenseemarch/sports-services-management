@@ -917,41 +917,57 @@ END;
                     model.TyLeDungSan = row["TyLeDungSan"] != DBNull.Value ? Convert.ToDecimal(row["TyLeDungSan"]) : 0;
                 }
 
-                // Lấy danh sách sân nổi bật (TOP 6)
-                var courtsQuery = @"
-                    SELECT TOP 6 
-                        S.MaSan,
-                        LS.TenLS AS TenLoaiSan,
-                        CS.TenCS AS TenCoSo,
-                        CS.DiaChi,
-                        ISNULL(
-                            (SELECT TOP 1 K.GiaApDung 
-                             FROM KHUNGGIO K 
-                             WHERE K.MaLS = S.MaLS 
-                             ORDER BY K.NgayApDung DESC), 
-                            0
-                        ) AS GiaThue
-                    FROM SAN S
-                    JOIN LOAISAN LS ON S.MaLS = LS.MaLS
-                    JOIN COSO CS ON S.MaCS = CS.MaCS
-                    WHERE S.TinhTrang = N'Còn Trống'
-                    ORDER BY NEWID()
-                ";
-                var courtsTable = _db.ExecuteQuery(courtsQuery);
-                
-                foreach (DataRow row in courtsTable.Rows)
+                // Hardcode 5 loại sân với tên + giá + hình ảnh cố định
+                var courtsList = new List<SanNoiBat>
                 {
-                    var court = new SanNoiBat
+                    new SanNoiBat
                     {
-                        MaSan = row["MaSan"]?.ToString() ?? "",
-                        TenLoaiSan = row["TenLoaiSan"]?.ToString() ?? "",
-                        TenCoSo = row["TenCoSo"]?.ToString() ?? "",
-                        DiaChi = row["DiaChi"]?.ToString() ?? "",
-                        GiaThue = row["GiaThue"] != DBNull.Value ? Convert.ToDecimal(row["GiaThue"]) : 0,
-                        HinhAnh = GetImageForCourtType(row["TenLoaiSan"]?.ToString() ?? "")
-                    };
-                    model.DanhSachSanNoiBat.Add(court);
-                }
+                        MaSan = "1",
+                        TenLoaiSan = "Bóng đá mini",
+                        TenCoSo = "Trung Tâm Thể Thao Quận 1",
+                        DiaChi = "",
+                        GiaThue = 500000,
+                        HinhAnh = "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?q=80&w=800&auto=format&fit=crop"
+                    },
+                    new SanNoiBat
+                    {
+                        MaSan = "2",
+                        TenLoaiSan = "Cầu lông",
+                        TenCoSo = "Trung Tâm Thể Thao Quận 3",
+                        DiaChi = "",
+                        GiaThue = 100000,
+                        HinhAnh = "https://thethaothienlong.vn/wp-content/uploads/2022/04/cau-long-co-bao-nhieu-canh-3.jpg"
+                    },
+                    new SanNoiBat
+                    {
+                        MaSan = "3",
+                        TenLoaiSan = "Tennis",
+                        TenCoSo = "Trung Tâm Thể Thao Quận 3",
+                        DiaChi = "",
+                        GiaThue = 250000,
+                        HinhAnh = "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?q=80&w=800&auto=format&fit=crop"
+                    },
+                    new SanNoiBat
+                    {
+                        MaSan = "4",
+                        TenLoaiSan = "Bóng rổ",
+                        TenCoSo = "Trung Tâm Thể Thao Thủ Đức",
+                        DiaChi = "",
+                        GiaThue = 300000,
+                        HinhAnh = "https://img.meta.com.vn/Data/image/2020/01/21/kich-thuoc-tru-bong-ro-tieu-chuan-3.jpg"
+                    },
+                    new SanNoiBat
+                    {
+                        MaSan = "5",
+                        TenLoaiSan = "Futsal",
+                        TenCoSo = "Trung Tâm Thể Thao Quận 1",
+                        DiaChi = "",
+                        GiaThue = 450000,
+                        HinhAnh = "https://t3.ftcdn.net/jpg/03/08/26/80/360_F_308268080_8G5pOLMZqzfBw9xSqXGlZn8T08eYd6rb.jpg"
+                    }
+                };
+
+                model.DanhSachSanNoiBat = courtsList;
             }
             catch (Exception ex)
             {
@@ -962,20 +978,6 @@ END;
             return View(model);
         }
 
-        private string GetImageForCourtType(string courtType)
-        {
-            // Map court types to appropriate Unsplash images
-            if (courtType.Contains("Bóng đá") || courtType.Contains("Futsal"))
-                return "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?q=80&w=800&auto=format&fit=crop";
-            else if (courtType.Contains("Tennis"))
-                return "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?q=80&w=800&auto=format&fit=crop";
-            else if (courtType.Contains("Cầu lông"))
-                return "https://images.unsplash.com/photo-1626224583764-8478ab2e1ed9?q=80&w=800&auto=format&fit=crop";
-            else if (courtType.Contains("Bóng rổ"))
-                return "https://images.unsplash.com/photo-1551958219-acbc608c6377?q=80&w=800&auto=format&fit=crop";
-            else
-                return "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=800&auto=format&fit=crop";
-        }
 
         public IActionResult Privacy()
         {

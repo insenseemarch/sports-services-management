@@ -86,17 +86,21 @@ namespace webapp_mvc.Controllers
                 // 1. Get Info Phieu Dat & MaCS (Default from Booking)
                 string dbMaCS = "";
                 string dbTenCS = "";
+                string dbMaLS = "";
+                string dbTenLS = "";
                 
                 if (maDatSan > 0)
                 {
                     string sqlInfo = @"
                         SELECT p.MaDatSan, s.MaSan as TenSan, s.MaCS, cs.TenCS,
+                               s.MaLS, ls.TenLS,
                                p.NgayDat, p.GioBatDau, p.GioKetThuc,
                                dbo.f_TinhTienSan(p.MaDatSan) as TienSanTamTinh
                         FROM PHIEUDATSAN p
                         JOIN DATSAN d ON p.MaDatSan = d.MaDatSan
                         JOIN SAN s ON d.MaSan = s.MaSan
                         JOIN COSO cs ON s.MaCS = cs.MaCS
+                        JOIN LOAISAN ls ON s.MaLS = ls.MaLS
                         WHERE p.MaDatSan = @MaDatSan";
                     
                     var cmd = new SqlCommand(sqlInfo, conn);
@@ -108,6 +112,8 @@ namespace webapp_mvc.Controllers
                         {
                             dbMaCS = r["MaCS"].ToString();
                             dbTenCS = r["TenCS"].ToString();
+                            dbMaLS = r["MaLS"].ToString();
+                            dbTenLS = r["TenLS"].ToString();
                             
                             // Format Money
                             decimal tienSan = r["TienSanTamTinh"] != DBNull.Value ? Convert.ToDecimal(r["TienSanTamTinh"]) : 0;
@@ -191,6 +197,8 @@ namespace webapp_mvc.Controllers
                         LEFT JOIN HLV hlv ON d.MaDV = hlv.MaDV
                         LEFT JOIN NHANVIEN nv ON hlv.MaNV = nv.MaNV
                         WHERE (dvcs.MaDV IS NOT NULL OR (hlv.MaDV IS NOT NULL AND nv.MaCS = @MaCS))
+                        -- Filter HLV by court type specialty (only when MaDatSan > 0)
+                        AND (hlv.MaNV IS NULL OR @MaLS = '' OR hlv.ChuyenMon LIKE '%' + @TenLS + '%')
                         -- Exclude HLV/services already booked in the selected time range
                         AND NOT EXISTS (
                             SELECT 1 FROM CT_DICHVUDAT ct
@@ -234,6 +242,8 @@ namespace webapp_mvc.Controllers
                         
                         -- Filter: Only show valid combos (HLV with Staff, or Item with Stock Entry)
                         WHERE (hlv.MaNV IS NOT NULL OR dvcs.MaDV IS NOT NULL)
+                        -- Filter HLV by court type specialty (only when MaDatSan > 0)
+                        AND (hlv.MaNV IS NULL OR @MaLS = '' OR hlv.ChuyenMon LIKE '%' + @TenLS + '%')
                         -- Exclude HLV/services already booked in the selected time range
                         AND NOT EXISTS (
                             SELECT 1 FROM CT_DICHVUDAT ct
@@ -256,7 +266,9 @@ namespace webapp_mvc.Controllers
                     cmdDV.Parameters.AddWithValue("@NgayDat", model.NgayDat);
                     cmdDV.Parameters.AddWithValue("@GioBatDau", model.GioBatDau);
                     cmdDV.Parameters.AddWithValue("@GioKetThuc", model.GioKetThuc);
-                    cmdDV.Parameters.AddWithValue("@MaDatSan", model.MaDatSan); // Add missing param
+                    cmdDV.Parameters.AddWithValue("@MaDatSan", model.MaDatSan);
+                    cmdDV.Parameters.AddWithValue("@MaLS", dbMaLS ?? "");
+                    cmdDV.Parameters.AddWithValue("@TenLS", dbTenLS ?? "");
 
                     using (var reader = cmdDV.ExecuteReader())
                     {

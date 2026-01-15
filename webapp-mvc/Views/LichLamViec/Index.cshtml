@@ -431,16 +431,16 @@
             .then(r => r.json())
             .then(d => {
                 if (d.success) {
-                    alert('✅ Đăng ký ca trực thành công!');
+                    showToast('success', '✅ Đăng ký ca trực thành công!');
                     loadAvailableShifts();
                     loadLichCaTruc();
                 } else {
-                    alert('❌ Lỗi: ' + d.message);
+                    showToast('error', '❌ Lỗi: ' + d.message);
                 }
             })
             .catch(err => {
                 console.error('Error:', err);
-                alert('Lỗi kết nối!');
+                showToast('error', 'Lỗi kết nối!');
             });
         }
 
@@ -462,16 +462,16 @@
             .then(r => r.json())
             .then(d => {
                 if (d.success) {
-                    alert('✅ Gửi đơn nghỉ phép thành công!');
+                    showToast('success', '✅ Gửi đơn nghỉ phép thành công!');
                     $('#formXinNghiPhep')[0].reset();
                     loadLeaveHistory();
                 } else {
-                    alert('❌ Lỗi: ' + d.message);
+                    showToast('error', '❌ Lỗi: ' + d.message);
                 }
             })
             .catch(err => {
                 console.error('Error:', err);
-                alert('Lỗi kết nối!');
+                showToast('error', 'Lỗi kết nối!');
             });
         }
     </script>

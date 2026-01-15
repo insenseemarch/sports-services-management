@@ -281,12 +281,12 @@
                         window.location.href = '@Url.Action("Index", "Home")';
                     }
                 } else {
-                    alert('Lỗi: ' + data.message);
+                    showToast('error', 'Lỗi: ' + data.message);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Có lỗi xảy ra!');
+                showToast('error', 'Có lỗi xảy ra!');
             });
         }
     </script>

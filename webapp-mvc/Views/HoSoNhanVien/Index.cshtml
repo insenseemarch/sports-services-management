@@ -152,7 +152,7 @@
         const diaChi = document.getElementById('diaChi').value;
 
         if (!email || !sdt) {
-            alert('Vui lòng điền đủ thông tin bắt buộc!');
+            showToast('warning', 'Vui lòng điền đủ thông tin bắt buộc!');
             return;
         }
 
@@ -170,15 +170,15 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert(data.message);
+                showToast('success', data.message);
                 location.reload();
             } else {
-                alert('Lỗi: ' + data.message);
+                showToast('error', 'Lỗi: ' + data.message);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Có lỗi xảy ra!');
+            showToast('error', 'Có lỗi xảy ra!');
         });
     }
 
@@ -188,15 +188,15 @@
         const confirmPassword = document.getElementById('confirmPassword').value;
 
         if (!oldPassword || !newPassword || !confirmPassword) {
-            alert('Vui lòng điền đủ thông tin!');
+            showToast('warning', 'Vui lòng điền đủ thông tin!');
             return;
         }
 
         if (newPassword !== confirmPassword) {
-            alert('Mật khẩu mới không khớp!');
+            showToast('warning', 'Mật khẩu mới không khớp!');
             return;
         }
 
-        alert('Chức năng đổi mật khẩu sẽ được cập nhật');
+        showToast('info', 'Chức năng đổi mật khẩu sẽ được cập nhật');
     }
 </script>

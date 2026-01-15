@@ -239,14 +239,14 @@
                                                 var csCell = row.querySelector('td:nth-child(4)'); if(csCell) csCell.textContent = '';
                                                 var luongCell = row.querySelector('td:nth-child(6)'); if(luongCell) luongCell.textContent = '';
                                                 disableRowActions(row);
-                                                alert(json.message || 'Đã xử lý xóa nhân viên.');
+                                                showToast(json.success ? 'success' : 'error', json.message || 'Đã xử lý xóa nhân viên.');
                                             } else {
-                                                alert('Lỗi: ' + (json.message || 'Không thể xóa'));
+                                                showToast('error', 'Lỗi: ' + (json.message || 'Không thể xóa'));
                                             }
                                         })
                                         .catch(function(err){
                                             console.error(err);
-                                            alert('Có lỗi xảy ra khi xóa.');
+                                            showToast('error', 'Có lỗi xảy ra khi xóa.');
                                         });
                                     });
                                 });

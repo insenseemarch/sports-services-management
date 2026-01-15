@@ -365,13 +365,13 @@
         const cccd = document.querySelector('input[name="cccd"]').value;
         
         if (!/^[0-9]{10}$/.test(sdt)) {
-            alert('Số điện thoại phải có 10 chữ số!');
+            showToast('warning', 'Số điện thoại phải có 10 chữ số!');
             e.preventDefault();
             return false;
         }
         
         if (!/^[0-9]{12}$/.test(cccd)) {
-            alert('CCCD phải có 12 chữ số!');
+            showToast('warning', 'CCCD phải có 12 chữ số!');
             e.preventDefault();
             return false;
         }

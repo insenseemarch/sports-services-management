@@ -297,7 +297,7 @@
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn rounded-pill px-4 shadow" style="background: #d9f02b; color: #111; font-weight: 600;">
+                <button type="button" id="btnTaoCaTruc" class="btn rounded-pill px-4 shadow" style="background: #d9f02b; color: #111; font-weight: 600;">
                     <i class="fas fa-save me-2"></i>
                     Tạo Ca Trực
                 </button>
@@ -347,7 +347,7 @@
             renderMonthGrid(payload.data);
         } catch (err) {
             console.error(err);
-            alert('Lỗi tải lịch trực: ' + err.message);
+            showToast('error', 'Lỗi tải lịch trực: ' + err.message);
         }
     }
 
@@ -483,14 +483,14 @@
             new bootstrap.Modal(modalRoot).show();
         } catch (err) {
             console.error(err);
-            alert('Lỗi: ' + err.message);
+            showToast('error', 'Lỗi: ' + err.message);
         }
     }
 
     async function assignStaff(maCaTruc) {
         const sel = document.getElementById('assignSelect');
         const maNV = sel.value;
-        if (!maNV) { alert('Chọn nhân viên để phân công'); return; }
+        if (!maNV) { showToast('warning', 'Chọn nhân viên để phân công'); return; }
         try {
             const res = await fetch('@Url.Action("AssignNhanVien","Management")', {
                 method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -498,7 +498,7 @@
             });
             const payload = await res.json();
             if (!payload.success) throw new Error(payload.message || 'Lỗi phân công');
-            alert(payload.message);
+            showToast('success', payload.message);
             loadShifts();
             // close modal
             closeModal('shiftDetailModal');
@@ -508,19 +508,20 @@
     }
 
     async function unassign(maCaTruc, maNV) {
-        if (!confirm('Xóa phân công nhân viên này?')) return;
-        try {
-            // simple approach: remove row from THAMGIACATRUC by deleting then refresh
-            // there is no dedicated endpoint; we'll call Management/XoaCaTruc if necessary for full delete
-            const sqlRes = await fetch('@Url.Action("GetChiTietCa","Management")?maCaTruc=' + maCaTruc);
-            // fallback: ask backend to delete and re-create remaining assignments is complex - for now refresh
-            // In practice a new endpoint should be added for unassigning a single staff.
-            alert('Hành động gỡ phân công: hãy sử dụng trang Nhân sự nếu cần. (temporary)');
-            loadShifts();
-            closeModal('shiftDetailModal');
-        } catch (err) {
-            alert('Lỗi: ' + err.message);
-        }
+        showConfirm('Xóa phân công nhân viên này?', async function() {
+            try {
+                // simple approach: remove row from THAMGIACATRUC by deleting then refresh
+                // there is no dedicated endpoint; we'll call Management/XoaCaTruc if necessary for full delete
+                const sqlRes = await fetch('@Url.Action("GetChiTietCa","Management")?maCaTruc=' + maCaTruc);
+                // fallback: ask backend to delete and re-create remaining assignments is complex - for now refresh
+                // In practice a new endpoint should be added for unassigning a single staff.
+                showToast('info', 'Hành động gỡ phân công: hãy sử dụng trang Nhân sự nếu cần.');
+                loadShifts();
+                closeModal('shiftDetailModal');
+            } catch (err) {
+                showToast('error', 'Lỗi: ' + err.message);
+            }
+        });
     }
 
     function closeModal(id) {
@@ -531,8 +532,7 @@
     }
 
     // Create shift submit: map selected shift type to times, include selected employees
-    document.querySelectorAll('#createShiftModal .modal-footer .btn-primary').forEach(btn => {
-        btn.addEventListener('click', async () => {
+    document.getElementById('btnTaoCaTruc')?.addEventListener('click', async () => {
             const modal = document.getElementById('createShiftModal');
             const dateInput = modal.querySelector('input[type="date"]');
             const shiftSelect = modal.querySelector('select');
@@ -543,7 +543,7 @@
             const shiftType = shiftSelect?.value || '';
             const ghiChu = ghiChuEl?.value || '';
 
-            if (!ngayTruc) { alert('Chọn ngày'); return; }
+            if (!ngayTruc) { showToast('warning', 'Chọn ngày'); return; }
 
             // map shift type to start/end times
             let gioBatDau = '08:00', gioKetThuc = '17:00';
@@ -579,13 +579,12 @@
                 });
                 const payload = await res.json();
                 if (!payload.success) throw new Error(payload.message || 'Lỗi tạo ca');
-                alert(payload.message);
+                showToast('success', payload.message);
                 new bootstrap.Modal(modal).hide();
                 loadShifts();
             } catch (err) {
-                alert('Lỗi: ' + err.message);
+                showToast('error', 'Lỗi: ' + err.message);
             }
-        });
     });
 
     // initial load

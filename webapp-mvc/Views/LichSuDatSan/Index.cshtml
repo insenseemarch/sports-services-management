@@ -344,7 +344,7 @@
                         });
                     }, 3500);
                  } else {
-                     alert(res.message);
+                     showToast(res.success ? 'success' : 'error', res.message);
                  }
             });
         }

@@ -1154,11 +1154,11 @@
 
     function showSuccess(message) {
         // Simple alert for now, you can replace with toast notification
-        alert(message);
+        showToast(isSuccess ? 'success' : 'error', message);
     }
 
     function showError(message) {
-        alert('Lỗi: ' + message);
+        showToast('error', 'Lỗi: ' + message);
     }
 </script>
 }

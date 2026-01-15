@@ -119,62 +119,6 @@ namespace webapp_mvc.Controllers
             return View();
         }
 
-        // POST: /Management/CreateCaTruc
-        [HttpPost]
-        public IActionResult CreateCaTruc(DateTime ngayTruc, string tenCa, string gioBatDau, string gioKetThuc, string? ghiChu, string[]? maNVs)
-        {
-            try
-            {
-                // CATRUC schema: MaCaTruc (IDENTITY), MaNV, NgayTruc, GioBatDau, GioKetThuc, PhuCap
-                // Insert MaNV = current user (creator) when available
-                var maNVCreator = HttpContext.Session.GetString("MaUser");
-                var sql = @"INSERT INTO CATRUC (MaNV, NgayTruc, GioBatDau, GioKetThuc, PhuCap)
-                            VALUES (@MaNV, @Ngay, @GioBD, @GioKT, @Phu);
-                            SELECT SCOPE_IDENTITY();";
-
-                var parameters = new[] {
-                    new System.Data.SqlClient.SqlParameter("@MaNV", (object?)maNVCreator ?? DBNull.Value),
-                    new System.Data.SqlClient.SqlParameter("@Ngay", System.Data.SqlDbType.Date) { Value = ngayTruc.Date },
-                    new System.Data.SqlClient.SqlParameter("@GioBD", System.Data.SqlDbType.NVarChar, 5) { Value = (object?)gioBatDau ?? "" },
-                    new System.Data.SqlClient.SqlParameter("@GioKT", System.Data.SqlDbType.NVarChar, 5) { Value = (object?)gioKetThuc ?? "" },
-                    new System.Data.SqlClient.SqlParameter("@Phu", System.Data.SqlDbType.Decimal) { Value = 0m }
-                };
-
-                var idObj = _db.ExecuteScalar<object>(sql, parameters);
-
-                long maCa = 0;
-                if (idObj != null && long.TryParse(idObj.ToString(), out var v)) maCa = v;
-
-                // If client supplied assigned employees, persist them to THAMGIACATRUC
-                if (maCa > 0 && maNVs != null && maNVs.Length > 0)
-                {
-                    try
-                    {
-                        var insertTG = "INSERT INTO THAMGIACATRUC (MaCaTruc, MaNV) VALUES (@MaCa, @MaNV)";
-                        foreach (var mnv in maNVs)
-                        {
-                            if (string.IsNullOrWhiteSpace(mnv)) continue;
-                            _db.ExecuteNonQuery(insertTG,
-                                new System.Data.SqlClient.SqlParameter("@MaCa", maCa),
-                                new System.Data.SqlClient.SqlParameter("@MaNV", mnv));
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Assigning staff after CreateCaTruc failed");
-                        // do not fail the whole request — shift was created; return info to client
-                    }
-                }
-
-                return Json(new { success = true, maCa = maCa, message = "Tạo ca trực thành công" });
-            }
-            catch (System.Exception ex)
-            {
-                _logger.LogError(ex, "CreateCaTruc failed");
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
         // POST: /Management/AssignNhanVien
         [HttpPost]
         public IActionResult AssignNhanVien(string maCaTruc, string maNV)
@@ -1616,6 +1560,544 @@ namespace webapp_mvc.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+
+        // =====================================================
+        // QUẢN LÝ GIÁ & ƯU ĐÃI
+        // =====================================================
+
+        // GET: /Management/QuanLyGia
+        public IActionResult QuanLyGia()
+        {
+            var vaiTro = HttpContext.Session.GetString("VaiTro");
+            if (!vaiTro?.Equals("Quản lý", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            return View();
+        }
+
+        // ===== KHUNG GIỜ & GIÁ =====
+
+        // GET: /Management/GetDanhSachKhungGio
+        [HttpGet]
+        public JsonResult GetDanhSachKhungGio(string? maLS = null, string? loaiNgay = null)
+        {
+            try
+            {
+                var query = @"
+                SELECT KG.MaKG, KG.MaLS, LS.TenLS, KG.GioBatDau, KG.GioKetThuc, 
+                       KG.NgayApDung, KG.GiaApDung, KG.LoaiNgay, KG.TenKhungGio,
+                       KG.TrangThai, KG.NgayTao
+                FROM KHUNGGIO KG
+                JOIN LOAISAN LS ON KG.MaLS = LS.MaLS
+                WHERE 1=1";
+
+                var parameters = new List<SqlParameter>();
+
+                if (!string.IsNullOrEmpty(maLS))
+                {
+                    query += " AND KG.MaLS = @MaLS";
+                    parameters.Add(new SqlParameter("@MaLS", maLS));
+                }
+
+                if (!string.IsNullOrEmpty(loaiNgay))
+                {
+                    query += " AND KG.LoaiNgay = @LoaiNgay";
+                    parameters.Add(new SqlParameter("@LoaiNgay", loaiNgay));
+                }
+
+                query += " ORDER BY KG.NgayApDung DESC, LS.TenLS, KG.GioBatDau";
+
+                var dt = _db.ExecuteQuery(query, parameters.ToArray());
+                var data = new List<object>();
+
+                foreach (DataRow row in dt.Rows)
+                {
+                    data.Add(new
+                    {
+                        maKG = row["MaKG"]?.ToString(),
+                        maLS = row["MaLS"]?.ToString(),
+                        tenLS = row["TenLS"]?.ToString(),
+                        gioBatDau = row["GioBatDau"] != DBNull.Value ? ((TimeSpan)row["GioBatDau"]).ToString(@"hh\:mm") : "",
+                        gioKetThuc = row["GioKetThuc"] != DBNull.Value ? ((TimeSpan)row["GioKetThuc"]).ToString(@"hh\:mm") : "",
+                        ngayApDung = row["NgayApDung"] != DBNull.Value ? Convert.ToDateTime(row["NgayApDung"]).ToString("dd/MM/yyyy") : "",
+                        giaApDung = row["GiaApDung"] != DBNull.Value ? Convert.ToDecimal(row["GiaApDung"]) : 0,
+                        loaiNgay = row["LoaiNgay"]?.ToString(),
+                        tenKhungGio = row["TenKhungGio"]?.ToString(),
+                        trangThai = row["TrangThai"] == DBNull.Value || Convert.ToBoolean(row["TrangThai"]),
+                        ngayTao = row["NgayTao"] != DBNull.Value ? Convert.ToDateTime(row["NgayTao"]).ToString("dd/MM/yyyy HH:mm") : ""
+                    });
+                }
+
+                return Json(new { success = true, data });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting time slots");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // POST: /Management/TaoKhungGio
+        [HttpPost]
+        public JsonResult TaoKhungGio([FromBody] TaoKhungGioRequest request)
+        {
+            try
+            {
+                // Generate MaKG
+                var maxMaKG = _db.ExecuteScalar<string>("SELECT MAX(MaKG) FROM KHUNGGIO") ?? "KG00000";
+                var numPart = int.Parse(maxMaKG.Substring(2)) + 1;
+                var maKG = "KG" + numPart.ToString("D5");
+
+                var query = @"
+                INSERT INTO KHUNGGIO (MaKG, MaLS, GioBatDau, GioKetThuc, NgayApDung, 
+                                      GiaApDung, LoaiNgay, TenKhungGio, TrangThai)
+                VALUES (@MaKG, @MaLS, @GioBD, @GioKT, @NgayApDung, @GiaApDung, 
+                        @LoaiNgay, @TenKhungGio, @TrangThai)";
+
+                _db.ExecuteNonQuery(query,
+                    new SqlParameter("@MaKG", maKG),
+                    new SqlParameter("@MaLS", request.MaLS),
+                    new SqlParameter("@GioBD", TimeSpan.Parse(request.GioBatDau)),
+                    new SqlParameter("@GioKT", TimeSpan.Parse(request.GioKetThuc)),
+                    new SqlParameter("@NgayApDung", DateTime.Parse(request.NgayApDung)),
+                    new SqlParameter("@GiaApDung", request.GiaApDung),
+                    new SqlParameter("@LoaiNgay", request.LoaiNgay),
+                    new SqlParameter("@TenKhungGio", request.TenKhungGio),
+                    new SqlParameter("@TrangThai", true)
+                );
+
+                return Json(new { success = true, message = "Tạo khung giờ thành công!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating time slot");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // POST: /Management/CapNhatKhungGio
+        [HttpPost]
+        public JsonResult CapNhatKhungGio([FromBody] CapNhatKhungGioRequest request)
+        {
+            try
+            {
+                var query = @"
+                UPDATE KHUNGGIO 
+                SET MaLS = @MaLS, GioBatDau = @GioBD, GioKetThuc = @GioKT, 
+                    NgayApDung = @NgayApDung, GiaApDung = @GiaApDung, 
+                    LoaiNgay = @LoaiNgay, TenKhungGio = @TenKhungGio
+                WHERE MaKG = @MaKG";
+
+                _db.ExecuteNonQuery(query,
+                    new SqlParameter("@MaKG", request.MaKG),
+                    new SqlParameter("@MaLS", request.MaLS),
+                    new SqlParameter("@GioBD", TimeSpan.Parse(request.GioBatDau)),
+                    new SqlParameter("@GioKT", TimeSpan.Parse(request.GioKetThuc)),
+                    new SqlParameter("@NgayApDung", DateTime.Parse(request.NgayApDung)),
+                    new SqlParameter("@GiaApDung", request.GiaApDung),
+                    new SqlParameter("@LoaiNgay", request.LoaiNgay),
+                    new SqlParameter("@TenKhungGio", request.TenKhungGio)
+                );
+
+                return Json(new { success = true, message = "Cập nhật khung giờ thành công!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating time slot");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // POST: /Management/XoaKhungGio
+        [HttpPost]
+        public JsonResult XoaKhungGio(string maKG)
+        {
+            try
+            {
+                var query = "DELETE FROM KHUNGGIO WHERE MaKG = @MaKG";
+                _db.ExecuteNonQuery(query, new SqlParameter("@MaKG", maKG));
+
+                return Json(new { success = true, message = "Xóa khung giờ thành công!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting time slot");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // ===== ƯU ĐÃI =====
+
+        // GET: /Management/GetDanhSachUuDai
+        [HttpGet]
+        public JsonResult GetDanhSachUuDai(string? loaiUuDai = null, bool? trangThai = null)
+        {
+            try
+            {
+                var query = @"
+                SELECT MaUD, TenCT, TyLeGiamGia, DieuKienApDung, LoaiUuDai,
+                       NgayBatDau, NgayKetThuc, GiaTriToiThieu, SoGioToiThieu, 
+                       TrangThai, NgayTao
+                FROM UUDAI
+                WHERE 1=1";
+
+                var parameters = new List<SqlParameter>();
+
+                if (!string.IsNullOrEmpty(loaiUuDai))
+                {
+                    query += " AND LoaiUuDai = @LoaiUuDai";
+                    parameters.Add(new SqlParameter("@LoaiUuDai", loaiUuDai));
+                }
+
+                if (trangThai.HasValue)
+                {
+                    if (trangThai.Value) // Filter Active: (TrangThai = 1 OR NULL) AND (Not Expired)
+                    {
+                        query += " AND (TrangThai = 1 OR TrangThai IS NULL)";
+                        // Optional: To strictly filter out expired items from "Active" list
+                        // query += " AND (NgayKetThuc IS NULL OR NgayKetThuc >= CAST(GETDATE() AS DATE))";
+                        // However, user requirement emphasizes UI display state. 
+                        // Let's keep it simple: Active = Not Paused. Expired items are still "Active" in DB status, just expired.
+                        // But logically, if I search "Active", I expect valid ones? 
+                        // Let's add the date check for strict correctness if filtering Active.
+                        query += " AND (NgayKetThuc IS NULL OR NgayKetThuc >= CAST(GETDATE() AS DATE))";
+                    }
+                    else // Filter Paused (or Expired? No, filter name is "Trạng thái").
+                    {
+                        // If user selects "Tạm dừng" (false), show explicitly paused items.
+                        // What about "Đã kết thúc"? If UI has only 2 options (Active/Paused), 
+                        // "Đã kết thúc" items (Active but Expired) won't show in "Active" (due to date check)
+                        // and won't show in "Paused" (TrangThai=1). They disappear?
+                        // We should probably allow Expired to show if we don't have a specific filter for it.
+                        // OR, maybe the filter dropdown needs a 3rd option?
+                        // For now, let's stick to standard behavior: 
+                        // "Trạng thái" usually refers to the toggle switch (Active/Paused).
+                        // So Active = (TrangThai=1 OR NULL). Paused = (TrangThai=0).
+                        // I will NOT filter by date here to ensure expired items (which are technically 'Active' configuration-wise) still show up 
+                        // so user can edit them (e.g. extend date). Hiding them makes them inaccessible.
+                        
+                        // REVERTING Date check decision: Use standard status column filtering to prevent data loss.
+                        // User can see "Đã kết thúc" status in the row.
+                        query += " AND TrangThai = 0";
+                    }
+                }
+                else 
+                {
+                   // If trangThai is null (All), show everything
+                }
+
+                query += " ORDER BY NgayTao DESC";
+
+                var dt = _db.ExecuteQuery(query, parameters.ToArray());
+                var data = new List<object>();
+
+                foreach (DataRow row in dt.Rows)
+                {
+                    data.Add(new
+                    {
+                        maUD = row["MaUD"]?.ToString(),
+                        tenCT = row["TenCT"]?.ToString(),
+                        tyLeGiamGia = row["TyLeGiamGia"] != DBNull.Value ? Convert.ToDecimal(row["TyLeGiamGia"]) : 0,
+                        dieuKienApDung = row["DieuKienApDung"]?.ToString(),
+                        loaiUuDai = row["LoaiUuDai"]?.ToString(),
+                        ngayBatDau = row["NgayBatDau"] != DBNull.Value ? Convert.ToDateTime(row["NgayBatDau"]).ToString("dd/MM/yyyy") : "",
+                        ngayKetThuc = row["NgayKetThuc"] != DBNull.Value ? Convert.ToDateTime(row["NgayKetThuc"]).ToString("dd/MM/yyyy") : "",
+                        giaTriToiThieu = row["GiaTriToiThieu"] != DBNull.Value ? Convert.ToDecimal(row["GiaTriToiThieu"]) : 0,
+                        soGioToiThieu = row["SoGioToiThieu"] != DBNull.Value ? Convert.ToInt32(row["SoGioToiThieu"]) : 0,
+                        // Fix: DBNull -> true (Active)
+                        trangThai = row["TrangThai"] == DBNull.Value || Convert.ToBoolean(row["TrangThai"]),
+                        ngayTao = row["NgayTao"] != DBNull.Value ? Convert.ToDateTime(row["NgayTao"]).ToString("dd/MM/yyyy HH:mm") : ""
+                    });
+                }
+
+                return Json(new { success = true, data });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting promotions");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // POST: /Management/TaoUuDai
+        [HttpPost]
+        public JsonResult TaoUuDai([FromBody] TaoUuDaiRequest request)
+        {
+            try
+            {
+                // Generate MaUD
+                var maxMaUD = _db.ExecuteScalar<string>("SELECT MAX(MaUD) FROM UUDAI") ?? "UD00000";
+                var numPart = int.Parse(maxMaUD.Substring(2)) + 1;
+                var maUD = "UD" + numPart.ToString("D5");
+
+                var query = @"
+                INSERT INTO UUDAI (MaUD, TenCT, TyLeGiamGia, DieuKienApDung, LoaiUuDai,
+                                   NgayBatDau, NgayKetThuc, GiaTriToiThieu, SoGioToiThieu, TrangThai)
+                VALUES (@MaUD, @TenCT, @TyLe, @DieuKien, @LoaiUD, @NgayBD, @NgayKT, 
+                        @GiaTriMin, @SoGioMin, @TrangThai)";
+
+                _db.ExecuteNonQuery(query,
+                    new SqlParameter("@MaUD", maUD),
+                    new SqlParameter("@TenCT", request.TenCT),
+                    new SqlParameter("@TyLe", request.TyLeGiamGia),
+                    new SqlParameter("@DieuKien", request.DieuKienApDung ?? ""),
+                    new SqlParameter("@LoaiUD", request.LoaiUuDai),
+                    new SqlParameter("@NgayBD", DateTime.Parse(request.NgayBatDau)),
+                    new SqlParameter("@NgayKT", DateTime.Parse(request.NgayKetThuc)),
+                    new SqlParameter("@GiaTriMin", request.GiaTriToiThieu),
+                    new SqlParameter("@SoGioMin", request.SoGioToiThieu),
+                    new SqlParameter("@TrangThai", true)
+                );
+
+                return Json(new { success = true, message = "Tạo ưu đãi thành công!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating promotion");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // POST: /Management/CapNhatUuDai
+        [HttpPost]
+        public JsonResult CapNhatUuDai([FromBody] CapNhatUuDaiRequest request)
+        {
+            try
+            {
+                var query = @"
+                UPDATE UUDAI 
+                SET TenCT = @TenCT, TyLeGiamGia = @TyLe, DieuKienApDung = @DieuKien,
+                    LoaiUuDai = @LoaiUD, NgayBatDau = @NgayBD, NgayKetThuc = @NgayKT,
+                    GiaTriToiThieu = @GiaTriMin, SoGioToiThieu = @SoGioMin
+                WHERE MaUD = @MaUD";
+
+                _db.ExecuteNonQuery(query,
+                    new SqlParameter("@MaUD", request.MaUD),
+                    new SqlParameter("@TenCT", request.TenCT),
+                    new SqlParameter("@TyLe", request.TyLeGiamGia),
+                    new SqlParameter("@DieuKien", request.DieuKienApDung ?? ""),
+                    new SqlParameter("@LoaiUD", request.LoaiUuDai),
+                    new SqlParameter("@NgayBD", DateTime.Parse(request.NgayBatDau)),
+                    new SqlParameter("@NgayKT", DateTime.Parse(request.NgayKetThuc)),
+                    new SqlParameter("@GiaTriMin", request.GiaTriToiThieu),
+                    new SqlParameter("@SoGioMin", request.SoGioToiThieu)
+                );
+
+                return Json(new { success = true, message = "Cập nhật ưu đãi thành công!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating promotion");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // POST: /Management/BatTatUuDai
+        [HttpPost]
+        public JsonResult BatTatUuDai(string maUD, bool trangThai)
+        {
+            try
+            {
+                var query = "UPDATE UUDAI SET TrangThai = @TrangThai WHERE MaUD = @MaUD";
+                _db.ExecuteNonQuery(query, 
+                    new SqlParameter("@TrangThai", trangThai),
+                    new SqlParameter("@MaUD", maUD)
+                );
+
+                return Json(new { success = true, message = trangThai ? "Đã bật ưu đãi!" : "Đã tắt ưu đãi!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error toggling promotion status");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // POST: /Management/XoaUuDai
+        [HttpPost]
+        public JsonResult XoaUuDai(string maUD)
+        {
+            try
+            {
+                // Check if promotion is used in any orders
+                var checkQuery = "SELECT COUNT(*) FROM UUDAI_APDUNG WHERE MaUD = @MaUD";
+                var dt = _db.ExecuteQuery(checkQuery, new SqlParameter("@MaUD", maUD));
+                var count = Convert.ToInt32(dt.Rows[0][0]);
+
+                if (count > 0)
+                {
+                    return Json(new { success = false, message = "Không thể xóa ưu đãi đã được sử dụng!" });
+                }
+
+                var query = "DELETE FROM UUDAI WHERE MaUD = @MaUD";
+                _db.ExecuteNonQuery(query, new SqlParameter("@MaUD", maUD));
+
+                return Json(new { success = true, message = "Xóa ưu đãi thành công!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting promotion");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // ===== THAM SỐ HỆ THỐNG =====
+
+        // GET: /Management/GetThamSoHeThong
+        [HttpGet]
+        public JsonResult GetThamSoHeThong()
+        {
+            try
+            {
+                var query = "SELECT * FROM THAMSO_HETHONG ORDER BY MaThamSo";
+                var dt = _db.ExecuteQuery(query);
+                var data = new List<object>();
+
+                foreach (DataRow row in dt.Rows)
+                {
+                    data.Add(new
+                    {
+                        maThamSo = row["MaThamSo"]?.ToString(),
+                        tenThamSo = row["TenThamSo"]?.ToString(),
+                        giaTri = row["GiaTri"]?.ToString(),
+                        donVi = row["DonVi"]?.ToString(),
+                        moTa = row["MoTa"]?.ToString(),
+                        ngayCapNhat = row["NgayCapNhat"] != DBNull.Value ? Convert.ToDateTime(row["NgayCapNhat"]).ToString("dd/MM/yyyy HH:mm") : ""
+                    });
+                }
+
+                return Json(new { success = true, data });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting system parameters");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // POST: /Management/CapNhatThamSo
+        [HttpPost]
+        public JsonResult CapNhatThamSo([FromBody] List<CapNhatThamSoRequest> parameters)
+        {
+            try
+            {
+                foreach (var param in parameters)
+                {
+                    var query = @"
+                    UPDATE THAMSO_HETHONG 
+                    SET GiaTri = @GiaTri, NgayCapNhat = GETDATE()
+                    WHERE MaThamSo = @MaThamSo";
+
+                    _db.ExecuteNonQuery(query,
+                        new SqlParameter("@MaThamSo", param.MaThamSo),
+                        new SqlParameter("@GiaTri", param.GiaTri)
+                    );
+                }
+
+                return Json(new { success = true, message = "Cập nhật tham số thành công!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating system parameters");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // GET: /Management/GetLoaiSan - Get list of court types
+        [HttpGet]
+        public JsonResult GetLoaiSan()
+        {
+            try
+            {
+                var query = "SELECT MaLS, TenLS FROM LOAISAN ORDER BY TenLS";
+                var dt = _db.ExecuteQuery(query);
+                var data = new List<object>();
+
+                foreach (DataRow row in dt.Rows)
+                {
+                    data.Add(new
+                    {
+                        maLS = row["MaLS"]?.ToString(),
+                        tenLS = row["TenLS"]?.ToString()
+                    });
+                }
+
+                return Json(new { success = true, data });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting court types");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // POST: /Management/CreateCaTruc - Create shift and assign employees
+        [HttpPost]
+        public JsonResult CreateCaTruc(string ngayTruc, string tenCa, string gioBatDau, string gioKetThuc, string? ghiChu, List<string>? maNVs)
+        {
+            try
+            {
+                // Get current logged-in manager
+                var maNguoiTaoCA = HttpContext.Session.GetString("MaUser");
+                if (string.IsNullOrEmpty(maNguoiTaoCA))
+                {
+                    return Json(new { success = false, message = "Phiên đăng nhập hết hạn!" });
+                }
+
+                // Generate MaCaTruc (Removed - using IDENTITY)
+
+                // Calculate PhuCap based on shift time
+                decimal phuCap = 0;
+                if (gioBatDau == "06:00") phuCap = 50000; // Morning shift
+                else if (gioBatDau == "18:00") phuCap = 100000; // Evening shift
+
+                // 1. INSERT into CATRUC (Schema assumes MaCaTruc is IDENTITY)
+                // Use SCOPE_IDENTITY() to get the generated ID
+                var insertCaTructQuery = @"
+                    INSERT INTO CATRUC (MaNV, NgayTruc, GioBatDau, GioKetThuc, PhuCap)
+                    VALUES (@MaNV, @NgayTruc, @GioBatDau, @GioKetThuc, @PhuCap);
+                    SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+                var newMaCaTruc = _db.ExecuteScalar<int>(insertCaTructQuery,
+                    new SqlParameter("@MaNV", maNguoiTaoCA),
+                    new SqlParameter("@NgayTruc", DateTime.Parse(ngayTruc)),
+                    new SqlParameter("@GioBatDau", TimeSpan.Parse(gioBatDau)),
+                    new SqlParameter("@GioKetThuc", TimeSpan.Parse(gioKetThuc)),
+                    new SqlParameter("@PhuCap", phuCap)
+                );
+                
+                var maCaTruc = newMaCaTruc.ToString();
+
+                // 2. INSERT into THAMGIACATRUC for each selected employee
+                if (maNVs != null && maNVs.Count > 0)
+                {
+                    var insertThamGiaQuery = @"
+                        INSERT INTO THAMGIACATRUC (MaCaTruc, MaNV)
+                        VALUES (@MaCaTruc, @MaNV)";
+
+                    foreach (var maNV in maNVs)
+                    {
+                        if (!string.IsNullOrWhiteSpace(maNV))
+                        {
+                            _db.ExecuteNonQuery(insertThamGiaQuery,
+                                new SqlParameter("@MaCaTruc", maCaTruc),
+                                new SqlParameter("@MaNV", maNV.Trim())
+                            );
+                        }
+                    }
+                }
+
+                _logger.LogInformation($"Created shift {maCaTruc} with {maNVs?.Count ?? 0} employees");
+                return Json(new { success = true, message = "Tạo ca trực thành công!" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating shift");
+                return Json(new { success = false, message = "Lỗi: " + ex.Message });
+            }
+        }
     }
 
     // Request models
@@ -1638,5 +2120,60 @@ namespace webapp_mvc.Controllers
     {
         public string MaPhieu { get; set; } = "";
         public decimal ChiPhi { get; set; }
+    }
+
+    // Request models for Quản Lý Giá
+    public class TaoKhungGioRequest
+    {
+        public string MaLS { get; set; } = "";
+        public string GioBatDau { get; set; } = "";
+        public string GioKetThuc { get; set; } = "";
+        public string NgayApDung { get; set; } = "";
+        public decimal GiaApDung { get; set; }
+        public string LoaiNgay { get; set; } = "Thường";
+        public string TenKhungGio { get; set; } = "";
+    }
+
+    public class CapNhatKhungGioRequest
+    {
+        public string MaKG { get; set; } = "";
+        public string MaLS { get; set; } = "";
+        public string GioBatDau { get; set; } = "";
+        public string GioKetThuc { get; set; } = "";
+        public string NgayApDung { get; set; } = "";
+        public decimal GiaApDung { get; set; }
+        public string LoaiNgay { get; set; } = "Thường";
+        public string TenKhungGio { get; set; } = "";
+    }
+
+    public class TaoUuDaiRequest
+    {
+        public string TenCT { get; set; } = "";
+        public decimal TyLeGiamGia { get; set; }
+        public string? DieuKienApDung { get; set; }
+        public string LoaiUuDai { get; set; } = "";
+        public string NgayBatDau { get; set; } = "";
+        public string NgayKetThuc { get; set; } = "";
+        public decimal GiaTriToiThieu { get; set; }
+        public int SoGioToiThieu { get; set; }
+    }
+
+    public class CapNhatUuDaiRequest
+    {
+        public string MaUD { get; set; } = "";
+        public string TenCT { get; set; } = "";
+        public decimal TyLeGiamGia { get; set; }
+        public string? DieuKienApDung { get; set; }
+        public string LoaiUuDai { get; set; } = "";
+        public string NgayBatDau { get; set; } = "";
+        public string NgayKetThuc { get; set; } = "";
+        public decimal GiaTriToiThieu { get; set; }
+        public int SoGioToiThieu { get; set; }
+    }
+
+    public class CapNhatThamSoRequest
+    {
+        public string MaThamSo { get; set; } = "";
+        public string GiaTri { get; set; } = "";
     }
 }

@@ -1,0 +1,326 @@
+@model webapp_mvc.Models.HoSoViewModel
+@{
+    ViewData["Title"] = "Hồ Sơ Nhân Viên";
+}
+
+<!-- Background Layer -->
+<div class="position-fixed top-0 start-0 w-100 h-100" style="z-index: -1; background: #f0fdf4;"></div>
+
+
+
+<!-- Success Notification -->
+@if (ViewBag.Message != null)
+{
+    <div id="success-alert" class="alert alert-success position-fixed top-0 start-50 translate-middle-x mt-5 shadow-lg rounded-pill px-4 py-3 fw-bold border-0 d-flex align-items-center" 
+         style="z-index: 9999; transform: translateY(-100%); transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); background: #dcfce7; color: #166534;">
+        <i class="fas fa-check-circle me-2 fa-lg"></i>
+        <span>@ViewBag.Message</span>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var alert = document.getElementById('success-alert');
+            
+            // Slide Down
+            setTimeout(function() {
+                alert.style.transform = 'translate(-50%, 20px)';
+            }, 100);
+
+            // Slide Up & Hide after 3s
+            setTimeout(function() {
+                alert.style.transform = 'translate(-50%, -100%)'; // Move back up
+                alert.style.opacity = '0';
+            }, 3000);
+        });
+    </script>
+}
+
+<!-- Main Container -->
+<div class="container py-5" style="padding-top: 100px !important;">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            
+            <!-- Profile Card -->
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden" 
+                 style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px);">
+                
+                <!-- Radiant Header -->
+                <div class="position-relative" style="height: 160px; background: linear-gradient(135deg, #a3cf06 0%, #3f6212 100%);">
+                    <div class="position-absolute w-100 h-100" style="background-image: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.15) 0%, transparent 50%);"></div>
+                    <div class="position-absolute bottom-0 end-0 p-3 text-white opacity-25">
+                         <i class="fas fa-id-card-clip fa-8x"></i>
+                    </div>
+                </div>
+
+                <div class="card-body px-4 px-md-5 pb-5 position-relative">
+                    
+                    <!-- Avatar Section -->
+                    <div class="text-center position-absolute start-50 translate-middle-x" style="top: -65px;">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center shadow-lg mx-auto bg-white p-1" 
+                             style="width: 130px; height: 130px;">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center w-100 h-100" 
+                                 style="background: #f0fdf4; border: 4px solid #a3cf06;">
+                                <i class="fas fa-user-tie" style="font-size: 65px; color: #4d7c0f;"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- User Name & Role (Chức vụ ở chỗ AVT) -->
+                    <div style="margin-top: 75px;" class="text-center mb-5">
+                        <h2 class="fw-bold mb-2 text-dark">@Model.HoTen</h2>
+                        
+                        <!-- Chức vụ Badge -->
+                        <span class="badge rounded-pill px-4 py-2 shadow-sm border" 
+                              style="background: #e0f2fe; color: #0284c7; font-size: 0.95rem; border-color: #bae6fd !important;">
+                            <i class="fas fa-briefcase me-2"></i> @(Model.ChucVu ?? "Nhân Viên")
+                        </span>
+                    </div>
+
+                    <hr class="my-4 opacity-10" style="border-top: 2px dashed #a3cf06;">
+
+                    <!-- Detailed Info Grid (Phần giữa) -->
+                    <h5 class="fw-bold text-dark mb-4 text-center"><i class="fas fa-address-book me-2 text-success"></i>Thông Tin Cá Nhân</h5>
+                    
+                    <div class="row g-3 mb-5">
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-4 h-100 bg-white border shadow-sm">
+                                <label class="small text-muted fw-bold text-uppercase ls-1 mb-1">Ngày sinh</label>
+                                <div class="d-flex align-items-center mt-1">
+                                    <i class="fas fa-birthday-cake text-success me-3 fa-lg"></i>
+                                    <span class="fw-bold fs-6 text-dark">
+                                        @(Model.NgaySinh.HasValue ? Model.NgaySinh.Value.ToString("dd/MM/yyyy") : "Chưa cập nhật")
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-4 h-100 bg-white border shadow-sm">
+                                <label class="small text-muted fw-bold text-uppercase ls-1 mb-1">Giới tính</label>
+                                <div class="d-flex align-items-center mt-1">
+                                    <i class="fas fa-venus-mars text-success me-3 fa-lg"></i>
+                                    <span class="fw-bold fs-6 text-dark">@(string.IsNullOrEmpty(Model.GioiTinh) ? "Chưa cập nhật" : Model.GioiTinh)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-4 h-100 bg-white border shadow-sm">
+                                <label class="small text-muted fw-bold text-uppercase ls-1 mb-1">Số điện thoại</label>
+                                <div class="d-flex align-items-center mt-1">
+                                    <i class="fas fa-phone-alt text-success me-3 fa-lg"></i>
+                                    <span class="fw-bold fs-6 text-dark">@Model.SDT</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-4 h-100 bg-white border shadow-sm">
+                                <label class="small text-muted fw-bold text-uppercase ls-1 mb-1">CCCD / CMND</label>
+                                <div class="d-flex align-items-center mt-1">
+                                    <i class="fas fa-id-card text-success me-3 fa-lg"></i>
+                                    <span class="fw-bold fs-6 text-dark">@(string.IsNullOrEmpty(Model.CCCD) ? "Chưa cập nhật" : Model.CCCD)</span>
+                                </div>
+                            </div>
+                        </div>
+                         <div class="col-12">
+                            <div class="p-3 rounded-4 h-100 bg-white border shadow-sm">
+                                <label class="small text-muted fw-bold text-uppercase ls-1 mb-1">Địa chỉ</label>
+                                <div class="d-flex align-items-center mt-1">
+                                    <i class="fas fa-map-marker-alt text-success me-3 fa-lg"></i>
+                                    <span class="fw-bold fs-6 text-dark">@(string.IsNullOrEmpty(Model.DiaChi) ? "Chưa cập nhật" : Model.DiaChi)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2 Cards: Cơ sở & Lương -->
+                    <div class="row g-3 mb-5">
+                         <!-- Cơ sở Card (Purple Theme) -->
+                        <div class="col-md-6">
+                             <div class="d-flex align-items-center p-3 rounded-4 shadow-sm h-100" 
+                                 style="background-color: #f3e8ff; border: 1px solid #d8b4fe;">
+                                <div class="rounded-circle bg-white p-3 me-3 text-purple shadow-sm" style="color: #9333ea;">
+                                    <i class="fas fa-building fa-lg"></i>
+                                </div>
+                                <div>
+                                    <small class="d-block fw-bold text-uppercase" style="font-size: 0.75rem; color: #7e22ce; opacity: 0.8;">Cơ sở làm việc</small>
+                                    <span class="fw-bold fs-5" style="color: #6b21a8;">@(Model.TenCS ?? "Chưa phân công")</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lương Card (Orange Theme) -->
+                        <div class="col-md-6">
+                             <div class="d-flex align-items-center p-3 rounded-4 shadow-sm h-100" 
+                                 style="background-color: #fff7ed; border: 1px solid #ffedd5;">
+                                <div class="rounded-circle bg-white p-3 me-3 text-orange shadow-sm" style="color: #ea580c;">
+                                    <i class="fas fa-money-bill-wave fa-lg"></i>
+                                </div>
+                                <div>
+                                    <small class="d-block fw-bold text-uppercase" style="font-size: 0.75rem; color: #c2410c; opacity: 0.8;">Lương cơ bản</small>
+                                    <span class="fw-bold fs-5" style="color: #9a3412;">@string.Format("{0:N0} VNĐ", Model.LuongCoBan)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer Buttons (Update & Back) -->
+                    <div class="d-flex justify-content-center gap-3">
+                         <a asp-controller="Home" asp-action="Index" 
+                            class="btn bg-white rounded-pill px-4 py-2 fw-bold shadow-sm hvr-grow" 
+                            style="min-width: 120px; border: 2px solid #84cc16; color: #4d7c0f;">
+                            <i class="fas fa-arrow-left me-2"></i>Thoát
+                        </a>
+                        
+                        <button type="button" class="btn text-white rounded-pill px-5 py-2 fw-bold shadow-lg hvr-grow" 
+                                data-bs-toggle="modal" data-bs-target="#editProfileModal"
+                                style="background: linear-gradient(90deg, #84cc16 0%, #22c55e 100%); border: none; min-width: 200px;">
+                            <i class="fas fa-pen-to-square me-2"></i>CẬP NHẬT
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Profile Modal (Full Info with Readonly Fields) -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden" 
+             style="background: rgba(255, 255, 255, 0.98);">
+            
+            <!-- Modal Header -->
+            <div class="position-relative" style="height: 100px; background: linear-gradient(135deg, #a3cf06 0%, #3f6212 100%);">
+                <div class="position-absolute w-100 h-100" style="background-image: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.15) 0%, transparent 50%);"></div>
+                <div class="position-absolute start-0 bottom-0 p-4 text-white">
+                    <h4 class="fw-bold m-0 text-shadow"><i class="fas fa-user-edit me-2"></i>Cập Nhật Hồ Sơ</h4>
+                    <small class="opacity-75">Thông tin tuyển dụng không thể chỉnh sửa</small>
+                </div>
+                 <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form asp-action="Profile" method="post">
+                <div class="modal-body p-4 px-md-5">
+                    
+                    <div class="row g-4">
+                        <!-- Chức vụ (Readonly) -->
+                        <div class="col-md-6">
+                            <label class="small text-muted fw-bold text-uppercase ls-1 mb-1 ms-2">Chức vụ</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-secondary bg-opacity-10 border-0 rounded-start-4 ps-3"><i class="fas fa-briefcase text-secondary"></i></span>
+                                <input asp-for="ChucVu" class="form-control bg-secondary bg-opacity-10 border-0 rounded-end-4 py-3 fw-bold text-secondary" readonly />
+                            </div>
+                            <small class="text-danger ms-2 fst-italic"><i class="fas fa-ban me-1 small"></i>Không thể chỉnh sửa chức vụ</small>
+                        </div>
+
+                         <!-- Cơ sở (Readonly) -->
+                        <div class="col-md-6">
+                            <label class="small text-muted fw-bold text-uppercase ls-1 mb-1 ms-2">Cơ sở làm việc</label>
+                             <div class="input-group">
+                                <span class="input-group-text bg-secondary bg-opacity-10 border-0 rounded-start-4 ps-3"><i class="fas fa-building text-secondary"></i></span>
+                                <input asp-for="TenCS" class="form-control bg-secondary bg-opacity-10 border-0 rounded-end-4 py-3 fw-bold text-secondary" readonly />
+                            </div>
+                             <small class="text-danger ms-2 fst-italic"><i class="fas fa-ban me-1 small"></i>Liên hệ quản trị viên để đổi cơ sở</small>
+                        </div>
+                        
+                         <!-- Lương (Readonly) -->
+                        <div class="col-12">
+                            <label class="small text-muted fw-bold text-uppercase ls-1 mb-1 ms-2">Mức lương cơ bản</label>
+                             <div class="input-group">
+                                <span class="input-group-text bg-secondary bg-opacity-10 border-0 rounded-start-4 ps-3"><i class="fas fa-money-bill-wave text-secondary"></i></span>
+                                <input value="@string.Format("{0:N0} VNĐ", Model.LuongCoBan)" class="form-control bg-secondary bg-opacity-10 border-0 rounded-end-4 py-3 fw-bold text-secondary" readonly />
+                            </div>
+                            <small class="text-danger ms-2 fst-italic"><i class="fas fa-lock me-1 small"></i>Thông tin lương được bảo mật và cố định</small>
+                        </div>
+
+
+                         <div class="col-12"><hr class="my-2 opacity-10"></div>
+                         <h6 class="fw-bold text-success mb-0"><i class="fas fa-pen me-2"></i>Thông tin có thể chỉnh sửa</h6>
+
+                        <!-- Họ tên (Editable) -->
+                        <div class="col-12">
+                            <label class="small text-muted fw-bold text-uppercase ls-1 mb-1 ms-2">Họ và tên</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0 rounded-start-4 ps-3"><i class="fas fa-user text-success"></i></span>
+                                <input asp-for="HoTen" class="form-control bg-light border-0 rounded-end-4 py-3 fw-bold text-dark" required placeholder="Nhập họ tên..." />
+                            </div>
+                        </div>
+
+                        <!-- SDT -->
+                         <div class="col-md-6">
+                            <label class="small text-muted fw-bold text-uppercase ls-1 mb-1 ms-2">Số điện thoại</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0 rounded-start-4 ps-3"><i class="fas fa-phone text-success"></i></span>
+                                <input asp-for="SDT" class="form-control bg-light border-0 rounded-end-4 py-3 fw-bold" required placeholder="Nhập SĐT..." />
+                            </div>
+                        </div>
+
+                        <!-- Giới tính -->
+                         <div class="col-md-6">
+                            <label class="small text-muted fw-bold text-uppercase ls-1 mb-1 ms-2">Giới tính</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0 rounded-start-4 ps-3"><i class="fas fa-venus-mars text-success"></i></span>
+                                <select asp-for="GioiTinh" class="form-select bg-light border-0 rounded-end-4 py-3 fw-bold">
+                                    <option value="Nam">Nam</option>
+                                    <option value="Nữ">Nữ</option>
+                                    <option value="Khác">Khác</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Ngày sinh -->
+                        <div class="col-md-6">
+                            <label class="small text-muted fw-bold text-uppercase ls-1 mb-1 ms-2">Ngày sinh</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0 rounded-start-4 ps-3"><i class="fas fa-birthday-cake text-success"></i></span>
+                                <input asp-for="NgaySinh" type="date" class="form-control bg-light border-0 rounded-end-4 py-3 fw-bold" />
+                            </div>
+                        </div>
+
+                        <!-- CCCD -->
+                        <div class="col-md-6">
+                            <label class="small text-muted fw-bold text-uppercase ls-1 mb-1 ms-2">CCCD / CMND</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0 rounded-start-4 ps-3"><i class="fas fa-id-card text-success"></i></span>
+                                <input asp-for="CCCD" class="form-control bg-light border-0 rounded-end-4 py-3 fw-bold" required placeholder="Nhập CCCD..." />
+                            </div>
+                        </div>
+
+                         <!-- Địa chỉ -->
+                        <div class="col-12">
+                            <label class="small text-muted fw-bold text-uppercase ls-1 mb-1 ms-2">Địa chỉ</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0 rounded-start-4 ps-3"><i class="fas fa-map-marker-alt text-success"></i></span>
+                                <input asp-for="DiaChi" class="form-control bg-light border-0 rounded-end-4 py-3 fw-bold" placeholder="Nhập địa chỉ..." />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer border-0 p-4 justify-content-center bg-white">
+                    <button type="button" class="btn btn-light rounded-pill px-4 py-2 fw-bold text-muted shadow-sm" data-bs-dismiss="modal" style="min-width: 120px; border: 1px solid #e5e5e5;">Hủy bỏ</button>
+                    <button type="submit" class="btn text-white rounded-pill px-5 py-2 fw-bold shadow-lg" 
+                            style="background: linear-gradient(90deg, #84cc16 0%, #22c55e 100%); border: none; min-width: 180px;">
+                        LƯU THAY ĐỔI
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hvr-grow {
+        transition-duration: 0.3s;
+        transition-property: transform;
+    }
+    .hvr-grow:hover {
+        transform: scale(1.05);
+    }
+    .text-shadow {
+        text-shadow: 0px 1px 3px rgba(0,0,0,0.3);
+    }
+</style>

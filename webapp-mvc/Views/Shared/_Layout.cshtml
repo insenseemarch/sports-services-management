@@ -1,0 +1,582 @@
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    var vaiTro = HttpContextAccessor.HttpContext.Session.GetString("VaiTro");
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ViệtSport</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" />
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        .text-lime { color: var(--color-lime) !important; }
+        .hover-lime:hover { color: var(--color-lime) !important; }
+        /* Fix Checkbox Visibility */
+        .form-check-input:checked {
+            background-color: var(--color-lime) !important;
+            border-color: var(--color-lime) !important;
+            box-shadow: 0 0 0 0.25rem rgba(204, 232, 48, 0.25);
+        }
+        .form-check-input:focus {
+            border-color: var(--color-lime);
+            box-shadow: 0 0 0 0.25rem rgba(204, 232, 48, 0.25);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background: transparent;">
+            <div class="container-fluid px-5 pt-3">
+                <!-- Logo Left -->
+                <a class="navbar-brand fw-bold fs-4 d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index" style="color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px; background: var(--color-lime);">
+                        <i class="fas fa-running" style="color: var(--color-dark);"></i>
+                    </div>
+                    <span>ViệtSport</span>
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
+                <!-- Centered Menu Items (Pill Style) -->
+                <div class="navbar-collapse collapse d-lg-inline-flex justify-content-center">
+                    <div class="d-none d-lg-block px-4 py-2" style="background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                        <ul class="navbar-nav mx-auto gap-2">
+                            @{
+                                var currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
+                                var currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
+                                
+                                string IsActive(string controller, string action = null) 
+                                {
+                                    // Special check for DatSan & DatSanThanhToan
+                                    if (controller == "DatSan" && currentController == "DatSanThanhToan") return "text-lime fw-bold";
+                                    
+                                    if (string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        if (string.IsNullOrEmpty(action)) return "text-lime fw-bold";
+                                        if (string.Equals(currentAction, action, StringComparison.OrdinalIgnoreCase)) return "text-lime fw-bold";
+                                    }
+                                    return "text-white";
+                                }
+                            }
+                            
+                            <li class="nav-item">
+                                <a class="nav-link fw-semibold px-3 @IsActive("Home") hover-lime" asp-area="" asp-controller="Home" asp-action="Index">Trang Chủ</a>
+                            </li>
+                            
+                            <!-- Menu Chung -->
+                            <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("DatSan") hover-lime" asp-controller="DatSan" asp-action="Index">Đặt Sân</a></li>
+                            <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("DichVu") hover-lime" asp-controller="DichVu" asp-action="Index">Dịch Vụ</a></li>
+                            
+                            <!-- Menu Khách Hàng -->
+                            @if (string.IsNullOrEmpty(vaiTro) || vaiTro == "Khách hàng")
+                            {
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("LichSuDatSan") hover-lime protected-link" asp-controller="LichSuDatSan" asp-action="Index">Lịch Sử</a></li>
+                            }
+
+                            <!-- Menu Nhân Viên / Lễ Tân -->
+                            @if (!string.IsNullOrEmpty(vaiTro) && vaiTro != "Khách hàng") 
+                            {
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("NhanVien", "Index") hover-lime" asp-controller="NhanVien" asp-action="Index">Phiếu Đặt Sân</a></li>
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("NhanVien", "LichLamViec") hover-lime" asp-controller="NhanVien" asp-action="LichLamViec">Lịch Làm Việc</a></li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- User Actions Right -->
+                <div class="navbar-nav" style="min-width: 150px; justify-content: flex-end;">
+                    <ul class="navbar-nav">
+                        @if (Context.Session.GetString("Username") != null)
+                        {
+                            <!-- Logged in -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link d-flex align-items-center bg-white rounded-pill px-3 py-1 shadow-sm" href="#" role="button" data-bs-toggle="dropdown" style="border: 2px solid rgba(255,255,255,0.2);">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center me-2" 
+                                         style="width: 28px; height: 28px; background: var(--color-lime);">
+                                        <i class="fas fa-user small" style="color: var(--color-dark);"></i>
+                                    </div>
+                                    <span class="fw-bold text-dark small">@Context.Session.GetString("HoTen")</span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end mt-2 shadow-lg border-0 rounded-3">
+                                    @{
+                                        var userRoleFn = Context.Session.GetString("VaiTro");
+                                        var profileUrl = (!string.IsNullOrEmpty(userRoleFn) && userRoleFn != "Khách hàng") 
+                                            ? Url.Action("Profile", "NhanVien") 
+                                            : Url.Action("Index", "HoSo");
+                                    }
+                                    <li><a class="dropdown-item py-2" href="@profileUrl"><i class="fas fa-user me-2 text-primary"></i>Hồ Sơ</a></li>
+                                    <li><a class="dropdown-item py-2" href="@Url.Action("Index", "LichSuDatSan")"><i class="fas fa-history me-2 text-info"></i>Lịch Sử</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item py-2 text-danger" href="@Url.Action("DangXuat", "TaiKhoan")"><i class="fas fa-sign-out-alt me-2"></i>Đăng Xuất</a></li>
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <!-- Not logged in -->
+                            <li class="nav-item">
+                                <div class="dropdown">
+                                    <a class="d-flex align-items-center text-decoration-none bg-white rounded-pill px-1 ps-3 py-1 shadow-sm" href="#" role="button" data-bs-toggle="dropdown">
+                                        <span class="fw-bold text-dark me-2 small">Tài Khoản</span>
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center" 
+                                             style="width: 30px; height: 30px; background: var(--color-dark);">
+                                            <i class="fas fa-user text-white small"></i>
+                                        </div>
+                                    </a>
+                                    <ul class="dropdown-menu dropdown-menu-end mt-2 shadow-lg border-0 rounded-3">
+                                        <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#loginModal"><i class="fas fa-sign-in-alt me-2 text-success"></i>Đăng Nhập</a></li>
+                                        <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#registerModal"><i class="fas fa-user-plus me-2 text-primary"></i>Đăng Ký</a></li>
+                                    </ul>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container-fluid p-0">
+        <main role="main">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted mt-auto py-3 bg-light">
+        <div class="container text-center">
+            &copy; 2024 - ViệtSport - <a asp-area="" asp-controller="Home" asp-action="Privacy">Chính Sách</a>
+        </div>
+    </footer>
+
+    <!-- jQuery & Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <!-- Login Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+            <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden" 
+                 style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.5);">
+                <div class="modal-header border-0 pb-0 justify-content-end">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-5 pb-5 pt-0">
+                    <div class="text-center mb-3">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" 
+                             style="width: 70px; height: 70px; background: rgba(204, 255, 0, 0.1);">
+                            <i class="fas fa-user-circle fa-4x" style="color: var(--color-lime-dark, #8cbd00);"></i>
+                        </div>
+                        <h3 class="fw-bold mb-3" style="color: var(--color-dark);">Đăng Nhập</h3>
+                        <div class="border-bottom w-50 mx-auto" style="border-color: var(--color-lime) !important; border-width: 3px;"></div>
+                    </div>
+                    <div id="loginError" class="alert alert-danger d-none small"></div>
+                    <form id="loginForm" action="@Url.Action("DangNhap", "TaiKhoan")" method="post" class="mt-4 needs-validation" novalidate>
+                        @Html.AntiForgeryToken()
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-secondary small">Tên đăng nhập</label>
+                            <input type="text" name="Username" class="form-control bg-light border-0 py-2" placeholder="Nhập tên đăng nhập..." required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-secondary small">Mật khẩu</label>
+                            <input type="password" name="Password" class="form-control bg-light border-0 py-2" placeholder="Nhập mật khẩu..." required />
+                        </div>
+                        <div class="mb-4 form-check">
+                            <input type="checkbox" name="RememberMe" value="true" class="form-check-input bg-light border-secondary" id="rememberMe" />
+                            <label class="form-check-label text-secondary small" for="rememberMe">Ghi nhớ đăng nhập</label>
+                        </div>
+                        <button type="submit" class="btn w-100 py-3 fw-bold rounded-3 shadow-sm" 
+                                style="background: var(--color-lime); color: var(--color-dark); border: none;">
+                            Đăng Nhập
+                        </button>
+                    </form>
+                    <div class="text-center mt-4">
+                        <small class="text-secondary">Chưa có tài khoản? 
+                            <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#registerModal" class="text-decoration-none fw-bold" style="color: var(--color-dark);">Đăng ký ngay</a>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div class="modal fade" id="registerModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden" 
+                 style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.5);">
+                <div class="modal-header border-0 pb-0 justify-content-end">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-5 pb-5 pt-0" style="max-height: 90vh; overflow-y: auto;">
+                    <div class="text-center mb-4">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" 
+                             style="width: 80px; height: 80px; background: rgba(204, 255, 0, 0.1);">
+                            <i class="fas fa-user-plus fa-2x" style="color: var(--color-lime-dark, #8cbd00);"></i>
+                        </div>
+                        <h3 class="fw-bold mb-3" style="color: var(--color-dark);">Đăng Ký Tài Khoản</h3>
+                        <div class="border-bottom w-50 mx-auto mb-4" style="border-color: var(--color-lime) !important; border-width: 3px;"></div>
+                    </div>
+                    <div id="registerError" class="alert alert-danger d-none small mb-3"></div>
+                    <form id="registerForm" action="@Url.Action("DangKy", "TaiKhoan")" method="post" enctype="multipart/form-data" class="needs-validation" novalidate oninput='ConfirmPassword.setCustomValidity(ConfirmPassword.value != Password.value ? "Mật khẩu không khớp" : "")'>
+                        @Html.AntiForgeryToken()
+                        
+                        <!-- Thông tin cá nhân -->
+                        <fieldset class="border rounded-3 p-3 mb-4">
+                            <legend class="float-none w-auto px-3 fw-bold text-secondary small">Thông tin cá nhân</legend>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold text-secondary small">Họ tên <span class="text-danger">*</span></label>
+                                    <input type="text" name="HoTen" class="form-control bg-light border-0" placeholder="Nhập họ tên..." required maxlength="100" />
+                                    <div class="invalid-feedback">Vui lòng nhập họ tên.</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold text-secondary small">CCCD <span class="text-danger">*</span></label>
+                                    <input type="text" name="CCCD" class="form-control bg-light border-0" placeholder="Nhập CCCD..." required maxlength="20" />
+                                    <div class="invalid-feedback">Vui lòng nhập CCCD.</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold text-secondary small">Ngày sinh <span class="text-danger">*</span></label>
+                                    <input type="date" name="NgaySinh" class="form-control bg-light border-0" required max="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                    <div class="invalid-feedback">Vui lòng chọn ngày sinh (không lớn hơn hôm nay).</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold text-secondary small">Giới tính</label>
+                                    <select name="GioiTinh" class="form-select bg-light border-0">
+                                        <option value="Nam">Nam</option>
+                                        <option value="Nữ">Nữ</option>
+                                        <option value="Khác">Không muốn tiết lộ</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold text-secondary small">Số Điện Thoại <span class="text-danger">*</span></label>
+                                    <input type="tel" name="SDT" class="form-control bg-light border-0" placeholder="Nhập số điện thoại..." required maxlength="15" />
+                                    <div class="invalid-feedback">Vui lòng nhập số điện thoại.</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold text-secondary small">Email <span class="text-danger">*</span></label>
+                                    <input type="email" name="Email" class="form-control bg-light border-0" placeholder="Nhập email..." required maxlength="100" />
+                                    <div class="invalid-feedback">Vui lòng nhập email.</div>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label fw-semibold text-secondary small">Địa chỉ <span class="text-danger">*</span></label>
+                                    <input type="text" name="DiaChi" class="form-control bg-light border-0" placeholder="Nhập địa chỉ..." required />
+                                    <div class="invalid-feedback">Vui lòng nhập địa chỉ.</div>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <div class="row g-4">
+                            <!-- Thông tin tài khoản -->
+                            <div class="col-md-6">
+                                <fieldset class="border rounded-3 p-3 h-100">
+                                    <legend class="float-none w-auto px-3 fw-bold text-secondary small">Thông tin tài khoản</legend>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold text-secondary small">Tên đăng nhập <span class="text-danger">*</span></label>
+                                        <input type="text" name="Username" class="form-control bg-light border-0" placeholder="Nhập tên đăng nhập..." required maxlength="50" />
+                                        <div class="invalid-feedback">Vui lòng nhập tên đăng nhập.</div>
+                                    </div>
+                                    <div class="mb-3 position-relative">
+                                        <label class="form-label fw-semibold text-secondary small">Mật khẩu <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <input type="password" name="Password" id="regPassword" class="form-control bg-light border-0" placeholder="Nhập mật khẩu..." required maxlength="100" />
+                                            <button class="btn btn-light border-0 text-secondary" type="button" onclick="togglePassword('regPassword', this)"><i class="far fa-eye-slash"></i></button>
+                                        </div>
+                                        <div class="invalid-feedback">Vui lòng nhập mật khẩu.</div>
+                                    </div>
+                                    <div class="mb-3 position-relative">
+                                        <label class="form-label fw-semibold text-secondary small">Nhập lại mật khẩu <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <input type="password" name="ConfirmPassword" class="form-control bg-light border-0" placeholder="Nhập lại mật khẩu..." required maxlength="100" />
+                                            <button class="btn btn-light border-0 text-secondary" type="button" onclick="togglePassword('ConfirmPassword', this)"><i class="far fa-eye-slash"></i></button>
+                                        </div>
+                                        <div class="invalid-feedback">Mật khẩu nhập lại không khớp.</div>
+                                    </div>
+                                </fieldset>
+                            </div>
+
+                            <!-- Đối tượng ưu đãi -->
+                            <div class="col-md-6">
+                                <fieldset class="border rounded-3 p-3 h-100">
+                                    <legend class="float-none w-auto px-3 fw-bold text-secondary small">Đối tượng ưu đãi</legend>
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" name="LaHSSV" id="checkHSSV" value="true" onchange="toggleUploadSection()">
+                                        <label class="form-check-label text-dark small" for="checkHSSV">
+                                            Là HSSV
+                                        </label>
+                                    </div>
+                                    <div id="uploadSection" class="text-center d-none p-4 rounded-3 border border-dashed" style="background: rgba(204, 255, 0, 0.05);">
+                                        <label for="fileUpload" class="btn btn-sm fw-bold mb-2 shadow-sm" style="background: white; border: 1px solid var(--color-lime); color: var(--color-dark);">
+                                            <i class="fas fa-upload me-2"></i> Tải giấy tờ
+                                        </label>
+                                        <input type="file" name="AnhTheSV" id="fileUpload" class="d-none" accept="image/*" onchange="previewImage(this)">
+                                        <div class="small text-secondary fst-italic mt-1" id="fileName">Chưa chọn tệp</div>
+                                        <img id="imgPreview" class="img-fluid mt-3 rounded shadow-sm d-none" style="max-height: 120px;" />
+                                    </div>
+                                </fieldset>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-6">
+                                <button type="button" class="btn btn-secondary w-100 py-2 fw-bold rounded-3" data-bs-dismiss="modal">Hủy</button>
+                            </div>
+                            <div class="col-6">
+                                <button type="submit" class="btn w-100 py-2 fw-bold rounded-3 shadow-sm" 
+                                        style="background: var(--color-lime); color: var(--color-dark); border: none;">
+                                    Đăng Ký
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="text-center mt-3">
+                        <small class="text-secondary">Đã có tài khoản? 
+                            <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#loginModal" class="text-decoration-none fw-bold" style="color: var(--color-dark);">Đăng nhập ngay</a>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Welcome Modal (Authentication Required) -->
+    <div class="modal fade" id="welcomeModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 380px;">
+            <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden" 
+                 style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.5);">
+                <div class="modal-header border-0 pb-0 justify-content-end">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center px-4 pb-4 pt-0">
+                    <div class="mb-3">
+                        <div class="rounded-circle d-inline-flex align-items-center justify-content-center" 
+                             style="width: 60px; height: 60px; background: rgba(204, 255, 0, 0.1);">
+                            <i class="fas fa-smile-wink fa-lg" style="color: var(--color-lime-dark, #8cbd00);"></i>
+                        </div>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-2">Đăng Nhập Để Tiếp Tục</h5>
+                    <p class="text-secondary small mb-4">Bạn cần có tài khoản để sử dụng tính năng này.</p>
+                    
+                    <div class="d-grid gap-2">
+                        <button class="btn fw-bold py-2 rounded-3 shadow-sm" 
+                                style="background: var(--color-lime); color: var(--color-dark); border: none;"
+                                data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#loginModal">
+                            Đăng Nhập Ngay
+                        </button>
+                        <button class="btn btn-outline-secondary fw-semibold py-2 rounded-3 border-secondary-subtle" 
+                                data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#registerModal">
+                            Tạo Tài Khoản
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showErrorToast(message) {
+            var toastHtml = `
+                <div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 1070" id="errorToast">
+                    <div class="toast show align-items-center text-white border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true"
+                         style="background: rgba(220, 53, 69, 0.85); backdrop-filter: blur(10px);">
+                        <div class="d-flex">
+                            <div class="toast-body fw-bold">
+                                <i class="fas fa-exclamation-triangle me-2"></i> ${message}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            $('#errorToast').remove(); // Remove old if exists
+            $('body').append(toastHtml);
+            setTimeout(function() { 
+                $('#errorToast').fadeOut(300, function() { $(this).remove(); });
+            }, 3000);
+        }
+
+        $(document).ready(function() {
+            // Global State for Views
+            window.isLoggedIn = '@(!string.IsNullOrEmpty(vaiTro))' === 'True';
+            
+            // Protected Links
+            $('.protected-link').click(function(e) {
+                if (!isLoggedIn) {
+                    e.preventDefault(); // Chặn chuyển trang
+                    $('#welcomeModal').modal('show'); // Hiện popup Welcome
+                }
+            });
+
+            // AJAX Register
+            $('#registerForm').on('submit', function(e) {
+                e.preventDefault();
+                var form = this;
+                
+                // Form HTML5 Validation
+                if (!form.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    $(form).addClass('was-validated');
+                    showErrorToast("Vui lòng kiểm tra lại thông tin!");
+                    return;
+                }
+                
+                var formData = new FormData(form);
+                $('#registerError').addClass('d-none');
+                
+                // Disable submit button
+                var btn = $(form).find('button[type="submit"]');
+                var originalText = btn.html();
+                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang xử lý...');
+
+                // Clear server-side error on input
+                $(form).find('input, select').on('input change', function() {
+                    $(this).removeClass('is-invalid');
+                });
+
+                $.ajax({
+                    url: $(form).attr('action'),
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.success) {
+                             // Show success toast (Transparent)
+                            var toastHtml = `
+                                <div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 1060" id="successToast">
+                                    <div class="toast show align-items-center text-white border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true"
+                                         style="background: rgba(25, 135, 84, 0.7); backdrop-filter: blur(10px);">
+                                        <div class="d-flex">
+                                            <div class="toast-body fw-bold">
+                                                <i class="fas fa-check-circle me-2"></i> ${response.message}
+                                            </div>
+                                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            $('body').append(toastHtml);
+                            
+                            setTimeout(function() { 
+                                $('#successToast').fadeOut(300, function() { $(this).remove(); });
+                                $('#registerModal').modal('hide');
+                                $('#loginModal').modal('show'); 
+                            }, 500);
+                        } else {
+                            if (response.field) {
+                                // Field specific error
+                                var fieldInput = $(form).find('[name="' + response.field + '"]');
+                                fieldInput.addClass('is-invalid');
+                                fieldInput.siblings('.invalid-feedback').text(response.message);
+                                showErrorToast("Vui lòng kiểm tra lại thông tin!");
+                            } else {
+                                // General error
+                                $('#registerError').html('<i class="fas fa-exclamation-circle me-2"></i> ' + response.message).removeClass('d-none');
+                                $('#registerModal .modal-body').animate({ scrollTop: 0 }, 'fast');
+                                showErrorToast(response.message);
+                            }
+                        }
+                    },
+                    error: function() {
+                        $('#registerError').html('<i class="fas fa-exclamation-triangle me-2"></i> Có lỗi xảy ra khi kết nối server.').removeClass('d-none');
+                         $('#registerModal .modal-body').animate({ scrollTop: 0 }, 'fast');
+                         showErrorToast("Có lỗi kết nối server!");
+                    },
+                    complete: function() {
+                        btn.prop('disabled', false).html(originalText);
+                    }
+                });
+            });
+
+            // AJAX Login
+            $('#loginForm').on('submit', function(e) {
+                e.preventDefault();
+                var form = this;
+                
+                if (!form.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    $(form).addClass('was-validated');
+                    showErrorToast("Vui lòng kiểm tra lại thông tin!");
+                    return;
+                }
+
+                $('#loginError').addClass('d-none');
+                
+                var btn = $(form).find('button[type="submit"]');
+                var originalText = btn.html();
+                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang đăng nhập...');
+
+                $.ajax({
+                    url: $(form).attr('action'),
+                    type: 'POST',
+                    data: $(form).serialize(),
+                    success: function(response) {
+                        if (response.success) {
+                             window.location.reload(); 
+                        } else {
+                            $('#loginError').html('<i class="fas fa-exclamation-circle me-2"></i> ' + response.message).removeClass('d-none');
+                            // showErrorToast(response.message); // Removed duplicate toast
+                        }
+                    },
+                    error: function() {
+                        $('#loginError').html('<i class="fas fa-exclamation-triangle me-2"></i> Có lỗi xảy ra.').removeClass('d-none');
+                        showErrorToast("Có lỗi xảy ra!");
+                    },
+                    complete: function() {
+                         btn.prop('disabled', false).html(originalText);
+                    }
+                });
+            });
+        });
+
+        function toggleUploadSection() {
+            var isChecked = document.getElementById('checkHSSV').checked;
+            var section = document.getElementById('uploadSection');
+            if (isChecked) {
+                section.classList.remove('d-none');
+            } else {
+                section.classList.add('d-none');
+            }
+        }
+
+        function togglePassword(inputId, btn) {
+            var input = document.getElementById(inputId);
+            var icon = btn.querySelector('i');
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            } else {
+                input.type = "password";
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            }
+        }
+
+        function previewImage(input) {
+            var file = input.files[0];
+            if (file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imgPreview').src = e.target.result;
+                    document.getElementById('imgPreview').classList.remove('d-none');
+                    document.getElementById('fileName').textContent = file.name;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

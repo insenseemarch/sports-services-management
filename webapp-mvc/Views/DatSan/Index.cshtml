@@ -1,0 +1,996 @@
+@model webapp_mvc.Models.DatSanViewModel
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    ViewData["Title"] = "Đặt Sân Trực Tuyến";
+    var vaiTro = HttpContextAccessor.HttpContext.Session.GetString("VaiTro");
+}
+
+<style>
+    /* Smooth Animations */
+    .fade-in-up {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    }
+    
+    .fade-in-up.active {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    .scale-in {
+        opacity: 0;
+        transform: scale(0.95);
+        transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+    
+    .scale-in.active {
+        opacity: 1;
+        transform: scale(1);
+    }
+    
+    /* Card Hover Effects */
+    .court-card {
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .court-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2) !important;
+    }
+    
+    .court-card img {
+        transition: transform 0.4s ease;
+    }
+    
+    .court-card:hover img {
+        transform: scale(1.05);
+    }
+    
+    /* Button Hover */
+    .btn-dat-san {
+        transition: all 0.3s ease;
+    }
+    
+    .btn-dat-san:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.3) !important;
+    }
+    
+    /* Stagger Animation Delays */
+    .stagger-1 { transition-delay: 0.1s; }
+    .stagger-2 { transition-delay: 0.2s; }
+    .stagger-3 { transition-delay: 0.3s; }
+    .stagger-4 { transition-delay: 0.4s; }
+    .stagger-5 { transition-delay: 0.5s; }
+    .stagger-6 { transition-delay: 0.6s; }
+
+    /* --- BUTTON GRADIENT & SPARKLE --- */
+    @@keyframes gradient-shift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    @@keyframes shine-swipe {
+        0% { left: -100%; opacity: 0; }
+        10% { opacity: 0.5; }
+        20% { opacity: 0.8; }
+        50% { left: 200%; opacity: 0; }
+        100% { left: 200%; opacity: 0; }
+    }
+
+    .btn-attractive {
+        position: relative;
+        overflow: hidden;
+        border: none !important;
+        color: white !important;
+        /* Gradient Xanh Lá Chủ Đạo */
+        background: linear-gradient(45deg, #a3cf06, #2d6a4f, #a3cf06);
+        background-size: 300% 300%;
+        animation: gradient-shift 4s ease infinite;
+        box-shadow: 0 4px 15px rgba(56, 239, 125, 0.4);
+        z-index: 1;
+        font-weight: 800 !important;
+        letter-spacing: 0.5px;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+    
+    .btn-attractive::before {
+        content: '';
+        position: absolute;
+        top: 0; left: -75%;
+        width: 50%; height: 100%;
+        background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0) 100%);
+        transform: skewX(-25deg);
+        animation: shine-swipe 3s infinite linear;
+        z-index: 2;
+        pointer-events: none;
+    }
+
+    .btn-attractive:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 8px 25px rgba(56, 239, 125, 0.6) !important;
+    }
+</style>
+
+<!-- Hero Banner -->
+<div class="position-relative w-100 d-flex align-items-center justify-content-center mb-5" 
+     style="height: 500px; background: url('@Url.Content("~/images/hero_bg.jpg")') center/cover no-repeat; padding-top: 85px; z-index: 1;">
+    <!-- Dark Overlay -->
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(to right, rgba(0,0,0,0.7), rgba(0,0,0,0.4));"></div>
+    
+    <div class="text-center position-relative fade-in-up px-3" style="z-index: 2;">
+        <h1 class="display-3 fw-bold text-white mb-3" style="text-shadow: 0 4px 10px rgba(0,0,0,0.5); letter-spacing: 1px; text-transform: uppercase;">
+            ĐẶT SÂN <span style="color: var(--color-lime);">NHANH CHÓNG</span>
+        </h1>
+        <p class="lead text-light fs-5 opacity-90 mb-4 mx-auto" style="max-width: 800px;">
+            Hệ thống đặt sân trực tuyến hiện đại, tiện lợi. <br class="d-none d-md-block">
+            Kiểm tra lịch trống và giữ chỗ ngay chỉ trong vài thao tác.
+        </p>
+        
+    </div>
+</div>
+
+<div class="container py-4" id="booking-filter">
+
+    <!-- Booking Rules & Policies -->
+    <div class="alert bg-white border-0 shadow-sm rounded-4 mb-5 fade-in-up" role="alert" style="border-left: 6px solid #FFC107;">
+        <div class="d-flex align-items-start">
+            <div class="me-4 text-warning mt-1">
+                <i class="fas fa-bullhorn fa-2x"></i>
+            </div>
+            <div>
+                <h5 class="alert-heading fw-bold mb-2 text-dark">Lưu Ý & Quy Định Đặt Sân</h5>
+                <div class="row g-3 text-secondary small">
+                    <div class="col-md-6">
+                        <ul class="mb-0 ps-3">
+                            <li class="mb-1"><strong>Giờ hoạt động:</strong> 06:00 - 22:00 hàng ngày.</li>
+                            <li class="mb-1"><strong>Giới hạn:</strong> Mỗi tài khoản không quá 2 sân/ngày.</li>
+                            <li><strong>Thời gian:</strong> Đặt trước ít nhất 2 giờ so với giờ bắt đầu.</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="mb-0 ps-3">
+                            <li class="mb-1"><strong>Thanh toán Online:</strong> Thẻ hoặc Ví điện tử.</li>
+                            <li><strong>Thanh toán tại quầy:</strong> Hoàn tất trong vòng <strong>30 phút</strong> sau khi đặt (hệ thống sẽ tự động hủy nếu quá hạn).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- STAFF: Customer Search Section -->
+    @if (!string.IsNullOrEmpty(vaiTro) && vaiTro != "Khách hàng")
+    {
+        <div class="card border-0 mb-4 fade-in-up shadow-sm" 
+             style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px;">
+            <div class="card-body p-4">
+                <!-- Title -->
+                <h6 class="fw-bold mb-3 text-success" style="font-size: 1.1rem;">
+                    <i class="fas fa-search me-2"></i>Tìm kiếm khách hàng
+                </h6>
+                
+                <div class="d-flex align-items-center">
+                    <!-- Avatar Icon -->
+                    <div class="me-4 d-none d-md-flex align-items-center justify-content-center rounded-circle shadow-sm"
+                         style="width: 50px; height: 50px; background-color: #ffffff; color: #16a34a; border: 2px solid #bbf7d0;">
+                        <i class="fas fa-user fa-lg"></i>
+                    </div>
+
+                    <div class="flex-grow-1">
+                        <div class="row g-3 align-items-end">
+                            <!-- Input Phone -->
+                            <div class="col-md-4">
+                                <label class="fw-bold small mb-1 text-success">Số điện thoại</label>
+                                <div class="input-group">
+                                    <input type="text" id="Staff_SDT" class="form-control" placeholder="Nhập SĐT khách hàng..." 
+                                           style="border: 2px solid #bbf7d0; color: #14532d; border-radius: 8px;">
+                                    <button class="btn btn-sm d-none" id="btnCheckKH">Search</button>
+                                </div>
+                            </div>
+
+                            <!-- Input Name -->
+                            <div class="col-md-5">
+                                <label class="fw-bold small mb-1 text-success">Tên khách hàng</label>
+                                <input type="text" id="Staff_TenKH" class="form-control" readonly placeholder="Tên khách hàng sẽ được hiển thị ở đây..." 
+                                       style="border: 2px solid #bbf7d0; background-color: #ffffff; color: #14532d; border-radius: 8px; font-weight: bold;">
+                            </div>
+
+                            <!-- Create Account Button -->
+                            <div class="col-md-3 text-end">
+                                <button type="button" class="btn btn-success fw-bold rounded-pill shadow-sm w-100" 
+                                        data-bs-toggle="modal" data-bs-target="#createAccountModal"
+                                        style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: none; padding: 10px 20px;">
+                                    <i class="fas fa-user-plus me-2"></i>Tạo Tài Khoản
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Filter Bar (Avatar Dark Lime Border Theme) -->
+    <div class="card border-0 mb-5 fade-in-up" 
+         style="background: #ffffff; border-radius: 20px; border: 5px solid #a3cf06; box-shadow: 0 0 20px rgba(163, 207, 6, 0.2);">
+        <div class="card-body p-3 px-md-4">
+            <form method="get" asp-action="Index" class="row g-2 align-items-end">
+                <!-- Cơ sở -->
+                <div class="col-md-2">
+                    <label class="form-label text-dark fw-bold ms-1" style="font-size: 0.75rem;"><i class="fas fa-map-marker-alt me-1 text-warning"></i>CƠ SỞ</label>
+                    <select name="maCS" class="form-select py-2 text-dark fw-bold shadow-sm" style="border-radius: 10px; background: #ffffff; border: 2px solid #e9ecef; font-size: 0.85rem;">
+                        <option value="">-- Tất cả cơ sở --</option>
+                        @foreach (var item in Model.DanhSachCoSo)
+                        {
+                            @if (Model.MaCS == item.MaCS)
+                            {
+                                <option value="@item.MaCS" selected>@item.TenCS</option>
+                            }
+                            else
+                            {
+                                <option value="@item.MaCS">@item.TenCS</option>
+                            }
+                        }
+                    </select>
+                </div>
+                
+                <!-- Loại sân -->
+                <div class="col-md-2">
+                    <label class="form-label text-dark fw-bold ms-1" style="font-size: 0.75rem;"><i class="fas fa-futbol me-1 text-success"></i>LOẠI SÂN</label>
+                    <select name="maLS" class="form-select py-2 text-dark fw-bold shadow-sm" style="border-radius: 10px; background: #ffffff; border: 2px solid #e9ecef; font-size: 0.85rem;">
+                        <option value="">-- Tất cả loại sân --</option>
+                        @foreach (var item in Model.DanhSachLoaiSan)
+                        {
+                            @if (Model.MaLS == item.MaLS)
+                            {
+                                <option value="@item.MaLS" selected>@item.TenLS</option>
+                            }
+                            else
+                            {
+                                <option value="@item.MaLS">@item.TenLS</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <!-- Ngày đặt -->
+                <div class="col-md-2">
+                    <label class="form-label text-dark fw-bold ms-1" style="font-size: 0.75rem;"><i class="fas fa-calendar me-1 text-primary"></i>NGÀY ĐẶT</label>
+                    <input type="date" name="ngayDat" value="@Model.NgayDat.ToString("yyyy-MM-dd")" 
+                           class="form-control py-2 text-dark fw-bold shadow-sm" 
+                           style="border-radius: 10px; background: #ffffff; border: 2px solid #e9ecef; font-size: 0.85rem;" 
+                           min="@DateTime.Now.ToString("yyyy-MM-dd")">
+                </div>
+                
+                <!-- Từ giờ -->
+                <div class="col-md-2">
+                    <label class="form-label text-dark fw-bold ms-1" style="font-size: 0.75rem;"><i class="fas fa-clock me-1 text-info"></i>TỪ GIỜ</label>
+                    <input type="time" name="gioBatDau" value="@Model.GioBatDau.ToString(@"hh\:mm")" 
+                           class="form-control py-2 text-dark fw-bold shadow-sm" 
+                           style="border-radius: 10px; background: #ffffff; border: 2px solid #e9ecef; font-size: 0.85rem;">
+                </div>
+                
+                <!-- Đến giờ -->
+                <div class="col-md-2">
+                    <label class="form-label text-dark fw-bold ms-1" style="font-size: 0.75rem;"><i class="fas fa-clock me-1 text-danger"></i>ĐẾN GIỜ</label>
+                    <input type="time" name="gioKetThuc" value="@Model.GioKetThuc.ToString(@"hh\:mm")" 
+                           class="form-control py-2 text-dark fw-bold shadow-sm" 
+                           style="border-radius: 10px; background: #ffffff; border: 2px solid #e9ecef; font-size: 0.85rem;">
+                </div>
+                
+                <!-- Nút lọc -->
+                <div class="col-md-2">
+                    <button type="submit" class="btn w-100 py-2 fw-bold shadow-lg hover-scale" 
+                            style="background: var(--color-lime); color: var(--color-dark); border-radius: 10px; border: none; font-size: 0.9rem; margin-top: 1.65rem;">
+                        <i class="fas fa-filter me-1"></i> LỌC
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (ViewBag.Message != null)
+    {
+        <div class="alert alert-info border-0 shadow-sm rounded-4 mb-4" role="alert">
+            <i class="fas fa-info-circle me-2"></i> @ViewBag.Message
+        </div>
+    }
+
+    <!-- San List -->
+    <div class="row g-4">
+        @if (Model.DanhSachSanTrong != null && Model.DanhSachSanTrong.Count > 0)
+        {
+            @foreach (var san in Model.DanhSachSanTrong)
+            {
+                <div class="col-md-6 col-lg-4 fade-in-up">
+                    <div class="card h-100 border-0 shadow-sm hover-elevate position-relative overflow-hidden" 
+                         style="border-radius: 20px; background: rgba(255,255,255,0.95);">
+                        <!-- Badge Price -->
+                        <div class="position-absolute top-0 end-0 m-3 px-3 py-1 rounded-pill fw-bold shadow-sm" 
+                             style="background: var(--color-lime); color: var(--color-dark); z-index: 2;">
+                            @san.HienThiGia đ/@san.DonViTinh
+                        </div>
+
+                        <!-- Card Image -->
+                        <div class="overflow-hidden" style="height: 180px;">
+                            @{
+                                var courtImage = "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?q=80&w=800&auto=format&fit=crop";
+                                var tenLoaiSanLower = san.TenLoaiSan.ToLower();
+                                
+                                if (tenLoaiSanLower.Contains("bóng đá") || tenLoaiSanLower.Contains("futsal"))
+                                {
+                                    courtImage = "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?q=80&w=800&auto=format&fit=crop";
+                                }
+                                else if (tenLoaiSanLower.Contains("cầu lông"))
+                                {
+                                    courtImage = "https://thethaothienlong.vn/wp-content/uploads/2022/04/cau-long-co-bao-nhieu-canh-3.jpg";
+                                }
+                                else if (tenLoaiSanLower.Contains("tennis"))
+                                {
+                                    courtImage = "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?q=80&w=800&auto=format&fit=crop";
+                                }
+                                else if (tenLoaiSanLower.Contains("bóng rổ"))
+                                {
+                                    courtImage = "https://img.meta.com.vn/Data/image/2020/01/21/kich-thuoc-tru-bong-ro-tieu-chuan-3.jpg";
+                                }
+                                else if (tenLoaiSanLower.Contains("bóng chuyền"))
+                                {
+                                    courtImage = "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?q=80&w=800&auto=format&fit=crop";
+                                }
+                                else if (tenLoaiSanLower.Contains("bóng bàn"))
+                                {
+                                    courtImage = "https://images.unsplash.com/photo-1534158914592-062992fbe900?q=80&w=800&auto=format&fit=crop";
+                                }
+                            }
+                            <img src="@courtImage" alt="@san.TenLoaiSan" class="w-100 h-100" style="object-fit: cover;">
+                        </div>
+
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="badge bg-light text-secondary border me-2">@san.TenCoSo</span>
+                                <span class="badge bg-light text-secondary border">@san.TenLoaiSan</span>
+                                @if (san.DangBaoTri)
+                                {
+                                    <span class="badge bg-warning text-dark ms-auto">
+                                        <i class="fas fa-wrench me-1"></i>Đang bảo trì
+                                    </span>
+                                }
+                            </div>
+                            <h4 class="card-title fw-bold mb-3">@san.TenSan</h4>
+                            <div class="d-flex justify-content-between text-secondary small mb-4">
+                                <span><i class="fas fa-users me-2"></i>Sức chứa: @san.SucChua người</span>
+                            </div>
+
+                            @if (san.DangBaoTri)
+                            {
+                                <button type="button" class="btn w-100 py-2 fw-bold text-secondary rounded-3 shadow-sm" disabled 
+                                        style="background: #e9ecef; cursor: not-allowed; opacity: 0.6;">
+                                    <i class="fas fa-wrench me-2"></i>Đang bảo trì
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn w-100 py-2 fw-bold text-white rounded-3 shadow-sm btn-dat-san btn-attractive"
+                                        data-masan="@san.MaSan" 
+                                        data-tensan="@san.TenSan" 
+                                        data-tencoso="@san.TenCoSo" 
+                                        data-loaisan="@san.TenLoaiSan"
+                                        data-gia="@san.GiaGio.ToString("F0")"
+                                        data-dvt="@san.DonViTinh">
+                                    Đặt Sân Ngay <i class="fas fa-bolt ms-1 text-warning"></i>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-5">
+                <div class="mb-3">
+                    <i class="fas fa-search fa-4x text-white-50"></i>
+                </div>
+                <h4 class="text-white-50">Không tìm thấy sân nào phù hợp.</h4>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal Dat San -->
+<div class="modal fade" id="datSanModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden" 
+             style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="datSanModalLabel">Xác Nhận Đặt Sân</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <!-- ERROR ALERT - Hiển thị lỗi cụ thể -->
+                <div id="modalErrorAlert" class="alert alert-danger border-danger d-none mb-4" role="alert" style="border-width: 2px; border-style: solid;">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-circle me-3 fs-4"></i>
+                        <div>
+                            <strong class="d-block mb-1">Lỗi đặt sân</strong>
+                            <span id="modalErrorMessage"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="formDatSan">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="modalMaSan" name="SelectedMaSan" />
+                    <input type="hidden" id="modalBookingForMaKH" name="BookingForMaKH" /> <!-- For Staff Booking -->
+                    <input type="hidden" asp-for="MaCS" /> <!-- Keep filter state -->
+                    <input type="hidden" asp-for="MaLS" /> <!-- Keep filter state -->
+
+                    <div class="alert alert-light border shadow-sm mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold" id="modalTenSan">Sân A</span>
+                            <span class="badge bg-success" id="modalGia"></span>
+                        </div>
+                        <small class="text-secondary" id="modalTenCoSo">Cơ sở 1</small><br>
+                        <small class="text-muted" id="modalLoaiSan">Loại sân</small>
+                    </div>
+
+                    <!-- STAFF: Show Booking For Customer Name (Moved Here) -->
+                    <div id="bookingForInfo" class="mb-3 d-none">
+                        <div class="d-flex align-items-center p-2 rounded-3" style="background-color: #f0fdf4; border: 1px solid #bbf7d0;">
+                            <i class="fas fa-user-check text-success me-2"></i> 
+                            <span class="text-success small fw-bold me-1">Đang đặt cho khách hàng:</span> 
+                            <span id="modalBookingForName" class="fw-bold text-dark"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-secondary">Ngày Đặt</label>
+                        <input type="date" name="NgayDat" id="NgayDat" class="form-control bg-light border-0 py-2" required min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                    </div>
+                    
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold small text-secondary">Giờ Bắt Đầu</label>
+                            <input type="time" name="GioBatDau" id="GioBatDau" class="form-control bg-light border-0 py-2" required />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold small text-secondary">Giờ Kết Thúc</label>
+                            <input type="time" name="GioKetThuc" id="GioKetThuc" class="form-control bg-light border-0 py-2" required />
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn w-100 py-3 fw-bold rounded-3 shadow-sm" 
+                                style="background: var(--color-lime); color: var(--color-dark); border: none;">
+                            Xác Nhận & Chọn Dịch Vụ <i class="fas fa-arrow-right ms-2"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Tạo Tài Khoản Khách Hàng -->
+<div class="modal fade" id="createAccountModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+            <!-- Green Header -->
+            <div class="modal-header border-0 text-white position-relative" 
+                 style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); padding: 24px 32px;">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" 
+                         style="width: 50px; height: 50px; background: rgba(255,255,255,0.2);">
+                        <i class="fas fa-user-plus fa-lg"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0" style="font-size: 1.3rem;">Tạo Tài Khoản Khách Hàng</h5>
+                        <small class="opacity-90">Điền thông tin để tạo tài khoản mới</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4" style="background: #f8f9fa;">
+                <form id="formCreateAccount">
+                    <!-- Account Info Section -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-success mb-3 pb-2 border-bottom border-success">
+                            <i class="fas fa-lock me-2"></i>Thông Tin Đăng Nhập
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-dark small">Tên Đăng Nhập <span class="text-danger">*</span></label>
+                                <input type="text" id="username" name="username" class="form-control" placeholder="Nhập tên đăng nhập" required />
+                                <small class="text-muted">6-20 ký tự, chữ và số</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-dark small">Họ Tên <span class="text-danger">*</span></label>
+                                <input type="text" id="hoTen" name="hoTen" class="form-control" placeholder="Nhập họ và tên" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-dark small">Mật Khẩu <span class="text-danger">*</span></label>
+                                <input type="password" id="password" name="password" class="form-control" placeholder="Nhập mật khẩu" required />
+                                <small class="text-muted">Tối thiểu 6 ký tự</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-dark small">Xác Nhận Mật Khẩu <span class="text-danger">*</span></label>
+                                <input type="password" id="passwordConfirm" name="passwordConfirm" class="form-control" placeholder="Nhập lại mật khẩu" required />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Personal Info Section -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-success mb-3 pb-2 border-bottom border-success">
+                            <i class="fas fa-user me-2"></i>Thông Tin Cá Nhân
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-dark small">Số Điện Thoại <span class="text-danger">*</span></label>
+                                <input type="tel" id="sdt" name="sdt" class="form-control" placeholder="Nhập số điện thoại" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-dark small">Email</label>
+                                <input type="email" id="email" name="email" class="form-control" placeholder="Nhập email" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-dark small">Ngày Sinh</label>
+                                <input type="date" id="ngaySinh" name="ngaySinh" class="form-control" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-dark small">CCCD/CMT</label>
+                                <input type="text" id="cccd" name="cccd" class="form-control" placeholder="Nhập CCCD/CMT" />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold text-dark small">Địa chỉ</label>
+                                <input type="text" id="diaChi" name="diaChi" class="form-control" placeholder="Nhập địa chỉ" />
+                            </div>
+                            <div class="col-12">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="laHSSV" name="laHSSV" />
+                                    <label class="form-check-label text-dark fw-semibold" for="laHSSV">
+                                        <i class="fas fa-graduation-cap me-1 text-success"></i>Tôi là sinh viên
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn w-100 py-3 fw-bold text-white rounded-pill shadow-sm" 
+                            style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: none; font-size: 1.1rem;">
+                        <i class="fas fa-check-circle me-2"></i>Tạo Tài Khoản
+                    </button>
+                </form>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // ========== XỬ LÝ SUBMIT FORM BẰNG AJAX ==========
+            $('#formDatSan').on('submit', function(e) {
+                e.preventDefault(); // Ngăn form submit thông thường
+                
+                // Ẩn lỗi cũ (nếu có)
+                $('#modalErrorAlert').addClass('d-none');
+                
+                // VALIDATION: Kiểm tra thời gian đặt
+                var ngayDat = $('#NgayDat').val();
+                var gioBatDau = $('#GioBatDau').val();
+                var gioKetThuc = $('#GioKetThuc').val();
+                
+                if (!ngayDat || !gioBatDau || !gioKetThuc) {
+                    $('#modalErrorMessage').html('<strong>Vui lòng điền đầy đủ thông tin!</strong>');
+                    $('#modalErrorAlert').removeClass('d-none');
+                    return;
+                }
+                
+                // Tạo datetime từ ngày và giờ
+                var now = new Date();
+                var bookingStart = new Date(ngayDat + 'T' + gioBatDau);
+                var bookingEnd = new Date(ngayDat + 'T' + gioKetThuc);
+                
+                // Kiểm tra giờ bắt đầu phải sau giờ hiện tại
+                if (bookingStart <= now) {
+                    $('#modalErrorMessage').html('<strong>Giờ bắt đầu phải sau thời gian hiện tại!</strong>');
+                    $('#modalErrorAlert').removeClass('d-none');
+                    $('#modalErrorAlert')[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    return;
+                }
+                
+                // Kiểm tra giờ kết thúc phải sau giờ bắt đầu
+                if (bookingEnd <= bookingStart) {
+                    $('#modalErrorMessage').html('<strong>Giờ kết thúc phải sau giờ bắt đầu!</strong>');
+                    $('#modalErrorAlert').removeClass('d-none');
+                    $('#modalErrorAlert')[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    return;
+                }
+                
+                // Kiểm tra thời lượng theo loại sân (Bội số)
+                var loaiSan = $('#modalLoaiSan').text().trim();
+                var durationMinutes = (bookingEnd - bookingStart) / (1000 * 60);
+                
+                if (loaiSan.toLowerCase().includes('bóng đá')) {
+                    if (durationMinutes % 90 !== 0 || durationMinutes < 90) {
+                        $('#modalErrorMessage').html('<strong>Sân bóng đá mini phải đặt theo bội số 90 phút (1 trận = 90p)!</strong><br>Thời lượng hiện tại: ' + durationMinutes + ' phút.');
+                        $('#modalErrorAlert').removeClass('d-none');
+                        $('#modalErrorAlert')[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        return;
+                    }
+                } else if (loaiSan.toLowerCase().includes('tennis')) {
+                    if (durationMinutes % 120 !== 0) {
+                        $('#modalErrorMessage').html('<strong>Sân Tennis phải đặt theo ca 2 giờ (120 phút)!</strong><br>Thời lượng hiện tại: ' + durationMinutes + ' phút.');
+                        $('#modalErrorAlert').removeClass('d-none');
+                        $('#modalErrorAlert')[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        return;
+                    }
+                } else if (loaiSan.toLowerCase().includes('cầu lông') || loaiSan.toLowerCase().includes('bóng rổ')) {
+                    if (durationMinutes % 60 !== 0) {
+                        $('#modalErrorMessage').html('<strong>Sân ' + loaiSan + ' phải đặt theo bội số 1 giờ (60 phút)!</strong><br>Thời lượng hiện tại: ' + durationMinutes + ' phút.');
+                        $('#modalErrorAlert').removeClass('d-none');
+                        $('#modalErrorAlert')[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        return;
+                    }
+                }
+                
+                // Kiểm tra đặt Online phải trước 2 tiếng (120 phút)
+                var diffMinutes = (bookingStart - now) / (1000 * 60); // Chuyển milliseconds sang phút
+                if (diffMinutes < 120) {
+                    var hoursLeft = Math.floor(diffMinutes / 60);
+                    var minutesLeft = Math.floor(diffMinutes % 60);
+                    $('#modalErrorMessage').html('<strong>Đặt Online phải trước 2 tiếng!<br>Hiện tại chỉ còn ' + hoursLeft + ' giờ ' + minutesLeft + ' phút.</strong>');
+                    $('#modalErrorAlert').removeClass('d-none');
+                    $('#modalErrorAlert')[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    return;
+                }
+                
+                // Gửi AJAX request với form data
+                $.ajax({
+                    url: '@Url.Action("Index", "DatSan")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function(response) {
+                        console.log('AJAX Response:', response); // Debug
+                        
+                        if (response && response.success) {
+                            // Thành công -> Chuyển sang trang chọn dịch vụ
+                            window.location.href = response.redirectUrl;
+                        } else {
+                            // Có lỗi -> Hiển thị lỗi NGAY trong modal (KHÔNG đóng modal)
+                            var errorMsg = (response && response.message) ? response.message : 'Có lỗi xảy ra, vui lòng thử lại';
+                            $('#modalErrorMessage').html('<strong>' + errorMsg + '</strong>');
+                            $('#modalErrorAlert').removeClass('d-none');
+                            
+                            // Scroll đến lỗi
+                            $('#modalErrorAlert')[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                            
+                            // Nếu cần đăng nhập
+                            if (response && response.redirectToLogin) {
+                                setTimeout(function() {
+                                    window.location.href = '@Url.Action("DangNhap", "TaiKhoan")';
+                                }, 2000);
+                            }
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.log('AJAX Error:', xhr.status, xhr.responseText); // Debug
+                        
+                        // Lỗi AJAX - Hiển thị response text nếu có
+                        var errorMsg = 'Lỗi kết nối';
+                        if (xhr.responseText) {
+                            try {
+                                var response = JSON.parse(xhr.responseText);
+                                errorMsg = response.message || errorMsg;
+                            } catch(e) {
+                                errorMsg = xhr.status + ': ' + xhr.statusText;
+                            }
+                        }
+                        $('#modalErrorMessage').html('<strong>' + errorMsg + '</strong>');
+                        $('#modalErrorAlert').removeClass('d-none');
+                    }
+                });
+            });
+            // ==============================================
+
+            // Store current court data
+            var currentCourt = {
+                gia: 0,
+                dvt: 'giờ'
+            };
+
+            // Dùng Event Delegation (document on click) để bắt sự kiện cho cả các element được load động
+            $(document).on('click', '.btn-dat-san', function(e) {
+                e.preventDefault(); // Ngăn hành động mặc định của thẻ A hoặc submit
+                
+                if (!window.isLoggedIn) {
+                    e.stopPropagation();
+                    $('#welcomeModal').modal('show');
+                    return;
+                }
+
+                var maSan = $(this).data('masan');
+                var tenSan = $(this).data('tensan');
+                var tenCoSo = $(this).data('tencoso');
+                currentCourt.gia = parseFloat($(this).data('gia'));
+                currentCourt.dvt = $(this).data('dvt') || 'giờ';
+
+                $('#modalMaSan').val(maSan);
+                $('#modalTenSan').text(tenSan);
+                $('#modalTenCoSo').text(tenCoSo);
+                $('#modalLoaiSan').text($(this).data('loaisan') || 'Không rõ');
+                
+                // Format price display in header
+                var formattedPrice = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(currentCourt.gia);
+                
+                var unitDisplay = currentCourt.dvt.toLowerCase();
+                if (unitDisplay.includes('trận')) unitDisplay = 'trận (90p)';
+                else if (unitDisplay.includes('giờ')) unitDisplay = 'giờ';
+                
+                $('#modalGia').text(formattedPrice + '/' + unitDisplay);
+                
+                // Ẩn error alert khi mở modal mới
+                // Ẩn error alert khi mở modal mới
+                $('#modalErrorAlert').addClass('d-none');
+                
+                // Reset form inputs
+                $('#NgayDat').val('');
+                $('#GioBatDau').val('');
+                $('#GioKetThuc').val('');
+                
+                // Check if Staff has selected a customer
+                var staffSelectedKH = $('#Staff_TenKH').val();
+                if (staffSelectedKH && $('#modalBookingForMaKH').val()) {
+                    $('#modalBookingForName').text(staffSelectedKH);
+                    $('#bookingForInfo').removeClass('d-none');
+                } else {
+                    $('#bookingForInfo').addClass('d-none');
+                }
+
+                // Show modal manually
+                $('#datSanModal').modal('show');
+            });
+            // STAFF SEARCH LOGIC
+            var foundMaKH = '';
+            
+            function performSearchKH() {
+                var sdt = $('#Staff_SDT').val();
+                if (!sdt) {
+                    $('#Staff_SDT').focus();
+                    return;
+                }
+                
+                // Show loading
+                var btn = $('#btnCheckKH');
+                var icon = btn.find('i');
+                icon.removeClass('fa-search').addClass('fa-spinner fa-spin');
+                
+                $.get('@Url.Action("GetKhachHang", "DatSan")', { sdt: sdt }, function(res) {
+                     if (res.success) {
+                         $('#Staff_TenKH').val(res.hoten).addClass('is-valid').removeClass('is-invalid');
+                         $('#Staff_SDT').addClass('is-valid').removeClass('is-invalid');
+                         
+                         // Update hidden field for modal
+                         $('#modalBookingForMaKH').val(res.makh);
+                         
+                         // Feedback visual (Green border flash or icon check)
+                         $('#Staff_TenKH').addClass('border-success').addClass('text-success');
+                         setTimeout(function() { $('#Staff_TenKH').removeClass('border-success'); }, 1000);
+
+                     } else {
+                         $('#Staff_TenKH').val('').removeClass('is-valid').addClass('is-invalid');
+                         $('#Staff_SDT').removeClass('is-valid').addClass('is-invalid');
+                         $('#modalBookingForMaKH').val('');
+                         
+                         // Optional error placeholder
+                         $('#Staff_TenKH').attr('placeholder', 'Không tìm thấy khách hàng!');
+                     }
+                }).always(function() {
+                    icon.removeClass('fa-spinner fa-spin').addClass('fa-search');
+                });
+            }
+
+            $('#btnCheckKH').click(performSearchKH);
+            $('#Staff_SDT').on('keypress', function(e) {
+                if (e.which == 13) { performSearchKH(); }
+            });
+
+            // ========== XỬ LÝ FORM TẠO TÀI KHOẢN KHÁCH HÀNG ==========
+            $('#formCreateAccount').on('submit', function(e) {
+                e.preventDefault();
+                
+                // Ẩn alert cũ
+                $('#accountErrorAlert').addClass('d-none');
+                $('#accountSuccessAlert').addClass('d-none');
+                
+                // Validation: Kiểm tra mật khẩu khớp nhau
+                var pwd = $('#password').val();
+                var pwdConfirm = $('#passwordConfirm').val();
+                
+                if (!pwd || !pwdConfirm) {
+                    $('#accountErrorMessage').text('Vui lòng nhập mật khẩu!');
+                    $('#accountErrorAlert').removeClass('d-none');
+                    return;
+                }
+                
+                if (pwd !== pwdConfirm) {
+                    $('#accountErrorMessage').text('Mật khẩu không khớp! Vui lòng kiểm tra lại.');
+                    $('#accountErrorAlert').removeClass('d-none');
+                    return;
+                }
+                
+                // Validation: Kiểm tra mật khẩu tối thiểu 6 ký tự
+                if (pwd.length < 6) {
+                    $('#accountErrorMessage').text('Mật khẩu phải có ít nhất 6 ký tự!');
+                    $('#accountErrorAlert').removeClass('d-none');
+                    return;
+                }
+                
+                // Validation: Kiểm tra các trường bắt buộc
+                var username = $('#username').val();
+                var hoTen = $('#hoTen').val();
+                var sdt = $('#sdt').val();
+                var email = $('#email').val();
+                
+                if (!username || !hoTen || !sdt) {
+                    $('#accountErrorMessage').text('Vui lòng điền đầy đủ thông tin bắt buộc (Tên đăng nhập, Họ tên, Số điện thoại)!');
+                    $('#accountErrorAlert').removeClass('d-none');
+                    return;
+                }
+                
+                // Validation: Kiểm tra tên đăng nhập tối thiểu 3 ký tự
+                if (username.length < 3) {
+                    $('#accountErrorMessage').text('Tên đăng nhập phải có ít nhất 3 ký tự!');
+                    $('#accountErrorAlert').removeClass('d-none');
+                    return;
+                }
+                
+                // Disable nút submit để tránh double-click
+                var submitBtn = $(this).find('button[type="submit"]');
+                var originalBtnHtml = submitBtn.html();
+                submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Đang tạo tài khoản...');
+                
+                // Chuẩn bị dữ liệu form
+                var formData = {
+                    username: username,
+                    password: pwd,
+                    confirmPassword: pwdConfirm,
+                    hoTen: hoTen,
+                    sdt: sdt,
+                    email: email,
+                    ngaySinh: $('#ngaySinh').val() || null,
+                    cccd: $('#cccd').val() || null,
+                    diaChi: $('#diaChi').val() || null,
+                    laHSSV: $('#laHSSV').is(':checked')
+                };
+                
+                // Gửi AJAX request
+                $.ajax({
+                    url: '@Url.Action("CreateAccountAjax", "TaiKhoan")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(formData),
+                    success: function(response) {
+                        if (response.success) {
+                            // Hiển thị toast thành công
+                            showToast(response.message || 'Tạo tài khoản thành công!', 'success');
+                            
+                            // Xóa form
+                            $('#formCreateAccount')[0].reset();
+                            
+                            // Tự động điền SĐT khách hàng vào ô tìm kiếm
+                            if (response.sdt) {
+                                $('#Staff_SDT').val(response.sdt);
+                                $('#Staff_TenKH').val(response.hoTen || '');
+                            }
+                            
+                            // Đóng modal ngay lập tức
+                            $('#createAccountModal').modal('hide');
+                            
+                            // Restore button
+                            submitBtn.prop('disabled', false).html(originalBtnHtml);
+                        } else {
+                            // Hiển thị toast lỗi
+                            showToast(response.message || 'Có lỗi xảy ra, vui lòng thử lại!', 'error');
+                            
+                            // Restore button
+                            submitBtn.prop('disabled', false).html(originalBtnHtml);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        // Xử lý lỗi AJAX
+                        var errorMsg = 'Lỗi kết nối đến máy chủ!';
+                        try {
+                            var response = JSON.parse(xhr.responseText);
+                            errorMsg = response.message || errorMsg;
+                        } catch(e) {
+                            if (xhr.status === 400) {
+                                errorMsg = 'Dữ liệu không hợp lệ, vui lòng kiểm tra lại!';
+                            } else if (xhr.status === 500) {
+                                errorMsg = 'Lỗi máy chủ, vui lòng thử lại sau!';
+                            }
+                        }
+                        
+                        $('#accountErrorMessage').text(errorMsg);
+                        $('#accountErrorAlert').removeClass('d-none');
+                        
+                        // Restore button
+                        submitBtn.prop('disabled', false).html(originalBtnHtml);
+                    }
+                });
+            });
+            // ====================================================
+        });
+        
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, observerOptions);
+        
+        // Observe all animation elements
+        document.querySelectorAll('.fade-in-up, .scale-in').forEach(el => {
+            observer.observe(el);
+        });
+        
+        // Trigger hero animations immediately
+        setTimeout(() => {
+            document.querySelectorAll('.fade-in-up').forEach((el, index) => {
+                setTimeout(() => {
+                    el.classList.add('active');
+                }, index * 100);
+            });
+        }, 300);
+    </script>
+}
+
+<!-- Toast Container -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+    <div id="accountToast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body fw-semibold" id="toastMessage"></div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('accountToast');
+        const toastBody = document.getElementById('toastMessage');
+        
+        // Set message
+        toastBody.textContent = message;
+        
+        // Set color based on type
+        if (type === 'success') {
+            toast.className = 'toast align-items-center text-white bg-success border-0';
+        } else if (type === 'error') {
+            toast.className = 'toast align-items-center text-white bg-danger border-0';
+        } else if (type === 'warning') {
+            toast.className = 'toast align-items-center text-white bg-warning border-0';
+        }
+        
+        // Show toast
+        const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
+        bsToast.show();
+    }
+</script>

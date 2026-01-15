@@ -1,0 +1,354 @@
+@model webapp_mvc.Models.ThanhToanKhachHangViewModel
+@using Microsoft.AspNetCore.Http
+@{
+    ViewData["Title"] = "Thanh toán";
+    var currentRole = Context.Session.GetString("VaiTro");
+}
+
+<div class="position-relative w-100 d-flex align-items-center justify-content-center mb-5" 
+     style="height: 300px; background: linear-gradient(135deg, #20bf55 0%, #01baef 100%); padding-top: 85px;">
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: rgba(0,0,0,0.1);"></div>
+   
+    <div class="text-center position-relative" style="z-index: 2;">
+        <h1 class="display-4 fw-bold text-white mb-3">
+            <i class="fas fa-receipt me-3"></i>THANH TOÁN
+        </h1>
+        <p class="lead text-white fs-5">Xác nhận đơn hàng và chọn phương thức thanh toán</p>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Thông báo lỗi -->
+            <div id="errorAlert" class="alert alert-danger d-none" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <span id="errorMessage"></span>
+            </div>
+
+            <!-- Hóa đơn chi tiết -->
+            <div class="card border-0 shadow-lg mb-4" style="border-radius: 20px; overflow: hidden;">
+                <div class="card-header py-4" style="background: linear-gradient(135deg, var(--color-lime) 0%, #b8d906 100%);">
+                    <h3 class="mb-0 fw-bold text-dark">
+                        <i class="fas fa-file-invoice me-2"></i>
+                        Chi tiết đơn hàng #@Model.MaDatSan
+                    </h3>
+                </div>
+                
+                <div class="card-body p-4">
+                    <!-- Thông tin sân -->
+                    <div class="mb-4 p-3 rounded" style="background: #f8f9fa;">
+                        <h5 class="fw-bold mb-3">
+                            <i class="fas fa-basketball-ball text-primary me-2"></i>Thông tin đặt sân
+                        </h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-map-marker-alt text-success mt-1 me-2"></i>
+                                    <div>
+                                        <small class="text-muted d-block">Cơ sở</small>
+                                        <strong>@Model.TenCoSo</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-volleyball-ball text-warning mt-1 me-2"></i>
+                                    <div>
+                                        <small class="text-muted d-block">Sân</small>
+                                        <strong>@Model.TenSan</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-calendar-alt text-info mt-1 me-2"></i>
+                                    <div>
+                                        <small class="text-muted d-block">Ngày đặt</small>
+                                        <strong>@Model.NgayDat.ToString("dd/MM/yyyy")</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-clock text-danger mt-1 me-2"></i>
+                                    <div>
+                                        <small class="text-muted d-block">Thời gian</small>
+                                        <strong>@Model.GioBatDau.ToString(@"hh\:mm") - @Model.GioKetThuc.ToString(@"hh\:mm")</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bảng chi tiết -->
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mô tả</th>
+                                <th class="text-center">ĐVT</th>
+                                <th class="text-end">Số lượng</th>
+                                <th class="text-end">Đơn giá</th>
+                                <th class="text-end">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Tiền sân (@Model.GioBatDau.ToString(@"hh\:mm") - @Model.GioKetThuc.ToString(@"hh\:mm"))</strong></td>
+                                <td class="text-center"><span class="badge bg-light text-dark border">@Model.DonViTinh</span></td>
+                                <td class="text-end">@Model.SoLuongSan.ToString("0.##")</td>
+                                <td class="text-end">@Model.DonGiaSan.ToString("N0") đ</td>
+                                <td class="text-end fw-bold">@Model.TienSan.ToString("N0") đ</td>
+                            </tr>
+                            
+                            @if (Model.DanhSachDichVu.Any())
+                            {
+                                <tr class="table-secondary">
+                                    <td colspan="5"><strong>Dịch vụ kèm theo</strong></td>
+                                </tr>
+                                
+                                @foreach (var dv in Model.DanhSachDichVu)
+                                {
+                                    <tr>
+                                        <td>@dv.TenDV</td>
+                                        <td class="text-center">
+                                            @if (dv.SoGioThue > 0) { <span class="text-muted">Giờ</span> }
+                                            else { <span class="text-muted">Lượt/Cái</span> }
+                                        </td>
+                                        <td class="text-end">
+                                            @if (dv.SoGioThue > 0) { <span>@dv.SoGioThue</span> }
+                                            else { <span>@dv.SoLuong</span> }
+                                        </td>
+                                        <td class="text-end">-</td> <!-- Đơn giá DV chưa có trong Model, để placeholder hoặc tính ngược -->
+                                        <td class="text-end">@dv.ThanhTien.ToString("N0") đ</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted fst-italic">Không có dịch vụ nào</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot style="border-top: 2px solid #dee2e6;">
+                            <tr>
+                                <th colspan="4" class="text-end">Tổng cộng:</th>
+                                <th class="text-end">@Model.TongCong.ToString("N0") đ</th>
+                            </tr>
+                            @if (Model.GiamGia > 0)
+                            {
+                                <tr>
+                                    <th colspan="4" class="text-end text-success">Giảm giá (Ưu đãi thành viên):</th>
+                                    <th class="text-end text-success">-@Model.GiamGia.ToString("N0") đ</th>
+                                </tr>
+                            }
+                            <tr style="background: #fff3cd;">
+                                <th colspan="4" class="text-end fs-5">THÀNH TIỀN:</th>
+                                <th class="text-end fs-4 text-primary">@Model.ThanhTien.ToString("N0") đ</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Chọn phương thức thanh toán -->
+            <div class="card border-0 shadow-lg mb-4" style="border-radius: 20px;">
+                <div class="card-header py-4 text-white" style="background: linear-gradient(135deg, #20bf55 0%, #01baef 100%);">
+                    <h4 class="mb-0 fw-bold">
+                        <i class="fas fa-credit-card me-2"></i>
+                        Chọn phương thức thanh toán
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <!-- Thanh toán Online -->
+                        <div class="col-md-6">
+                            <div class="payment-option p-4 border rounded h-100 position-relative" 
+                                 id="option-online"
+                                 style="cursor: pointer; transition: all 0.3s ease;">
+                                <input type="radio" name="paymentMethod" value="Online" id="radio-online" class="position-absolute" style="opacity: 0;">
+                                <div class="text-center">
+                                    <i class="fas fa-wallet fa-3x text-primary mb-3"></i>
+                                    <h5 class="fw-bold">Thanh toán Online</h5>
+                                    <p class="text-muted mb-0">Thẻ / Ví điện tử</p>
+                                    <small class="text-success">Thanh toán ngay, xác nhận tức thì</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Thanh toán tại quầy -->
+                        <div class="col-md-6">
+                            <div class="payment-option p-4 border rounded h-100 position-relative" 
+                                 id="option-counter"
+                                 style="cursor: pointer; transition: all 0.3s ease;">
+                                <input type="radio" name="paymentMethod" value="TaiQuay" id="radio-counter" class="position-absolute" style="opacity: 0;">
+                                <div class="text-center">
+                                    <i class="fas fa-cash-register fa-3x text-success mb-3"></i>
+                                    <h5 class="fw-bold">Thanh toán tại quầy</h5>
+                                    <p class="text-muted mb-0">Tiền mặt / Chuyển khoản</p>
+                                    <small class="text-warning">Cần thanh toán trong 30 phút</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-flex justify-content-between gap-3">
+                        <a asp-action="Index" asp-controller="DichVu" asp-route-maDatSan="@Model.MaDatSan" 
+                           class="btn btn-outline-secondary btn-lg px-4">
+                            <i class="fas fa-arrow-left me-2"></i>Quay lại
+                        </a>
+                        <button type="button" id="btnXacNhan" class="btn btn-lg px-5 fw-bold"
+                                style="background: var(--color-lime); color: var(--color-dark); border: none;">
+                            <i class="fas fa-check-circle me-2"></i>Xác nhận thanh toán
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Modal Giả lập QR MoMo -->
+    <div class="modal fade" id="qrModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-center overflow-hidden border-0 shadow" style="border-radius: 20px;">
+                <div class="modal-header text-white border-0 justify-content-center" style="background: linear-gradient(135deg, #a50064 0%, #d5006d 100%);">
+                    <h5 class="modal-title fw-bold">
+                        <i class="fas fa-qrcode me-2"></i>Quét mã QR để thanh toán
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <!-- Trạng thái 1: Hiện QR -->
+                    <div id="qrState">
+                        <div class="bg-white p-3 rounded shadow-sm d-inline-block mb-3">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=ChucMungBanDaThanhToanThanhCong&color=a50064" 
+                                 alt="QR Code" class="img-fluid" style="max-width: 200px;">
+                        </div>
+                        <p class="text-muted mb-3">Tổng tiền: <span class="fw-bold text-primary fs-4">@Model.ThanhTien.ToString("N0") đ</span></p>
+                        
+                        <div class="alert alert-info small py-2 mb-3">
+                            <i class="fas fa-info-circle me-1"></i>Vui lòng quét mã QR để thanh toán
+                        </div>
+
+                        <button type="button" id="btnConfirmPaid" class="btn btn-success w-100 py-2 fw-bold shadow-sm">
+                            <i class="fas fa-check-double me-2"></i>Tôi đã thanh toán xong
+                        </button>
+                    </div>
+
+                    <!-- Trạng thái 2: Thành công (Ẩn mặc định) -->
+                    <div id="successState" class="d-none py-4">
+                        <div class="mb-3">
+                            <i class="fas fa-check-circle fa-5x text-success animate__animated animate__bounceIn"></i>
+                        </div>
+                        <h4 class="fw-bold text-success mb-2">Thanh toán thành công!</h4>
+                        <p class="text-muted">Đang chuyển hướng...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .payment-option:hover {
+        border-color: var(--color-lime) !important;
+        box-shadow: 0 0 15px rgba(163, 207, 6, 0.3);
+        transform: translateY(-2px);
+    }
+    
+    .payment-option.selected {
+        border-color: var(--color-lime) !important;
+        border-width: 3px !important;
+        background: rgba(163, 207, 6, 0.05);
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Xử lý chọn phương thức thanh toán
+            $('.payment-option').click(function() {
+                $('.payment-option').removeClass('selected');
+                $(this).addClass('selected');
+                $(this).find('input[type="radio"]').prop('checked', true);
+            });
+
+            // Xử lý nút Xác nhận
+            $('#btnXacNhan').click(function() {
+                var selectedMethod = $('input[name="paymentMethod"]:checked').val();
+                
+                if (!selectedMethod) {
+                    showErrorToast('Vui lòng chọn phương thức thanh toán!');
+                    return;
+                }
+
+                // Hàm thực hiện thanh toán
+                var processPayment = function() {
+                    var url = selectedMethod === 'Online' 
+                        ? '@Url.Action("ThanhToanOnline", "DatSanThanhToan")'
+                        : '@Url.Action("ThanhToanTaiQuay", "DatSanThanhToan")';
+
+                    $.ajax({
+                        url: url,
+                        type: 'POST',
+                        data: {
+                            maDatSan: @Model.MaDatSan,
+                            phuongThuc: selectedMethod
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                window.location.href = response.redirectUrl;
+                            } else {
+                                $('#qrModal').modal('hide');
+                                $('#errorMessage').text(response.message);
+                                $('#errorAlert').removeClass('d-none');
+                                $('#btnXacNhan').prop('disabled', false).html('<i class="fas fa-check-circle me-2"></i>Xác nhận thanh toán');
+                                $('html, body').animate({ scrollTop: 0 }, 'smooth');
+                            }
+                        },
+                        error: function(xhr) {
+                            $('#qrModal').modal('hide');
+                            var errorMsg = 'Lỗi kết nối!';
+                            try {
+                                var response = JSON.parse(xhr.responseText);
+                                errorMsg = response.message || errorMsg;
+                            } catch(e) {}
+                            
+                            $('#errorMessage').text(errorMsg);
+                            $('#errorAlert').removeClass('d-none');
+                            $('#btnXacNhan').prop('disabled', false).html('<i class="fas fa-check-circle me-2"></i>Xác nhận thanh toán');
+                            $('html, body').animate({ scrollTop: 0 }, 'smooth');
+                        }
+                    });
+                };
+
+                // Logic chính
+                if (selectedMethod === 'Online') {
+                    // Reset trạng thái Modal
+                    $('#qrState').removeClass('d-none');
+                    $('#successState').addClass('d-none');
+                    
+                    // Hiện Modal
+                    var modal = new bootstrap.Modal(document.getElementById('qrModal'));
+                    modal.show();
+                    
+                    // Xử lý khi bấm nút "Tôi đã thanh toán"
+                    $('#btnConfirmPaid').one('click', function() {
+                        // Chuyển sang giao diện thành công
+                        $('#qrState').addClass('d-none');
+                        $('#successState').removeClass('d-none');
+                        
+                        // Đợi 1.5s cho người dùng sướng rồi mới chuyển
+                        setTimeout(processPayment, 1500);
+                    });
+                } else {
+                    // Thanh toán tại quầy -> Chạy luôn
+                    $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...');
+                    processPayment();
+                }
+            });
+        });
+    </script>
+}

@@ -137,14 +137,17 @@
                                 </a>
                             </li>
                             
-                            @* Menu Chung *@
-                            <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("DatSan") hover-lime" asp-controller="DatSan" asp-action="Index">Đặt Sân</a></li>
-                            <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("DichVu") hover-lime" asp-controller="DichVu" asp-action="Index">Dịch Vụ</a></li>
+                            @* Menu Chung (Không hiện cho Quản lý) *@
+                            @if (!isManager)
+                            {
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("DatSan") hover-lime" asp-controller="DatSan" asp-action="Index">Đặt Sân</a></li>
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("DichVu") hover-lime" asp-controller="DichVu" asp-action="Index">Dịch Vụ</a></li>
+                            }
 
                             @* Menu cho Quản lý *@
                             @if (isManager)
                             {
-                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("LichLamViec") hover-lime" asp-controller="LichLamViec" asp-action="Index">Lịch Làm Việc</a></li>
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("NhanVien", "LichLamViec") hover-lime" asp-controller="NhanVien" asp-action="LichLamViec">Lịch Làm Việc</a></li>
                                 <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("Management", "NhanSu") hover-lime" asp-controller="Management" asp-action="NhanSu">Nhân sự</a></li>
                                 <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("Management", "PhanCongCaTruc") hover-lime" asp-controller="Management" asp-action="PhanCongCaTruc">Phân Công</a></li>
                                 <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("Management", "PheDuyetNghiPhep") hover-lime" asp-controller="Management" asp-action="PheDuyetNghiPhep">Phê Duyệt</a></li>
@@ -153,8 +156,8 @@
                                 <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("Management", "QuanLyGia") hover-lime" asp-controller="Management" asp-action="QuanLyGia">Quản Lý Giá</a></li>
                             }
                             
-                            @* Menu cho Nhân Viên / Lễ Tân *@
-                            @if (!string.IsNullOrEmpty(vaiTro) && vaiTro != "Khách hàng") 
+                            @* Menu cho Nhân Viên / Lễ Tân (không hiện cho Quản lý) *@
+                            @if (!string.IsNullOrEmpty(vaiTro) && vaiTro != "Khách hàng" && !isManager) 
                             {
                                 <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("NhanVien", "Index") hover-lime" asp-controller="NhanVien" asp-action="Index">Phiếu Đặt Sân</a></li>
                                 <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("NhanVien", "LichLamViec") hover-lime" asp-controller="NhanVien" asp-action="LichLamViec">Lịch Làm Việc</a></li>

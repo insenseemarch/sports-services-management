@@ -961,9 +961,9 @@
                                         <i class="fas fa-user-plus me-2"></i>Phân Công
                                     </button>
                                 ` : report.trangThai === 'Đang xử lý' ? `
-                                    <button class="btn btn-complete" onclick="openCompleteModal('${report.maPhieu}')">
-                                        <i class="fas fa-check-circle me-2"></i>Hoàn Thành
-                                    </button>
+                                    <div class="alert alert-info mb-0">
+                                        <i class="fas fa-hourglass-half me-2"></i>Đang xử lý
+                                    </div>
                                 ` : `
                                     <div class="alert alert-success mb-0">
                                         <i class="fas fa-check-circle me-2"></i>Đã hoàn thành
@@ -1153,12 +1153,11 @@
     }
 
     function showSuccess(message) {
-        // Simple alert for now, you can replace with toast notification
-        showToast(isSuccess ? 'success' : 'error', message);
+        showToast('success', message);
     }
 
     function showError(message) {
-        showToast('error', 'Lỗi: ' + message);
+        showToast('error', message);
     }
 </script>
 }

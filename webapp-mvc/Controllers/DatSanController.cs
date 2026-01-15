@@ -89,6 +89,38 @@ namespace webapp_mvc.Controllers
                 return RedirectToAction("DangNhap", "TaiKhoan");
             }
 
+            // Kiểm tra giờ hoạt động của cơ sở
+            string sqlCheckHours = @"
+                SELECT cs.GioMoCua, cs.GioDongCua, cs.TenCS
+                FROM SAN s
+                JOIN COSO cs ON s.MaCS = cs.MaCS
+                WHERE s.MaSan = @MaSan";
+
+            var dtHours = _db.ExecuteQuery(sqlCheckHours, new SqlParameter("@MaSan", model.SelectedMaSan));
+
+            if (dtHours.Rows.Count > 0)
+            {
+                var row = dtHours.Rows[0];
+                TimeSpan gioMoCua = (TimeSpan)row["GioMoCua"];
+                TimeSpan gioDongCua = (TimeSpan)row["GioDongCua"];
+                string tenCS = row["TenCS"].ToString();
+                
+                if (model.GioBatDau < gioMoCua || model.GioKetThuc > gioDongCua)
+                {
+                    string errorMsg = $"Cơ sở {tenCS} chỉ hoạt động từ {gioMoCua:hh\\:mm} đến {gioDongCua:hh\\:mm}. Vui lòng chọn giờ trong khung giờ này!";
+                    
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    {
+                        return Json(new { success = false, message = errorMsg });
+                    }
+                    
+                    ModelState.AddModelError("", errorMsg);
+                    LoadDropdownData(model);
+                    LoadDanhSachSan(model);
+                    return View(model);
+                }
+            }
+
             // TẠO PHIẾU NHÁP NGAY (để có maDatSan)
             // Phiếu nháp sẽ không bị tính vào trigger kiểm tra trùng lịch
             var p = new SqlParameter[] {

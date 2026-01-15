@@ -1,7 +1,14 @@
 @model webapp_mvc.Models.ThanhToanKhachHangViewModel
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
 @{
     ViewData["Title"] = "Phiếu Đặt Sân (Nội bộ)";
+    var vaiTro = HttpContextAccessor.HttpContext.Session.GetString("VaiTro");
 }
+
+
+<!-- Background Layer -->
+<div class="position-fixed top-0 start-0 w-100 h-100" style="z-index: -1; background: #f0fdf4;"></div>
 
 <div class="container py-5 mt-5">
     <div class="row justify-content-center">
@@ -128,16 +135,27 @@
                 
                 <!-- Footer Buttons -->
                 <div class="card-footer bg-light p-4 d-flex justify-content-center gap-3 border-0">
-                    <button type="button" class="btn px-5 py-3 fw-bold rounded-pill shadow-sm flex-fill" 
-                            style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; border: none;"
-                            onclick="submitAction('send_cashier')">
-                        <i class="fas fa-share-square me-2"></i>CHUYỂN SANG NV THU NGÂN
-                    </button>
+                    @if (vaiTro == "Thu ngân")
+                    {
+                         <button type="button" class="btn px-5 py-3 fw-bold rounded-pill shadow-sm flex-fill" 
+                                style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; border: none;"
+                                onclick="submitAction('confirm_payment')">
+                            <i class="fas fa-money-check-alt me-2"></i>XÁC NHẬN KHÁCH HÀNG ĐÃ THANH TOÁN
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn px-5 py-3 fw-bold rounded-pill shadow-sm flex-fill" 
+                                style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; border: none;"
+                                onclick="submitAction('send_cashier')">
+                            <i class="fas fa-share-square me-2"></i>CHUYỂN SANG NV THU NGÂN
+                        </button>
+                    }
                     
-                    <a asp-action="Index" asp-controller="DatSan" 
+                    <a asp-action="Index" asp-controller="@(vaiTro == "Thu ngân" ? "NhanVien" : "DatSan")" 
                        class="btn px-5 py-3 fw-bold rounded-pill text-decoration-none flex-fill"
                        style="background: transparent; border: 2px solid #059669; color: #059669;">
-                        <i class="fas fa-arrow-left me-2"></i>Quay lại trang đặt sân
+                        <i class="fas fa-arrow-left me-2"></i>Quay lại
                     </a>
                 </div>
             </div>

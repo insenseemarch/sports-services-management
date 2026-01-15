@@ -1,5 +1,8 @@
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
 @{
     ViewData["Title"] = "Phiếu Đặt Sân - Nhân Viên";
+    var vaiTro = HttpContextAccessor.HttpContext.Session.GetString("VaiTro");
 }
 
 <!-- Background Layer -->
@@ -11,9 +14,12 @@
             <!-- Header -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2 class="fw-bold mb-0" style="color: #065f46;">📋 Phiếu Đặt Sân</h2>
-                <a asp-action="Index" asp-controller="DatSan" class="btn btn-success px-4 py-2 rounded-pill">
-                    <i class="fas fa-plus me-2"></i>Tạo Phiếu Mới
-                </a>
+                @if (vaiTro != "Thu ngân")
+                {
+                    <a asp-action="Index" asp-controller="DatSan" class="btn btn-success px-4 py-2 rounded-pill">
+                        <i class="fas fa-plus me-2"></i>Tạo Phiếu Mới
+                    </a>
+                }
             </div>
 
             <!-- Filter Section -->
@@ -78,8 +84,12 @@
                                     @foreach (System.Data.DataRow row in ViewBag.DanhSachPhieu.Rows)
                                     {
                                         var trangThai = row["TrangThai"].ToString();
+                                        
+                                        // Hiển thị "Đã thanh toán" cho cả "Đã đặt" và "Đã thanh toán"
+                                        var displayStatus = (trangThai == "Đã đặt" || trangThai == "Đã thanh toán") ? "Đã thanh toán" : trangThai;
+                                        
                                         var badgeClass = trangThai == "Chờ thanh toán" ? "bg-warning text-dark" : 
-                                                        trangThai == "Đã thanh toán" ? "bg-success" : 
+                                                        (trangThai == "Đã thanh toán" || trangThai == "Đã đặt") ? "bg-success" : 
                                                         trangThai == "Đã hủy" ? "bg-danger" : "bg-secondary";
                                         
                                         <tr>
@@ -100,7 +110,7 @@
                                                 @(row["TienSan"] != DBNull.Value ? Convert.ToDecimal(row["TienSan"]).ToString("N0") : "0") ₫
                                             </td>
                                             <td>
-                                                <span class="badge @badgeClass rounded-pill px-3">@trangThai</span>
+                                                <span class="badge @badgeClass rounded-pill px-3">@displayStatus</span>
                                             </td>
                                             <td class="text-center pe-4">
                                                 <a asp-action="StaffPreview" asp-controller="DatSanThanhToan" 

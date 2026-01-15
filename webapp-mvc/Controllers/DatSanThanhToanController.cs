@@ -188,7 +188,7 @@ namespace webapp_mvc.Controllers
                 var parameters = new SqlParameter[]
                 {
                     new SqlParameter("@MaDatSan", maDatSan),
-                    new SqlParameter("@NguoiLap", DBNull.Value),
+                    new SqlParameter("@NguoiLap", maUser), // Khách hàng tự thanh toán
                     new SqlParameter("@HinhThucTT", phuongThuc),
                     new SqlParameter("@MaUD", DBNull.Value)
                 };
@@ -534,6 +534,33 @@ namespace webapp_mvc.Controllers
                     _db.ExecuteNonQuery("UPDATE PHIEUDATSAN SET TrangThai = N'Chờ thanh toán' WHERE MaDatSan = @Id", new SqlParameter("@Id", maDatSan));
                     // Trong thực tế có thể bắn noti cho thu ngân, ở đây tạm update DB
                     return Json(new { success = true, message = "Đã chuyển phiếu sang bộ phận thu ngân!", redirectUrl = Url.Action("Index", "NhanVien") });
+                }
+                else if (actionType == "confirm_payment")
+                {
+                    // 1. Tính toán tiền
+                    decimal tienSan = _db.ExecuteScalar<decimal>("SELECT dbo.f_TinhTienSan(@Ma)", new SqlParameter("@Ma", maDatSan));
+                    decimal tienDV = _db.ExecuteScalar<decimal>("SELECT ISNULL(SUM(ThanhTien), 0) FROM CT_DICHVUDAT WHERE MaDatSan = @Ma", new SqlParameter("@Ma", maDatSan));
+                    decimal tongTien = tienSan + tienDV;
+                    decimal thanhTien = tongTien; 
+
+                    // 2. Lấy người lập (User hiện tại)
+                    var maNV = HttpContext.Session.GetString("MaUser");
+
+                    // 3. Insert HOADON
+                    string sqlInsertHD = @"
+                        INSERT INTO HOADON (MaPhieu, NguoiLap, NgayLap, TongTien, GiamGia, ThanhTien, HinhThucTT)
+                        VALUES (@MaPhieu, @NguoiLap, GETDATE(), @TongTien, 0, @ThanhTien, N'Tiền mặt')";
+                    
+                    _db.ExecuteNonQuery(sqlInsertHD, 
+                        new SqlParameter("@MaPhieu", maDatSan),
+                        new SqlParameter("@NguoiLap", maNV),
+                        new SqlParameter("@TongTien", tongTien),
+                        new SqlParameter("@ThanhTien", thanhTien));
+
+                    // 4. Update TrangThai PHIEUDATSAN
+                    _db.ExecuteNonQuery("UPDATE PHIEUDATSAN SET TrangThai = N'Đã thanh toán' WHERE MaDatSan = @Id", new SqlParameter("@Id", maDatSan));
+                    
+                    return Json(new { success = true, message = "Xác nhận thanh toán & Xuất hóa đơn thành công!", redirectUrl = Url.Action("Index", "NhanVien") });
                 }
             }
             catch(Exception ex)

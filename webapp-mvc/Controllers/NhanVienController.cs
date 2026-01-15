@@ -30,7 +30,7 @@ namespace webapp_mvc.Controllers
             // Build SQL with filters
             string sql = @"
                 SELECT p.MaDatSan, p.NgayDat, p.GioBatDau, p.GioKetThuc, p.TrangThai, p.NgayTao,
-                       kh.HoTen as TenKhachHang, kh.SDT,
+                       ISNULL(kh.HoTen, N'Khách vãng lai') as TenKhachHang, ISNULL(kh.SDT, '') as SDT,
                        s.MaSan, ls.TenLS, cs.TenCS,
                        dbo.f_TinhTienSan(p.MaDatSan) as TienSan
                 FROM PHIEUDATSAN p
@@ -47,14 +47,18 @@ namespace webapp_mvc.Controllers
             try
             {
                 var checkColumn = _db.ExecuteQuery("SELECT TOP 1 NguoiLap FROM PHIEUDATSAN");
-                // Column exists, add filter
-                sql += " AND p.NguoiLap = @MaNV";
-                parameters.Add(new SqlParameter("@MaNV", maUser));
+                // Column exists.
+                // If user is Thu Ngan or Quan Ly => Show All (Do not filter by NguoiLap)
+                // Otherwise (Le Tan, etc.) => Filter by NguoiLap
+                if (vaiTro != "Thu ngân" && vaiTro != "Quản lý")
+                {
+                     sql += " AND p.NguoiLap = @MaNV";
+                     parameters.Add(new SqlParameter("@MaNV", maUser));
+                }
             }
             catch
             {
-                // Column doesn't exist, show all bookings (or you can add different logic)
-                // For now, just continue without this filter
+                // Column doesn't exist, show all bookings
             }
 
             sql += " AND p.TrangThai != N'Nháp'";

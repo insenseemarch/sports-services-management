@@ -24,14 +24,11 @@ namespace webapp_mvc.Controllers
 
             var model = new LichSuViewModel();
             string sql = @"
-                SELECT P.MaDatSan, D.MaSan, P.NgayDat, P.GioBatDau, P.GioKetThuc, 
-                       (dbo.f_TinhTienSan(P.MaDatSan) + dbo.f_TinhTienDichVu(P.MaDatSan)) as ThanhTien,
-                       P.TrangThai,
-                       ISNULL(P.NgayTao, P.NgayDat) as NgayTao,
-                       DATEDIFF(SECOND, GETDATE(), DATEADD(MINUTE, 30, ISNULL(P.NgayTao, P.NgayDat))) as RemainingSeconds
+                SELECT TOP 100 P.MaDatSan, D.MaSan, P.NgayDat, P.GioBatDau, P.GioKetThuc, 
+                       P.TrangThai, P.NgayTao
                 FROM PHIEUDATSAN P
-                JOIN DATSAN D ON P.MaDatSan = D.MaDatSan
-                WHERE P.MaKH = @MaKH 
+                LEFT JOIN DATSAN D ON P.MaDatSan = D.MaDatSan
+                WHERE P.MaKH = @MaKH AND P.TrangThai != N'Nháp'
                 ORDER BY P.NgayDat DESC";
 
             var dt = _db.ExecuteQuery(sql, new SqlParameter("@MaKH", maUser));
@@ -45,29 +42,29 @@ namespace webapp_mvc.Controllers
                     TimeSpan.TryParse(row["GioBatDau"].ToString(), out gioBatDau);
                 if (row["GioKetThuc"] != DBNull.Value)
                     TimeSpan.TryParse(row["GioKetThuc"].ToString(), out gioKetThuc);
-                
-                if (row["TrangThai"].ToString() == "Nháp") continue; // Skip Drafts
 
                 var item = new PhieuDatItem
                 {
                     MaDatSan = Convert.ToInt64(row["MaDatSan"]),
-                    MaSan = row["MaSan"].ToString(),
+                    MaSan = row["MaSan"] != DBNull.Value ? row["MaSan"].ToString() : "",
                     NgayDat = Convert.ToDateTime(row["NgayDat"]),
                     GioBatDau = gioBatDau,
                     GioKetThuc = gioKetThuc,
-                    ThanhTien = Convert.ToDecimal(row["ThanhTien"]),
                     TrangThai = row["TrangThai"].ToString(),
-                    NgayTao = row["NgayTao"] != DBNull.Value ? Convert.ToDateTime(row["NgayTao"]) : (DateTime?)null
+                    NgayTao = row["NgayTao"] != DBNull.Value ? Convert.ToDateTime(row["NgayTao"]) : (DateTime?)null,
+                    RemainingSeconds = 0
                 };
 
-                // Use SQL-calculated Remaining Seconds to avoid Timezone issues
-                if (row["RemainingSeconds"] != DBNull.Value && item.TrangThai == "Chờ thanh toán")
+                // Calculate ThanhTien for each booking individually
+                try
                 {
-                     item.RemainingSeconds = Convert.ToDouble(row["RemainingSeconds"]);
+                    decimal tienSan = _db.ExecuteScalar<decimal>("SELECT ISNULL(dbo.f_TinhTienSan(@Ma), 0)", new SqlParameter("@Ma", item.MaDatSan));
+                    decimal tienDV = _db.ExecuteScalar<decimal>("SELECT ISNULL(dbo.f_TinhTienDichVu(@Ma), 0)", new SqlParameter("@Ma", item.MaDatSan));
+                    item.ThanhTien = tienSan + tienDV;
                 }
-                else
+                catch
                 {
-                     item.RemainingSeconds = 0;
+                    item.ThanhTien = 0; // Fallback if function fails
                 }
                 
                 model.LichSuDat.Add(item);
@@ -119,11 +116,88 @@ namespace webapp_mvc.Controllers
         {
             try
             {
-                // 1. Tạm tắt Trigger kiểm tra thời lượng (Nguyên nhân chính gây lỗi Conversion Failed)
-                // Cần quyền ALTER, nhưng nếu user DB có quyền db_owner hoặc table owner thì ok.
+                // 1. Tạm tắt Trigger kiểm tra thời lượng
                 try { _db.ExecuteNonQuery("DISABLE TRIGGER trg_KiemTraThoiLuongDat ON PHIEUDATSAN"); } catch { }
 
-                // 2. Kiểm tra trùng giờ (Logic SQL thuần túy, không qua SP)
+                // 1.1. Kiểm tra logic cơ bản: Giờ kết thúc > Giờ bắt đầu
+                if (gioKetThucMoi <= gioBatDauMoi)
+                {
+                    try { _db.ExecuteNonQuery("ENABLE TRIGGER trg_KiemTraThoiLuongDat ON PHIEUDATSAN"); } catch { }
+                    return Json(new { success = false, message = "Giờ kết thúc phải lớn hơn giờ bắt đầu!" });
+                }
+
+                // 1.2. Kiểm tra đặt trước ít nhất 2 tiếng
+                DateTime bookingDateTime = ngayMoi.Date + gioBatDauMoi;
+                TimeSpan timeUntilBooking = bookingDateTime - DateTime.Now;
+                
+                if (timeUntilBooking.TotalHours < 2)
+                {
+                    try { _db.ExecuteNonQuery("ENABLE TRIGGER trg_KiemTraThoiLuongDat ON PHIEUDATSAN"); } catch { }
+                    return Json(new { success = false, message = "Vui lòng đặt sân trước ít nhất 2 tiếng!" });
+                }
+
+                // 1.5. Kiểm tra giờ hoạt động của cơ sở
+                string checkHoursSQL = @"
+                    SELECT cs.GioMoCua, cs.GioDongCua, cs.TenCS
+                    FROM DATSAN d
+                    JOIN SAN s ON d.MaSan = s.MaSan
+                    JOIN COSO cs ON s.MaCS = cs.MaCS
+                    WHERE d.MaDatSan = @MaDatSan";
+                
+                var dtHours = _db.ExecuteQuery(checkHoursSQL, new SqlParameter("@MaDatSan", maDatSan));
+                
+                if (dtHours.Rows.Count > 0)
+                {
+                    var rowHours = dtHours.Rows[0];
+                    TimeSpan gioMoCua = (TimeSpan)rowHours["GioMoCua"];
+                    TimeSpan gioDongCua = (TimeSpan)rowHours["GioDongCua"];
+                    string tenCS = rowHours["TenCS"].ToString();
+                    
+                    if (gioBatDauMoi < gioMoCua || gioKetThucMoi > gioDongCua)
+                    {
+                        try { _db.ExecuteNonQuery("ENABLE TRIGGER trg_KiemTraThoiLuongDat ON PHIEUDATSAN"); } catch { }
+                        return Json(new { success = false, message = $"Cơ sở {tenCS} chỉ hoạt động từ {gioMoCua:hh\\:mm} đến {gioDongCua:hh\\:mm}. Vui lòng chọn giờ trong khung giờ này!" });
+                    }
+                }
+
+                // 1.6. Kiểm tra bội số thời gian theo loại sân
+                string checkCourtTypeSQL = @"
+                    SELECT ls.TenLS, ls.DVT
+                    FROM DATSAN d
+                    JOIN SAN s ON d.MaSan = s.MaSan
+                    JOIN LOAISAN ls ON s.MaLS = ls.MaLS
+                    WHERE d.MaDatSan = @MaDatSan";
+                
+                var dtCourtType = _db.ExecuteQuery(checkCourtTypeSQL, new SqlParameter("@MaDatSan", maDatSan));
+                
+                if (dtCourtType.Rows.Count > 0)
+                {
+                    var rowCourt = dtCourtType.Rows[0];
+                    string tenLoaiSan = rowCourt["TenLS"].ToString().ToLower();
+                    double durationMinutes = (gioKetThucMoi - gioBatDauMoi).TotalMinutes;
+                    
+                    int requiredMultiple = 60; // Default: 60 phút (Cầu lông)
+                    string unitName = "giờ";
+                    
+                    if (tenLoaiSan.Contains("bóng đá") || tenLoaiSan.Contains("mini"))
+                    {
+                        requiredMultiple = 90;
+                        unitName = "trận (90 phút)";
+                    }
+                    else if (tenLoaiSan.Contains("tennis"))
+                    {
+                        requiredMultiple = 120;
+                        unitName = "ca (2 giờ)";
+                    }
+                    
+                    if (durationMinutes % requiredMultiple != 0)
+                    {
+                        try { _db.ExecuteNonQuery("ENABLE TRIGGER trg_KiemTraThoiLuongDat ON PHIEUDATSAN"); } catch { }
+                        return Json(new { success = false, message = $"Loại sân này phải đặt theo bội số {unitName}. Vui lòng chọn lại thời gian!" });
+                    }
+                }
+
+                // 2. Kiểm tra trùng giờ
                 string checkSql = @"
                     SELECT COUNT(*)
                     FROM PHIEUDATSAN p

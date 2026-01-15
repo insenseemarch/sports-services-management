@@ -1,0 +1,133 @@
+@{
+    ViewData["Title"] = "Phiếu Đặt Sân - Nhân Viên";
+}
+
+<!-- Background Layer -->
+<div class="position-fixed top-0 start-0 w-100 h-100" style="z-index: -1; background: #f0fdf4;"></div>
+
+<div class="container py-5 mt-5">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold mb-0" style="color: #065f46;">📋 Phiếu Đặt Sân</h2>
+                <a asp-action="Index" asp-controller="DatSan" class="btn btn-success px-4 py-2 rounded-pill">
+                    <i class="fas fa-plus me-2"></i>Tạo Phiếu Mới
+                </a>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <form method="get" asp-action="Index" asp-controller="NhanVien" id="filterForm">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold small" style="color: #065f46;">Từ ngày</label>
+                                <input type="date" name="fromDate" class="form-control" value="@ViewBag.FromDate" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold small" style="color: #065f46;">Đến ngày</label>
+                                <input type="date" name="toDate" class="form-control" value="@ViewBag.ToDate" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold small" style="color: #065f46;">Trạng thái</label>
+                                <select name="status" class="form-select">
+                                    <option value="">Tất cả</option>
+                                    <option value="Chờ thanh toán" selected="@(ViewBag.Status == "Chờ thanh toán" ? "selected" : null)">Chờ thanh toán</option>
+                                    <option value="Đã thanh toán" selected="@(ViewBag.Status == "Đã thanh toán" ? "selected" : null)">Đã thanh toán</option>
+                                    <option value="Đã hủy" selected="@(ViewBag.Status == "Đã hủy" ? "selected" : null)">Đã hủy</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="submit" class="btn btn-success w-100 rounded-pill">
+                                    <i class="fas fa-filter me-2"></i>Lọc
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            @if (ViewBag.SuccessMessage != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show rounded-3" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>@ViewBag.SuccessMessage
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (ViewBag.DanhSachPhieu != null && ViewBag.DanhSachPhieu.Rows.Count > 0)
+            {
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); color: #065f46;">
+                                    <tr>
+                                        <th class="ps-4 py-3">Mã Phiếu</th>
+                                        <th>Khách Hàng</th>
+                                        <th>Sân</th>
+                                        <th>Ngày Đặt</th>
+                                        <th>Giờ</th>
+                                        <th>Tiền Sân</th>
+                                        <th>Trạng Thái</th>
+                                        <th class="text-center pe-4">Thao Tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (System.Data.DataRow row in ViewBag.DanhSachPhieu.Rows)
+                                    {
+                                        var trangThai = row["TrangThai"].ToString();
+                                        var badgeClass = trangThai == "Chờ thanh toán" ? "bg-warning text-dark" : 
+                                                        trangThai == "Đã thanh toán" ? "bg-success" : 
+                                                        trangThai == "Đã hủy" ? "bg-danger" : "bg-secondary";
+                                        
+                                        <tr>
+                                            <td class="ps-4 py-3 fw-bold">#@row["MaDatSan"]</td>
+                                            <td>
+                                                <div class="fw-semibold">@row["TenKhachHang"]</div>
+                                                <small class="text-muted">@row["SDT"]</small>
+                                            </td>
+                                            <td>
+                                                <div>@(row["TenLS"] + " - " + row["MaSan"])</div>
+                                                <small class="text-muted">@row["TenCS"]</small>
+                                            </td>
+                                            <td>@Convert.ToDateTime(row["NgayDat"]).ToString("dd/MM/yyyy")</td>
+                                            <td>
+                                                @(((TimeSpan)row["GioBatDau"]).ToString(@"hh\:mm") + " - " + ((TimeSpan)row["GioKetThuc"]).ToString(@"hh\:mm"))
+                                            </td>
+                                            <td class="fw-bold text-success">
+                                                @(row["TienSan"] != DBNull.Value ? Convert.ToDecimal(row["TienSan"]).ToString("N0") : "0") ₫
+                                            </td>
+                                            <td>
+                                                <span class="badge @badgeClass rounded-pill px-3">@trangThai</span>
+                                            </td>
+                                            <td class="text-center pe-4">
+                                                <a asp-action="StaffPreview" asp-controller="DatSanThanhToan" 
+                                                   asp-route-maDatSan="@row["MaDatSan"]"
+                                                   class="btn btn-sm btn-outline-success rounded-pill px-3">
+                                                    <i class="fas fa-eye me-1"></i>Xem
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted">Chưa có phiếu đặt sân nào</h5>
+                    <p class="text-muted">Hãy tạo phiếu đặt sân đầu tiên của bạn!</p>
+                    <a asp-action="Index" asp-controller="DatSan" class="btn btn-success px-4 py-2 rounded-pill mt-2">
+                        <i class="fas fa-plus me-2"></i>Tạo Phiếu Mới
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

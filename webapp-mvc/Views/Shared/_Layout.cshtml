@@ -53,13 +53,19 @@
                         <ul class="navbar-nav mx-auto gap-2">
                             @{
                                 var currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
-                                string IsActive(string controller) 
+                                var currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
+                                
+                                string IsActive(string controller, string action = null) 
                                 {
-                                    // Special case: DatSanThanhToan should also highlight DatSan menu
-                                    if (controller == "DatSan" && currentController == "DatSanThanhToan")
-                                        return "text-lime fw-bold";
+                                    // Special check for DatSan & DatSanThanhToan
+                                    if (controller == "DatSan" && currentController == "DatSanThanhToan") return "text-lime fw-bold";
                                     
-                                    return string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase) ? "text-lime fw-bold" : "text-white";
+                                    if (string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        if (string.IsNullOrEmpty(action)) return "text-lime fw-bold";
+                                        if (string.Equals(currentAction, action, StringComparison.OrdinalIgnoreCase)) return "text-lime fw-bold";
+                                    }
+                                    return "text-white";
                                 }
                             }
                             
@@ -67,18 +73,21 @@
                                 <a class="nav-link fw-semibold px-3 @IsActive("Home") hover-lime" asp-area="" asp-controller="Home" asp-action="Index">Trang Chủ</a>
                             </li>
                             
-                            <!-- Menu Khách Hàng -->
+                            <!-- Menu Chung -->
                             <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("DatSan") hover-lime" asp-controller="DatSan" asp-action="Index">Đặt Sân</a></li>
                             <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("DichVu") hover-lime" asp-controller="DichVu" asp-action="Index">Dịch Vụ</a></li>
-                            <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("LichSuDatSan") hover-lime protected-link" asp-controller="LichSuDatSan" asp-action="Index">Lịch Sử</a></li>
-                            <!-- Removed BaoCaoLoi as per user request -->
+                            
+                            <!-- Menu Khách Hàng -->
+                            @if (string.IsNullOrEmpty(vaiTro) || vaiTro == "Khách hàng")
+                            {
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("LichSuDatSan") hover-lime protected-link" asp-controller="LichSuDatSan" asp-action="Index">Lịch Sử</a></li>
+                            }
 
-                            <!-- Menu Nhân Viên (Chỉ hiện khi là NV) -->
+                            <!-- Menu Nhân Viên / Lễ Tân -->
                             @if (!string.IsNullOrEmpty(vaiTro) && vaiTro != "Khách hàng") 
                             {
-                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("NhanSu") hover-lime" asp-controller="NhanSu" asp-action="Index">Nhân Sự</a></li>
-                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("ThanhToan") hover-lime" asp-controller="ThanhToan" asp-action="Index">Thanh Toán</a></li>
-                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("LichSuDatSan") hover-lime" asp-controller="LichSuDatSan" asp-action="Index">DS Đặt Sân</a></li>
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("NhanVien", "Index") hover-lime" asp-controller="NhanVien" asp-action="Index">Phiếu Đặt Sân</a></li>
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("NhanVien", "LichLamViec") hover-lime" asp-controller="NhanVien" asp-action="LichLamViec">Lịch Làm Việc</a></li>
                             }
                         </ul>
                     </div>
@@ -99,7 +108,13 @@
                                     <span class="fw-bold text-dark small">@Context.Session.GetString("HoTen")</span>
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end mt-2 shadow-lg border-0 rounded-3">
-                                    <li><a class="dropdown-item py-2" href="@Url.Action("Index", "HoSo")"><i class="fas fa-user me-2 text-primary"></i>Hồ Sơ</a></li>
+                                    @{
+                                        var userRoleFn = Context.Session.GetString("VaiTro");
+                                        var profileUrl = (!string.IsNullOrEmpty(userRoleFn) && userRoleFn != "Khách hàng") 
+                                            ? Url.Action("Profile", "NhanVien") 
+                                            : Url.Action("Index", "HoSo");
+                                    }
+                                    <li><a class="dropdown-item py-2" href="@profileUrl"><i class="fas fa-user me-2 text-primary"></i>Hồ Sơ</a></li>
                                     <li><a class="dropdown-item py-2" href="@Url.Action("Index", "LichSuDatSan")"><i class="fas fa-history me-2 text-info"></i>Lịch Sử</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item py-2 text-danger" href="@Url.Action("DangXuat", "TaiKhoan")"><i class="fas fa-sign-out-alt me-2"></i>Đăng Xuất</a></li>

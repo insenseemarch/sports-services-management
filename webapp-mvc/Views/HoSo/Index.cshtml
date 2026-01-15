@@ -3,19 +3,25 @@
     ViewData["Title"] = "Hồ Sơ Của Tôi";
 }
 
+<!-- Background Layer -->
+<div class="position-fixed top-0 start-0 w-100 h-100" style="z-index: -1; background: #f0fdf4;"></div>
+
 <!-- Main Container -->
 <div class="container py-5" style="padding-top: 100px !important;">
     <div class="row justify-content-center">
         <div class="col-lg-9">
             
             <!-- Profile Card -->
-            <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-white">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden" style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);">
                 
-                <!-- Gradient Header -->
+                <!-- Radiant Header -->
                 <div class="position-relative" style="height: 160px; background: linear-gradient(135deg, #20bf55 0%, #01baef 100%);">
-                    <!-- Decorative Element -->
-                    <div class="position-absolute w-100 h-100" 
-                         style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg=='); opacity: 0.3;">
+                    <!-- Geometric Patterns -->
+                    <div class="position-absolute top-0 start-0 w-100 h-100 opacity-25" 
+                         style="background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.1) 0px, rgba(255,255,255,0.1) 10px, transparent 10px, transparent 20px);">
+                    </div>
+                    <div class="position-absolute bottom-0 end-0 p-3 text-white opacity-25">
+                         <i class="fas fa-crown fa-8x"></i>
                     </div>
                 </div>
 
@@ -34,17 +40,15 @@
 
                     <!-- User Name & Badges -->
                     <div style="margin-top: 70px;" class="text-center">
-                        <h3 class="fw-bold mb-2">@Model.HoTen</h3>
-                        <div class="d-flex justify-content-center gap-2 mb-4">
-                            <!-- Cấp bậc Badge -->
+                        <h3 class="fw-bold mb-2 text-dark">@Model.HoTen</h3>
+                        <div class="d-flex justify-content-center gap-2 mb-4 flex-wrap">
+                            <!-- Customer Badges -->
                             <span class="badge rounded-pill px-3 py-2 d-flex align-items-center gap-1 border shadow-sm"
-                                  style="background-color: #fff9c4; color: #fbc02d; font-size: 0.9rem;">
-                                <i class="fas fa-star"></i> @(string.IsNullOrEmpty(Model.TenCB) ? "Thành viên" : Model.TenCB)
+                                  style="background-color: #fff9c4; color: #f57f17; font-size: 0.9rem;">
+                                <i class="fas fa-crown"></i> @(string.IsNullOrEmpty(Model.TenCB) ? "Thành viên" : Model.TenCB)
                             </span>
-                            
-                            <!-- Điểm tích lũy Badge -->
                             <span class="badge rounded-pill px-3 py-2 d-flex align-items-center gap-1 border shadow-sm"
-                                  style="background-color: #e8f5e9; color: #2e7d32; font-size: 0.9rem;">
+                                  style="background-color: #dcfce7; color: #15803d; font-size: 0.9rem;">
                                 <i class="fas fa-coins"></i> @Model.DiemTichLuy điểm
                             </span>
                         </div>
@@ -52,7 +56,7 @@
 
                     <hr class="my-4 opacity-25">
 
-                    <!-- Section Title -->
+                    <!-- Info Details -->
                     <div class="d-flex align-items-center mb-4">
                         <div class="d-flex align-items-center justify-content-center rounded-3 me-3 shadow-sm"
                              style="width: 40px; height: 40px; background: #e8f5e9; color: #2e7d32;">
@@ -60,14 +64,13 @@
                         </div>
                         <h5 class="fw-bold m-0 text-dark">Thông Tin Cá Nhân</h5>
                         
-                        <!-- Edit Button (Top Right of Section) -->
-                        <a asp-action="Edit" class="btn btn-sm btn-outline-primary ms-auto rounded-pill px-3 fw-bold shadow-sm" 
-                           style="border: 2px solid;">
+                        <!-- Edit Button -->
+                        <a asp-action="Edit" class="btn btn-outline-primary ms-auto rounded-pill px-3 fw-bold shadow-sm" 
+                           style="border-width: 2px;">
                             <i class="fas fa-pen me-2"></i>Chỉnh sửa
                         </a>
                     </div>
 
-                    <!-- Info Grid -->
                     <div class="row g-4">
                         <!-- Họ tên -->
                         <div class="col-md-6">

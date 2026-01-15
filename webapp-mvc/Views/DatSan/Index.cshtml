@@ -1,6 +1,9 @@
 @model webapp_mvc.Models.DatSanViewModel
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
 @{
     ViewData["Title"] = "Đặt Sân Trực Tuyến";
+    var vaiTro = HttpContextAccessor.HttpContext.Session.GetString("VaiTro");
 }
 
 <style>
@@ -62,6 +65,54 @@
     .stagger-4 { transition-delay: 0.4s; }
     .stagger-5 { transition-delay: 0.5s; }
     .stagger-6 { transition-delay: 0.6s; }
+
+    /* --- BUTTON GRADIENT & SPARKLE --- */
+    @@keyframes gradient-shift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    @@keyframes shine-swipe {
+        0% { left: -100%; opacity: 0; }
+        10% { opacity: 0.5; }
+        20% { opacity: 0.8; }
+        50% { left: 200%; opacity: 0; }
+        100% { left: 200%; opacity: 0; }
+    }
+
+    .btn-attractive {
+        position: relative;
+        overflow: hidden;
+        border: none !important;
+        color: white !important;
+        /* Gradient Xanh Lá Chủ Đạo */
+        background: linear-gradient(45deg, #a3cf06, #2d6a4f, #a3cf06);
+        background-size: 300% 300%;
+        animation: gradient-shift 4s ease infinite;
+        box-shadow: 0 4px 15px rgba(56, 239, 125, 0.4);
+        z-index: 1;
+        font-weight: 800 !important;
+        letter-spacing: 0.5px;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+    
+    .btn-attractive::before {
+        content: '';
+        position: absolute;
+        top: 0; left: -75%;
+        width: 50%; height: 100%;
+        background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0) 100%);
+        transform: skewX(-25deg);
+        animation: shine-swipe 3s infinite linear;
+        z-index: 2;
+        pointer-events: none;
+    }
+
+    .btn-attractive:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 8px 25px rgba(56, 239, 125, 0.6) !important;
+    }
 </style>
 
 <!-- Hero Banner -->
@@ -78,6 +129,7 @@
             Hệ thống đặt sân trực tuyến hiện đại, tiện lợi. <br class="d-none d-md-block">
             Kiểm tra lịch trống và giữ chỗ ngay chỉ trong vài thao tác.
         </p>
+        
     </div>
 </div>
 
@@ -109,6 +161,58 @@
             </div>
         </div>
     </div>
+
+    <!-- STAFF: Customer Search Section -->
+    @if (!string.IsNullOrEmpty(vaiTro) && vaiTro != "Khách hàng")
+    {
+        <div class="card border-0 mb-4 fade-in-up shadow-sm" 
+             style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px;">
+            <div class="card-body p-4">
+                <!-- Title -->
+                <h6 class="fw-bold mb-3 text-success" style="font-size: 1.1rem;">
+                    <i class="fas fa-search me-2"></i>Tìm kiếm khách hàng
+                </h6>
+                
+                <div class="d-flex align-items-center">
+                    <!-- Avatar Icon -->
+                    <div class="me-4 d-none d-md-flex align-items-center justify-content-center rounded-circle shadow-sm"
+                         style="width: 50px; height: 50px; background-color: #ffffff; color: #16a34a; border: 2px solid #bbf7d0;">
+                        <i class="fas fa-user fa-lg"></i>
+                    </div>
+
+                    <div class="flex-grow-1">
+                        <div class="row g-3 align-items-end">
+                            <!-- Input Phone -->
+                            <div class="col-md-4">
+                                <label class="fw-bold small mb-1 text-success">Số điện thoại</label>
+                                <div class="input-group">
+                                    <input type="text" id="Staff_SDT" class="form-control" placeholder="Nhập SĐT khách hàng..." 
+                                           style="border: 2px solid #bbf7d0; color: #14532d; border-radius: 8px;">
+                                    <button class="btn btn-sm d-none" id="btnCheckKH">Search</button>
+                                </div>
+                            </div>
+
+                            <!-- Input Name -->
+                            <div class="col-md-5">
+                                <label class="fw-bold small mb-1 text-success">Tên khách hàng</label>
+                                <input type="text" id="Staff_TenKH" class="form-control" readonly placeholder="Tên khách hàng sẽ được hiển thị ở đây..." 
+                                       style="border: 2px solid #bbf7d0; background-color: #ffffff; color: #14532d; border-radius: 8px; font-weight: bold;">
+                            </div>
+
+                            <!-- Create Account Button -->
+                            <div class="col-md-3 text-end">
+                                <button type="button" class="btn btn-success fw-bold rounded-pill shadow-sm w-100" 
+                                        data-bs-toggle="modal" data-bs-target="#createAccountModal"
+                                        style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: none; padding: 10px 20px;">
+                                    <i class="fas fa-user-plus me-2"></i>Tạo Tài Khoản
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     <!-- Filter Bar (Avatar Dark Lime Border Theme) -->
     <div class="card border-0 mb-5 fade-in-up" 
@@ -270,15 +374,14 @@
                             }
                             else
                             {
-                                <button type="button" class="btn w-100 py-2 fw-bold text-white rounded-3 shadow-sm btn-dat-san"
-                                        style="background: var(--color-dark);"
+                                <button type="button" class="btn w-100 py-2 fw-bold text-white rounded-3 shadow-sm btn-dat-san btn-attractive"
                                         data-masan="@san.MaSan" 
                                         data-tensan="@san.TenSan" 
                                         data-tencoso="@san.TenCoSo" 
                                         data-loaisan="@san.TenLoaiSan"
                                         data-gia="@san.GiaGio.ToString("F0")"
                                         data-dvt="@san.DonViTinh">
-                                    Đặt Sân Ngay
+                                    Đặt Sân Ngay <i class="fas fa-bolt ms-1 text-warning"></i>
                                 </button>
                             }
                         </div>
@@ -322,6 +425,7 @@
                 <form id="formDatSan">
                     @Html.AntiForgeryToken()
                     <input type="hidden" id="modalMaSan" name="SelectedMaSan" />
+                    <input type="hidden" id="modalBookingForMaKH" name="BookingForMaKH" /> <!-- For Staff Booking -->
                     <input type="hidden" asp-for="MaCS" /> <!-- Keep filter state -->
                     <input type="hidden" asp-for="MaLS" /> <!-- Keep filter state -->
 
@@ -332,6 +436,15 @@
                         </div>
                         <small class="text-secondary" id="modalTenCoSo">Cơ sở 1</small><br>
                         <small class="text-muted" id="modalLoaiSan">Loại sân</small>
+                    </div>
+
+                    <!-- STAFF: Show Booking For Customer Name (Moved Here) -->
+                    <div id="bookingForInfo" class="mb-3 d-none">
+                        <div class="d-flex align-items-center p-2 rounded-3" style="background-color: #f0fdf4; border: 1px solid #bbf7d0;">
+                            <i class="fas fa-user-check text-success me-2"></i> 
+                            <span class="text-success small fw-bold me-1">Đang đặt cho khách hàng:</span> 
+                            <span id="modalBookingForName" class="fw-bold text-dark"></span>
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -357,6 +470,102 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Tạo Tài Khoản Khách Hàng -->
+<div class="modal fade" id="createAccountModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+            <!-- Green Header -->
+            <div class="modal-header border-0 text-white position-relative" 
+                 style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); padding: 24px 32px;">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" 
+                         style="width: 50px; height: 50px; background: rgba(255,255,255,0.2);">
+                        <i class="fas fa-user-plus fa-lg"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0" style="font-size: 1.3rem;">Tạo Tài Khoản Khách Hàng</h5>
+                        <small class="opacity-90">Điền thông tin để tạo tài khoản mới</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4" style="background: #f8f9fa;">
+                <form id="formCreateAccount">
+                    <!-- Account Info Section -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-success mb-3 pb-2 border-bottom border-success">
+                            <i class="fas fa-lock me-2"></i>Thông Tin Đăng Nhập
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-dark small">Tên Đăng Nhập <span class="text-danger">*</span></label>
+                                <input type="text" id="username" name="username" class="form-control" placeholder="Nhập tên đăng nhập" required />
+                                <small class="text-muted">6-20 ký tự, chữ và số</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-dark small">Họ Tên <span class="text-danger">*</span></label>
+                                <input type="text" id="hoTen" name="hoTen" class="form-control" placeholder="Nhập họ và tên" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-dark small">Mật Khẩu <span class="text-danger">*</span></label>
+                                <input type="password" id="password" name="password" class="form-control" placeholder="Nhập mật khẩu" required />
+                                <small class="text-muted">Tối thiểu 6 ký tự</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-dark small">Xác Nhận Mật Khẩu <span class="text-danger">*</span></label>
+                                <input type="password" id="passwordConfirm" name="passwordConfirm" class="form-control" placeholder="Nhập lại mật khẩu" required />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Personal Info Section -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-success mb-3 pb-2 border-bottom border-success">
+                            <i class="fas fa-user me-2"></i>Thông Tin Cá Nhân
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-dark small">Số Điện Thoại <span class="text-danger">*</span></label>
+                                <input type="tel" id="sdt" name="sdt" class="form-control" placeholder="Nhập số điện thoại" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-dark small">Email</label>
+                                <input type="email" id="email" name="email" class="form-control" placeholder="Nhập email" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-dark small">Ngày Sinh</label>
+                                <input type="date" id="ngaySinh" name="ngaySinh" class="form-control" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-dark small">CCCD/CMT</label>
+                                <input type="text" id="cccd" name="cccd" class="form-control" placeholder="Nhập CCCD/CMT" />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold text-dark small">Địa chỉ</label>
+                                <input type="text" id="diaChi" name="diaChi" class="form-control" placeholder="Nhập địa chỉ" />
+                            </div>
+                            <div class="col-12">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="laHSSV" name="laHSSV" />
+                                    <label class="form-check-label text-dark fw-semibold" for="laHSSV">
+                                        <i class="fas fa-graduation-cap me-1 text-success"></i>Tôi là sinh viên
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn w-100 py-3 fw-bold text-white rounded-pill shadow-sm" 
+                            style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: none; font-size: 1.1rem;">
+                        <i class="fas fa-check-circle me-2"></i>Tạo Tài Khoản
+                    </button>
+                </form>
+            </div>
             </div>
         </div>
     </div>
@@ -538,9 +747,188 @@
                 $('#GioBatDau').val('');
                 $('#GioKetThuc').val('');
                 
+                // Check if Staff has selected a customer
+                var staffSelectedKH = $('#Staff_TenKH').val();
+                if (staffSelectedKH && $('#modalBookingForMaKH').val()) {
+                    $('#modalBookingForName').text(staffSelectedKH);
+                    $('#bookingForInfo').removeClass('d-none');
+                } else {
+                    $('#bookingForInfo').addClass('d-none');
+                }
+
                 // Show modal manually
                 $('#datSanModal').modal('show');
             });
+            // STAFF SEARCH LOGIC
+            var foundMaKH = '';
+            
+            function performSearchKH() {
+                var sdt = $('#Staff_SDT').val();
+                if (!sdt) {
+                    $('#Staff_SDT').focus();
+                    return;
+                }
+                
+                // Show loading
+                var btn = $('#btnCheckKH');
+                var icon = btn.find('i');
+                icon.removeClass('fa-search').addClass('fa-spinner fa-spin');
+                
+                $.get('@Url.Action("GetKhachHang", "DatSan")', { sdt: sdt }, function(res) {
+                     if (res.success) {
+                         $('#Staff_TenKH').val(res.hoten).addClass('is-valid').removeClass('is-invalid');
+                         $('#Staff_SDT').addClass('is-valid').removeClass('is-invalid');
+                         
+                         // Update hidden field for modal
+                         $('#modalBookingForMaKH').val(res.makh);
+                         
+                         // Feedback visual (Green border flash or icon check)
+                         $('#Staff_TenKH').addClass('border-success').addClass('text-success');
+                         setTimeout(function() { $('#Staff_TenKH').removeClass('border-success'); }, 1000);
+
+                     } else {
+                         $('#Staff_TenKH').val('').removeClass('is-valid').addClass('is-invalid');
+                         $('#Staff_SDT').removeClass('is-valid').addClass('is-invalid');
+                         $('#modalBookingForMaKH').val('');
+                         
+                         // Optional error placeholder
+                         $('#Staff_TenKH').attr('placeholder', 'Không tìm thấy khách hàng!');
+                     }
+                }).always(function() {
+                    icon.removeClass('fa-spinner fa-spin').addClass('fa-search');
+                });
+            }
+
+            $('#btnCheckKH').click(performSearchKH);
+            $('#Staff_SDT').on('keypress', function(e) {
+                if (e.which == 13) { performSearchKH(); }
+            });
+
+            // ========== XỬ LÝ FORM TẠO TÀI KHOẢN KHÁCH HÀNG ==========
+            $('#formCreateAccount').on('submit', function(e) {
+                e.preventDefault();
+                
+                // Ẩn alert cũ
+                $('#accountErrorAlert').addClass('d-none');
+                $('#accountSuccessAlert').addClass('d-none');
+                
+                // Validation: Kiểm tra mật khẩu khớp nhau
+                var pwd = $('#password').val();
+                var pwdConfirm = $('#passwordConfirm').val();
+                
+                if (!pwd || !pwdConfirm) {
+                    $('#accountErrorMessage').text('Vui lòng nhập mật khẩu!');
+                    $('#accountErrorAlert').removeClass('d-none');
+                    return;
+                }
+                
+                if (pwd !== pwdConfirm) {
+                    $('#accountErrorMessage').text('Mật khẩu không khớp! Vui lòng kiểm tra lại.');
+                    $('#accountErrorAlert').removeClass('d-none');
+                    return;
+                }
+                
+                // Validation: Kiểm tra mật khẩu tối thiểu 6 ký tự
+                if (pwd.length < 6) {
+                    $('#accountErrorMessage').text('Mật khẩu phải có ít nhất 6 ký tự!');
+                    $('#accountErrorAlert').removeClass('d-none');
+                    return;
+                }
+                
+                // Validation: Kiểm tra các trường bắt buộc
+                var username = $('#username').val();
+                var hoTen = $('#hoTen').val();
+                var sdt = $('#sdt').val();
+                var email = $('#email').val();
+                
+                if (!username || !hoTen || !sdt) {
+                    $('#accountErrorMessage').text('Vui lòng điền đầy đủ thông tin bắt buộc (Tên đăng nhập, Họ tên, Số điện thoại)!');
+                    $('#accountErrorAlert').removeClass('d-none');
+                    return;
+                }
+                
+                // Validation: Kiểm tra tên đăng nhập tối thiểu 3 ký tự
+                if (username.length < 3) {
+                    $('#accountErrorMessage').text('Tên đăng nhập phải có ít nhất 3 ký tự!');
+                    $('#accountErrorAlert').removeClass('d-none');
+                    return;
+                }
+                
+                // Disable nút submit để tránh double-click
+                var submitBtn = $(this).find('button[type="submit"]');
+                var originalBtnHtml = submitBtn.html();
+                submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Đang tạo tài khoản...');
+                
+                // Chuẩn bị dữ liệu form
+                var formData = {
+                    username: username,
+                    password: pwd,
+                    confirmPassword: pwdConfirm,
+                    hoTen: hoTen,
+                    sdt: sdt,
+                    email: email,
+                    ngaySinh: $('#ngaySinh').val() || null,
+                    cccd: $('#cccd').val() || null,
+                    diaChi: $('#diaChi').val() || null,
+                    laHSSV: $('#laHSSV').is(':checked')
+                };
+                
+                // Gửi AJAX request
+                $.ajax({
+                    url: '@Url.Action("CreateAccountAjax", "TaiKhoan")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(formData),
+                    success: function(response) {
+                        if (response.success) {
+                            // Hiển thị toast thành công
+                            showToast(response.message || 'Tạo tài khoản thành công!', 'success');
+                            
+                            // Xóa form
+                            $('#formCreateAccount')[0].reset();
+                            
+                            // Tự động điền SĐT khách hàng vào ô tìm kiếm
+                            if (response.sdt) {
+                                $('#Staff_SDT').val(response.sdt);
+                                $('#Staff_TenKH').val(response.hoTen || '');
+                            }
+                            
+                            // Đóng modal ngay lập tức
+                            $('#createAccountModal').modal('hide');
+                            
+                            // Restore button
+                            submitBtn.prop('disabled', false).html(originalBtnHtml);
+                        } else {
+                            // Hiển thị toast lỗi
+                            showToast(response.message || 'Có lỗi xảy ra, vui lòng thử lại!', 'error');
+                            
+                            // Restore button
+                            submitBtn.prop('disabled', false).html(originalBtnHtml);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        // Xử lý lỗi AJAX
+                        var errorMsg = 'Lỗi kết nối đến máy chủ!';
+                        try {
+                            var response = JSON.parse(xhr.responseText);
+                            errorMsg = response.message || errorMsg;
+                        } catch(e) {
+                            if (xhr.status === 400) {
+                                errorMsg = 'Dữ liệu không hợp lệ, vui lòng kiểm tra lại!';
+                            } else if (xhr.status === 500) {
+                                errorMsg = 'Lỗi máy chủ, vui lòng thử lại sau!';
+                            }
+                        }
+                        
+                        $('#accountErrorMessage').text(errorMsg);
+                        $('#accountErrorAlert').removeClass('d-none');
+                        
+                        // Restore button
+                        submitBtn.prop('disabled', false).html(originalBtnHtml);
+                    }
+                });
+            });
+            // ====================================================
         });
         
         // Intersection Observer for scroll animations
@@ -573,3 +961,36 @@
         }, 300);
     </script>
 }
+
+<!-- Toast Container -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+    <div id="accountToast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body fw-semibold" id="toastMessage"></div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('accountToast');
+        const toastBody = document.getElementById('toastMessage');
+        
+        // Set message
+        toastBody.textContent = message;
+        
+        // Set color based on type
+        if (type === 'success') {
+            toast.className = 'toast align-items-center text-white bg-success border-0';
+        } else if (type === 'error') {
+            toast.className = 'toast align-items-center text-white bg-danger border-0';
+        } else if (type === 'warning') {
+            toast.className = 'toast align-items-center text-white bg-warning border-0';
+        }
+        
+        // Show toast
+        const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
+        bsToast.show();
+    }
+</script>

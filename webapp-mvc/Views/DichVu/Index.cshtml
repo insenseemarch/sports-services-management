@@ -85,7 +85,7 @@
         </div>
     </div>
 
-    <form method="post" asp-action="Index">
+    <form method="post" asp-action="Index" id="serviceBookingForm">
         <input type="hidden" asp-for="MaDatSan" />
         <input type="hidden" name="FilterMaCS" value="@ViewBag.CurrentMaCS" />
         <input type="hidden" asp-for="NgayDat" />
@@ -170,16 +170,16 @@
                             
                             <!-- Control Area -->
                             <div class="mt-4">
-                                @if (category == "Huấn luyện" || category == "Phòng" || category == "Tủ")
+                                @if (category == "HuanLuyen" || category == "Phong" || category == "Tu")
                                 {
                                     <input type="hidden" asp-for="DanhSachDichVu[i].SoLuong" id="qty-@i" value="0" />
-                                    <!-- Button style Dark + No Icon Plus -->
+                                    <!-- Button style Green like Đặt Sân Ngay -->
                                     <button type="button" class="btn w-100 py-2 fw-bold rounded-3 shadow-sm btn-hlv-toggle btn-service-action transition-all" 
-                                            style="background: var(--color-dark); color: white; border: none;"
+                                            style="background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); color: white; border: none;"
                                             id="btn-hlv-@i" onclick="toggleHLV(@i)">
-                                        @if (category == "Huấn luyện") { <text>Chọn HLV</text> }
-                                        else if (category == "Phòng") { <text>Chọn Phòng VIP</text> }
-                                        else if (category == "Tủ") { <text>Chọn Tủ Đồ</text> }
+                                        @if (category == "HuanLuyen") { <text>Chọn HLV</text> }
+                                        else if (category == "Phong") { <text>Chọn Phòng VIP</text> }
+                                        else if (category == "Tu") { <text>Chọn Tủ Đồ</text> }
                                     </button>
                                 }
                                 else
@@ -231,12 +231,155 @@
                 <i class="fas fa-arrow-left me-2"></i> Quay lại
             </a>
             <button type="submit" class="btn btn-primary px-5 py-3 rounded-pill fw-bold shadow-lg hover-scale"
+                    id="btn-finish-booking"
                     style="background: var(--color-lime); color: var(--color-dark); border: none; min-width: 200px;">
-                Hoàn Tất Đặt Dịch Vụ <i class="fas fa-check-circle ms-2"></i>
+                Hoàn Tất & Xem Phiếu <i class="fas fa-check-circle ms-2"></i>
             </button>
         </div>
     </form>
 </div>
+
+<!-- Modal Container for Staff Receipt -->
+<div class="modal fade" id="staffReceiptModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden" id="staffReceiptContent">
+            <!-- Content will be loaded via AJAX -->
+            <div class="p-5 text-center">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-3 text-muted">Đang tạo phiếu đặt sân...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include jQuery (required for AJAX) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    function submitServices(event) {
+        // Prevent default form submission
+        if (event) event.preventDefault();
+        
+        console.log('[DEBUG] submitServices called');
+        
+        // Check if jQuery is loaded
+        if (typeof $ === 'undefined') {
+            console.error('jQuery is not loaded!');
+            alert('Lỗi: jQuery chưa được tải. Vui lòng refresh trang.');
+            return false;
+        }
+        
+        // Fix: Select form by ID directly
+        const form = document.getElementById('serviceBookingForm'); 
+        if (!form) {
+             console.error("Form not found (ID: serviceBookingForm)"); 
+             alert('Lỗi: Không tìm thấy form!');
+             return false;
+        }
+
+        console.log('[DEBUG] Form found, preparing AJAX request');
+        
+        const formData = new FormData(form);
+        const btn = document.getElementById('btn-finish-booking');
+        
+        // Show loading state
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Đang xử lý...';
+        btn.disabled = true;
+
+        // AJAX Submit
+        $.ajax({
+            url: form.action,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                console.log('[DEBUG] AJAX request sent to:', form.action);
+            },
+            success: function (response) {
+                console.log('[DEBUG] AJAX response:', response);
+                if (response.success) {
+                    // Logic phân quyền từ Server
+                    if (response.redirectUrl) {
+                        // Khách hàng: Chuyển sang trang thanh toán
+                        console.log('[DEBUG] Redirecting to:', response.redirectUrl);
+                        window.location.href = response.redirectUrl;
+                    } else {
+                        // Nhân viên: Hiện Popup Phiếu
+                        console.log('[DEBUG] Loading modal for booking:', response.maDatSan);
+                        window.currentBookingId = response.maDatSan;
+                        loadReceiptModal(response.maDatSan);
+                    }
+                } else {
+                    // Nếu server trả về lỗi redirect hoặc message
+                    if (response.message) alert(response.message);
+                    else window.location.href = response.redirectUrl || '/';
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('[DEBUG] AJAX error:', status, error);
+                alert("Lỗi kết nối! Vui lòng thử lại.\n" + error);
+            },
+            complete: function () {
+                btn.innerHTML = 'Hoàn Tất & Xem Phiếu <i class="fas fa-check-circle ms-2"></i>';
+                btn.disabled = false;
+            }
+        });
+        
+        return false; // Prevent any default action
+    }
+
+    function loadReceiptModal(maDatSan) {
+        console.log('[DEBUG] loadReceiptModal called with ID:', maDatSan);
+        const modalEl = document.getElementById('staffReceiptModal');
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+
+        // Load Partial View
+        $('#staffReceiptContent').load('@Url.Action("StaffPreviewPartial", "DatSanThanhToan")?maDatSan=' + maDatSan, function(response, status, xhr) {
+            if (status == "error") {
+                console.error('[DEBUG] Modal load error:', xhr.status, xhr.statusText);
+                $('#staffReceiptContent').html('<div class="p-4 text-center text-danger">Lỗi tải phiếu: ' + xhr.status + " " + xhr.statusText + '</div>');
+            } else {
+                console.log('[DEBUG] Modal content loaded successfully');
+            }
+        });
+    }
+    
+    // Attach form submit handler when page loads (using jQuery for reliability)
+    $(function() {
+        console.log('[DEBUG] jQuery ready - Attaching form submit handler');
+        const form = document.getElementById('serviceBookingForm');
+        if (form) {
+            $(form).on('submit', function(e) {
+                console.log('[DEBUG] Form submit event triggered');
+                e.preventDefault(); // Prevent default form submission
+                e.stopPropagation(); // Stop event from bubbling
+                submitServices(e);
+                return false;
+            });
+            console.log('[DEBUG] Form submit handler attached successfully');
+        } else {
+            console.error('[DEBUG] Form not found during jQuery ready');
+            // Try again after a short delay
+            setTimeout(function() {
+                const retryForm = document.getElementById('serviceBookingForm');
+                if (retryForm) {
+                    console.log('[DEBUG] Form found on retry');
+                    $(retryForm).on('submit', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        submitServices(e);
+                        return false;
+                    });
+                } else {
+                    console.error('[DEBUG] Form still not found after retry');
+                }
+            }, 500);
+        }
+    });
+</script>
 
 <style>
     /* ====== SMOOTH ANIMATIONS ====== */
@@ -354,26 +497,26 @@
             var currentVal = parseInt(input.value) || 0;
 
             if (currentVal === 0) {
-                // Select -> Show Overlay & Change Button Color
+                // Select -> Show Overlay & Change Button Color to Light Green
                 input.value = 1;
                 btn.innerHTML = '<i class="fas fa-check me-1"></i> Đã chọn';
                 
-                // Change Button Style to Match Price Badge (LIME GREEN like price badge)
-                btn.style.background = 'var(--color-lime)';
-                btn.style.color = 'var(--color-dark)';
-                btn.style.border = 'none';
+                // Change Button Style to Light Green
+                btn.style.background = '#d1fae5'; // Light green
+                btn.style.color = '#065f46'; // Dark green text
+                btn.style.border = '2px solid #10b981';
 
                 indicator.style.display = 'flex'; 
                 indicator.classList.add('d-flex'); 
-                input.closest('.card').style.border = '2px solid var(--color-lime)';
+                input.closest('.card').style.border = '2px solid #10b981';
                 input.closest('.card').classList.add('shadow-lg');
             } else {
-                // Deselect -> Hide Overlay & ROI Button Style
+                // Deselect -> Hide Overlay & Revert Button Style to Green
                 input.value = 0;
                 btn.innerHTML = 'Chọn HLV';
                 
-                // Revert Button Style (Back to Dark)
-                btn.style.background = 'var(--color-dark)';
+                // Revert Button Style (Back to Green Gradient)
+                btn.style.background = 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)';
                 btn.style.color = 'white';
                 btn.style.border = 'none';
                 
@@ -390,53 +533,52 @@
             const selectCategory = document.getElementById('filter-category');
             const selectSort = document.getElementById('filter-sort');
             const grid = document.getElementById('service-grid');
-            const items = Array.from(document.querySelectorAll('.service-item'));
+            
+            if (btnFilter && selectCategory && selectSort && grid) {
+                const items = Array.from(document.querySelectorAll('.service-item'));
 
-            btnFilter.addEventListener('click', () => {
-                const categoryValue = selectCategory.value;
-                const sortValue = selectSort.value;
+                btnFilter.addEventListener('click', () => {
+                    const categoryValue = selectCategory.value;
+                    const sortValue = selectSort.value;
 
-                // 1. Filter Display
-                items.forEach(item => {
-                    const itemCategory = item.getAttribute('data-category');
-                    if (categoryValue === 'all' || itemCategory === categoryValue) {
-                        item.style.display = 'block';
-                    } else {
-                        item.style.display = 'none';
-                    }
+                    // 1. Filter Display
+                    items.forEach(item => {
+                        const itemCategory = item.getAttribute('data-category');
+                        if (categoryValue === 'all' || itemCategory === categoryValue) {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+
+                    // 2. Sort Logic
+                    const sortedItems = items.sort((a, b) => {
+                        const getPrice = (el) => {
+                            const priceElement = el.querySelector('.position-absolute.top-0.end-0');
+                            if (!priceElement) return 0;
+                            const priceText = priceElement.innerText; 
+                            return parseInt(priceText.replace(/\D/g, '')) || 0;
+                        };
+
+                        const priceA = getPrice(a);
+                        const priceB = getPrice(b);
+
+                        if (sortValue === 'price-asc') return priceA - priceB;
+                        if (sortValue === 'price-desc') return priceB - priceA;
+                        return 0;
+                    });
+
+                    // Re-append sorted items to grid
+                    sortedItems.forEach(item => grid.appendChild(item));
+
+                    // Re-trigger animation
+                    items.filter(i => i.style.display !== 'none').forEach(item => {
+                         item.style.animation = 'none';
+                         item.offsetHeight; 
+                         item.style.animation = 'fadeInUp 0.5s ease forwards';
+                    });
                 });
-
-                // 2. Sort Logic
-                // Get visible items to sort (or sort all and then hide)
-                // Better to sort all elements in DOM
-                const sortedItems = items.sort((a, b) => {
-                    // Extract price. Format "10.000 đ" -> 10000
-                    const getPrice = (el) => {
-                        const priceElement = el.querySelector('.position-absolute.top-0.end-0');
-                        if (!priceElement) return 0;
-                        const priceText = priceElement.innerText; 
-                        // Clean defaults
-                        return parseInt(priceText.replace(/\D/g, '')) || 0;
-                    };
-
-                    const priceA = getPrice(a);
-                    const priceB = getPrice(b);
-
-                    if (sortValue === 'price-asc') return priceA - priceB;
-                    if (sortValue === 'price-desc') return priceB - priceA;
-                    return 0; // default order (by index likely)
-                });
-
-                // Re-append sorted items to grid
-                sortedItems.forEach(item => grid.appendChild(item));
-
-                // Re-trigger animation for visible items
-                items.filter(i => i.style.display !== 'none').forEach(item => {
-                     item.style.animation = 'none';
-                     item.offsetHeight; 
-                     item.style.animation = 'fadeInUp 0.5s ease forwards';
-                });
-            });
+            }
         });
 
         // ========== Intersection Observer for Scroll Animations ==========

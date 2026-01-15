@@ -67,5 +67,11 @@ namespace webapp_mvc.Models
         public int DiemTichLuy { get; set; }
         public string MaCB { get; set; } // Mã Cấp Bậc
         public string TenCB { get; set; } // Tên Cấp Bậc (display only)
+        
+        // Staff Fields
+        public string? ChucVu { get; set; }
+        public string? TenCS { get; set; }
+        public string? GioiTinh { get; set; }
+        public decimal? LuongCoBan { get; set; }
     }
 }

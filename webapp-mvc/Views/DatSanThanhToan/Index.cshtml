@@ -1,6 +1,8 @@
 @model webapp_mvc.Models.ThanhToanKhachHangViewModel
+@using Microsoft.AspNetCore.Http
 @{
     ViewData["Title"] = "Thanh toán";
+    var currentRole = Context.Session.GetString("VaiTro");
 }
 
 <div class="position-relative w-100 d-flex align-items-center justify-content-center mb-5" 

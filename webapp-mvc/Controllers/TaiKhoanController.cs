@@ -142,6 +142,99 @@ namespace webapp_mvc.Controllers
             return View();
         }
 
+        // POST: /TaiKhoan/CreateAccountAjax (Tạo tài khoản từ trang đặt sân)
+        [HttpPost]
+        public IActionResult CreateAccountAjax([FromBody] DangKyViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                return Json(new { success = false, message = string.Join("<br>", errors) });
+            }
+
+            try
+            {
+                // Kiểm tra tên đăng nhập đã tồn tại
+                var checkQuery = "SELECT COUNT(*) FROM TAIKHOAN WHERE TenDangNhap = @Username";
+                var count = _db.ExecuteScalar<int>(checkQuery, new SqlParameter("@Username", model.Username));
+                
+                if (count > 0)
+                {
+                    return Json(new { success = false, message = "Tên đăng nhập đã tồn tại!" });
+                }
+
+                // Kiểm tra SĐT đã tồn tại
+                var checkSDTQuery = "SELECT COUNT(*) FROM KHACHHANG WHERE SDT = @SDT";
+                var sdtCount = _db.ExecuteScalar<int>(checkSDTQuery, new SqlParameter("@SDT", model.SDT));
+                
+                if (sdtCount > 0)
+                {
+                    return Json(new { success = false, message = "Số điện thoại đã được sử dụng!" });
+                }
+
+                // Kiểm tra Email đã tồn tại (nếu có nhập)
+                if (!string.IsNullOrEmpty(model.Email))
+                {
+                    var checkEmailQuery = "SELECT COUNT(*) FROM KHACHHANG WHERE Email = @Email";
+                    var emailCount = _db.ExecuteScalar<int>(checkEmailQuery, new SqlParameter("@Email", model.Email));
+                    
+                    if (emailCount > 0)
+                    {
+                        return Json(new { success = false, message = "Email đã được sử dụng!" });
+                    }
+                }
+
+                // Kiểm tra CCCD đã tồn tại (nếu có nhập)
+                if (!string.IsNullOrEmpty(model.CCCD))
+                {
+                    var checkCCCDQuery = "SELECT COUNT(*) FROM KHACHHANG WHERE CCCD = @CCCD";
+                    var cccdCount = _db.ExecuteScalar<int>(checkCCCDQuery, new SqlParameter("@CCCD", model.CCCD));
+                    
+                    if (cccdCount > 0)
+                    {
+                        return Json(new { success = false, message = "CCCD/CMT đã được sử dụng!" });
+                    }
+                }
+
+                var maTK = "TK" + DateTime.Now.ToString("yyyyMMddHHmmss");
+                var maKH = "KH" + DateTime.Now.ToString("yyyyMMddHHmmss");
+
+                // Tạo tài khoản
+                var insertTKQuery = @"INSERT INTO TAIKHOAN (MaTK, TenDangNhap, MatKhau, VaiTro, NgayDangKy) VALUES (@MaTK, @Username, @Password, N'Khách hàng', GETDATE())";
+                _db.ExecuteNonQuery(insertTKQuery, 
+                    new SqlParameter("@MaTK", maTK), 
+                    new SqlParameter("@Username", model.Username), 
+                    new SqlParameter("@Password", model.Password));
+
+                // Tạo khách hàng
+                var insertKHQuery = @"INSERT INTO KHACHHANG (MaKH, HoTen, NgaySinh, CCCD, SDT, Email, DiaChi, LaHSSV, DiemTichLuy, MaCB, MaTK) VALUES (@MaKH, @HoTen, @NgaySinh, @CCCD, @SDT, @Email, @DiaChi, @LaHSSV, 0, 'CB001', @MaTK)";
+                _db.ExecuteNonQuery(insertKHQuery,
+                    new SqlParameter("@MaKH", maKH), 
+                    new SqlParameter("@HoTen", model.HoTen ?? ""),
+                    new SqlParameter("@NgaySinh", (object)model.NgaySinh ?? DBNull.Value), 
+                    new SqlParameter("@CCCD", (object)model.CCCD ?? DBNull.Value),
+                    new SqlParameter("@SDT", model.SDT ?? ""),
+                    new SqlParameter("@Email", model.Email ?? ""),
+                    new SqlParameter("@DiaChi", (object)model.DiaChi ?? DBNull.Value), 
+                    new SqlParameter("@LaHSSV", model.LaHSSV ? 1 : 0),
+                    new SqlParameter("@MaTK", maTK)
+                );
+
+                return Json(new { 
+                    success = true,
+                    message = "Tạo tài khoản thành công!",
+                    maKH = maKH,
+                    sdt = model.SDT,
+                    hoTen = model.HoTen
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during account creation");
+                return Json(new { success = false, message = "Lỗi: " + ex.Message });
+            }
+        }
+
         // GET: /TaiKhoan/DangXuat
         public IActionResult DangXuat()
         {

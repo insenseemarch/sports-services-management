@@ -66,7 +66,18 @@ namespace webapp_mvc.Controllers
 
             // Lấy User hiện tại từ Session (Hỗ trợ nhiều người dùng)
             var maUser = HttpContext.Session.GetString("MaUser");
-            if (string.IsNullOrEmpty(maUser))
+            var vaiTro = HttpContext.Session.GetString("VaiTro");
+            
+            // XỬ LÝ ĐẶT HỘ (CHO NHÂN VIÊN): Ưu tiên lấy MaKH từ form nếu có
+            string maKHDuocDat = maUser;
+            string bookingFor = Request.Form["BookingForMaKH"];
+            
+            if (!string.IsNullOrEmpty(vaiTro) && vaiTro != "Khách hàng" && !string.IsNullOrEmpty(bookingFor))
+            {
+                maKHDuocDat = bookingFor;
+            }
+
+            if (string.IsNullOrEmpty(maKHDuocDat))
             {
                 // Check if AJAX request
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
@@ -81,8 +92,8 @@ namespace webapp_mvc.Controllers
             // TẠO PHIẾU NHÁP NGAY (để có maDatSan)
             // Phiếu nháp sẽ không bị tính vào trigger kiểm tra trùng lịch
             var p = new SqlParameter[] {
-                new SqlParameter("@MaKH", maUser), 
-                new SqlParameter("@NguoiLap", maUser),
+                new SqlParameter("@MaKH", maKHDuocDat), 
+                new SqlParameter("@NguoiLap", maUser), // Người lập phiếu (có thể là NV hoặc KH)
                 new SqlParameter("@MaSan", model.SelectedMaSan),
                 new SqlParameter("@NgayDat", model.NgayDat),
                 new SqlParameter("@GioBatDau", model.GioBatDau),
@@ -96,7 +107,7 @@ namespace webapp_mvc.Controllers
                 
                 // Lấy MaDatSan vừa tạo
                 string sqlGetId = "SELECT TOP 1 MaDatSan FROM PHIEUDATSAN WHERE MaKH = @MaKH ORDER BY MaDatSan DESC";
-                long maDatSan = _db.ExecuteScalar<long>(sqlGetId, new SqlParameter("@MaKH", maUser));
+                long maDatSan = _db.ExecuteScalar<long>(sqlGetId, new SqlParameter("@MaKH", maKHDuocDat));
                 
                 // Check if AJAX request
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
@@ -179,6 +190,17 @@ namespace webapp_mvc.Controllers
             bool isFilteringByTime = userHasFiltered && (model.GioKetThuc > model.GioBatDau);
             var parameters = new List<SqlParameter>();
             
+            // 0. Get Global Price Range (Fallback)
+            string sqlGlobalPrice = "SELECT MIN(GiaApDung) as MinGia, MAX(GiaApDung) as MaxGia FROM KHUNGGIO";
+            var dtGlobal = _db.ExecuteQuery(sqlGlobalPrice);
+            decimal globalMin = 0;
+            decimal globalMax = 0;
+            if (dtGlobal.Rows.Count > 0)
+            {
+                globalMin = dtGlobal.Rows[0]["MinGia"] != DBNull.Value ? Convert.ToDecimal(dtGlobal.Rows[0]["MinGia"]) : 0;
+                globalMax = dtGlobal.Rows[0]["MaxGia"] != DBNull.Value ? Convert.ToDecimal(dtGlobal.Rows[0]["MaxGia"]) : 0;
+            }
+            
             // 2. Dynamic Price Query
             // Default: Price range across all hours
             string minGiaSql = "(SELECT MIN(GiaApDung) FROM KHUNGGIO k WHERE k.MaLS = s.MaLS) as MinGia";
@@ -257,6 +279,10 @@ namespace webapp_mvc.Controllers
                     MaxGia = row["MaxGia"] != DBNull.Value ? Convert.ToDecimal(row["MaxGia"]) : 0
                 };
 
+                // Fallback to Global Price if Local is 0
+                if (item.MinGia <= 0) item.MinGia = globalMin;
+                if (item.MaxGia <= 0) item.MaxGia = globalMax;
+
                 // Hiển thị giá: Luôn là giá/giờ hoặc giá/trận (min-max nếu có nhiều khung giờ)
                 string dvt = row["DVT"] != DBNull.Value ? row["DVT"].ToString() : "Giờ";
                 
@@ -317,6 +343,26 @@ namespace webapp_mvc.Controllers
                 return price * (decimal)(minutes / 90.0); // 90 mins standard
              else
                 return price * (decimal)(minutes / 60.0); // 60 mins standard
+        }
+
+        [HttpGet]
+        public IActionResult GetKhachHang(string sdt)
+        {
+            if (string.IsNullOrEmpty(sdt))
+                return Json(new { success = false, message = "Vui lòng nhập SĐT" });
+            
+            var dt = _db.ExecuteQuery("SELECT MaKH, HoTen FROM KHACHHANG WHERE SDT = @SDT", 
+                new SqlParameter("@SDT", sdt));
+            
+            if (dt.Rows.Count > 0)
+            {
+                return Json(new { 
+                    success = true, 
+                    makh = dt.Rows[0]["MaKH"].ToString(),
+                    hoten = dt.Rows[0]["HoTen"].ToString()
+                });
+            }
+            return Json(new { success = false, message = "Không tìm thấy khách hàng này!" });
         }
     }
 }

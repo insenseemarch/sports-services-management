@@ -1,0 +1,263 @@
+@{
+    ViewData["Title"] = "Trang Chủ Nhân Viên";
+    var vaiTro = ViewBag.VaiTro as string;
+}
+
+<div class="container-fluid py-5">
+    <!-- Header -->
+    <div class="row mb-5">
+        <div class="col-md-12">
+            <div class="card border-0 shadow-lg" style="border-left: 5px solid #0f9b0f;">
+                <div class="card-body p-4">
+                    <h2 class="mb-2">
+                        <i class="fas fa-user-tie me-3 text-primary"></i>
+                        Xin chào, <strong>@ViewBag.HoTen</strong>
+                    </h2>
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-briefcase me-2"></i>
+                        Chức vụ: <strong>@vaiTro</strong>
+                        @if (!string.IsNullOrEmpty(ViewBag.CoSo))
+                        {
+                            <span class="ms-3">
+                                <i class="fas fa-map-marker-alt me-2"></i>
+                                <strong>@ViewBag.CoSo</strong>
+                            </span>
+                        }
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Menu Grid -->
+    <div class="row g-4">
+        <!-- Common Menu Items (All Staff) -->
+        <div class="col-lg-3 col-md-6">
+            <a href="@Url.Action("Index", "LichLamViec")" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 hover-card" style="transition: all 0.3s ease;">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3" style="font-size: 3rem; color: #0f9b0f;">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <h5 class="card-title">Lịch Làm Việc</h5>
+                        <p class="text-muted small">Xem và quản lý lịch ca trực</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <a href="@Url.Action("Index", "HoSoNhanVien")" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 hover-card" style="transition: all 0.3s ease;">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3" style="font-size: 3rem; color: #00b09b;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h5 class="card-title">Hồ Sơ Cá Nhân</h5>
+                        <p class="text-muted small">Cập nhật thông tin cá nhân</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Role-Specific Menu Items -->
+        @if (vaiTro?.Equals("Lễ tân", StringComparison.OrdinalIgnoreCase) == true || 
+             vaiTro?.Equals("Quản lý", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            <div class="col-lg-3 col-md-6">
+                <a href="@Url.Action("Index", "DatSanTrucTiep")" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm h-100 hover-card" style="transition: all 0.3s ease;">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon mb-3" style="font-size: 3rem; color: #ff6b6b;">
+                                <i class="fas fa-ticket-alt"></i>
+                            </div>
+                            <h5 class="card-title">Đặt Sân Trực Tiếp</h5>
+                            <p class="text-muted small">Tiếp nhận khách hàng tại quầy</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+
+        @if (vaiTro?.Equals("Thu ngân", StringComparison.OrdinalIgnoreCase) == true ||
+             vaiTro?.Equals("Quản lý", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            <div class="col-lg-3 col-md-6">
+                <a href="@Url.Action("Index", "ThanhToan")" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm h-100 hover-card" style="transition: all 0.3s ease;">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon mb-3" style="font-size: 3rem; color: #ffd93d;">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </div>
+                            <h5 class="card-title">Thanh Toán</h5>
+                            <p class="text-muted small">Xử lý thanh toán hóa đơn</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <a href="@Url.Action("Index", "HoaDon")" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm h-100 hover-card" style="transition: all 0.3s ease;">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon mb-3" style="font-size: 3rem; color: #6bcf7f;">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                            <h5 class="card-title">Hóa Đơn</h5>
+                            <p class="text-muted small">Quản lý hóa đơn đã thanh toán</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+
+        @if (vaiTro?.Equals("Kỹ thuật", StringComparison.OrdinalIgnoreCase) == true ||
+             vaiTro?.Equals("Quản lý", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            <div class="col-lg-3 col-md-6">
+                <a href="@Url.Action("Index", "BaoTri")" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm h-100 hover-card" style="transition: all 0.3s ease;">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon mb-3" style="font-size: 3rem; color: #ff6b6b;">
+                                <i class="fas fa-tools"></i>
+                            </div>
+                            <h5 class="card-title">Quản Lý Bảo Trì</h5>
+                            <p class="text-muted small">Xử lý báo cáo sự cố sân bãi</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+
+        @* Management Dashboard - ONLY Quản lý *@
+        @if (vaiTro?.Equals("Quản lý", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            <div class="col-lg-3 col-md-6">
+                <a href="@Url.Action("Index", "Management")" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm h-100 hover-card" style="transition: all 0.3s ease; border-left: 5px solid #6f42c1;">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon mb-3" style="font-size: 3rem; color: #6f42c1;">
+                                <i class="fas fa-crown"></i>
+                            </div>
+                            <h5 class="card-title" style="color: #6f42c1;">Dashboard Quản Lý</h5>
+                            <p class="text-muted small">Truy cập đầy đủ chức năng quản lý</p>
+                            <span class="badge bg-primary mt-2">PREMIUM</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <a href="@Url.Action("Index", "PhanCongCaTruc")" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm h-100 hover-card" style="transition: all 0.3s ease;">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon mb-3" style="font-size: 3rem; color: #4ecdc4;">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <h5 class="card-title">Phân Công Ca Trực</h5>
+                            <p class="text-muted small">Phân công nhân viên ca trực</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <a href="@Url.Action("Index", "PheDuyetNghiPhep")" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm h-100 hover-card" style="transition: all 0.3s ease;">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon mb-3" style="font-size: 3rem; color: #ffd93d;">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <h5 class="card-title">Phê Duyệt Nghỉ Phép</h5>
+                            <p class="text-muted small">Duyệt đơn nghỉ phép nhân viên</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <a href="@Url.Action("Index", "BaoCaoThongKe")" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm h-100 hover-card" style="transition: all 0.3s ease;">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon mb-3" style="font-size: 3rem; color: #6bcf7f;">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h5 class="card-title">Báo Cáo Thống Kê</h5>
+                            <p class="text-muted small">Xem báo cáo thống kê hệ thống</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+
+        @if (vaiTro?.Equals("IT", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            <div class="col-lg-3 col-md-6">
+                <a href="@Url.Action("Index", "CauHinhHeThong")" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm h-100 hover-card" style="transition: all 0.3s ease;">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon mb-3" style="font-size: 3rem; color: #ff6b6b;">
+                                <i class="fas fa-cog"></i>
+                            </div>
+                            <h5 class="card-title">Cấu Hình Hệ Thống</h5>
+                            <p class="text-muted small">Quản lý cài đặt hệ thống</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <a href="@Url.Action("Index", "QuanLyTaiKhoan")" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm h-100 hover-card" style="transition: all 0.3s ease;">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon mb-3" style="font-size: 3rem; color: #4ecdc4;">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                            <h5 class="card-title">Quản Lý Tài Khoản</h5>
+                            <p class="text-muted small">Quản lý quyền hạn người dùng</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <a href="@Url.Action("Index", "SaoLuuDuLieu")" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm h-100 hover-card" style="transition: all 0.3s ease;">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon mb-3" style="font-size: 3rem; color: #ffd93d;">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <h5 class="card-title">Sao Lưu Dữ Liệu</h5>
+                            <p class="text-muted small">Sao lưu/Phục hồi dữ liệu hệ thống</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .hover-card {
+        transition: all 0.3s ease;
+        border-radius: 15px;
+    }
+
+    .hover-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .feature-icon {
+        background: linear-gradient(135deg, rgba(15, 155, 15, 0.1) 0%, rgba(0, 176, 155, 0.1) 100%);
+        padding: 20px;
+        border-radius: 12px;
+        display: inline-block;
+    }
+
+    .card-title {
+        color: #333;
+        font-weight: 600;
+        margin: 12px 0;
+    }
+</style>

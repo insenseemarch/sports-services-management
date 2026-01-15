@@ -1,0 +1,1410 @@
+@{
+    ViewData["Title"] = "Đặt Sân Trực Tiếp";
+}
+
+<style>
+    /* CSS Variables */
+    :root {
+        --color-lime: #cce830;
+        --color-lime-hover: #b5d122;
+        --color-dark: #1a1a1a;
+        --color-light: #f8f9fa;
+    }
+
+    /* Hero Banner */
+    .hero-banner-custom {
+        background: url('https://images.unsplash.com/photo-1461896836934-ffe607ba8211?q=80&w=1920&auto=format&fit=crop') center/cover no-repeat;
+        color: white;
+        padding: 60px 20px;
+        border-radius: 0;
+        margin-bottom: 30px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        margin-top: 85px;
+        height: 400px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .hero-banner-custom::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(29, 78, 36, 0.85) 0%, rgba(76, 175, 80, 0.75) 50%, rgba(163, 207, 6, 0.65) 100%);
+        z-index: 1;
+    }
+
+    .hero-banner-custom > * {
+        position: relative;
+        z-index: 2;
+    }
+
+    .hero-banner-custom h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 16px;
+        text-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+
+    .hero-banner-custom p {
+        text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .hero-banner-custom .highlight {
+        color: var(--color-lime);
+        text-shadow: 0 4px 12px rgba(0,0,0,0.6);
+    }
+
+    /* Card Styling */
+    .card-custom {
+        border: none;
+        border-radius: 20px;
+        background: #ffffff;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        border-left: 5px solid var(--color-lime);
+    }
+
+    .card-custom:hover {
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        transform: translateY(-2px);
+    }
+
+    .card-header-custom {
+        background: linear-gradient(135deg, var(--color-lime) 0%, #b5d122 100%);
+        color: var(--color-dark);
+        border-radius: 20px 20px 0 0;
+        padding: 20px 24px;
+        border: none;
+    }
+
+    .card-header-custom h5 {
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* Form Styling */
+    .form-label-custom {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+    }
+
+    .form-control-custom, .form-select-custom {
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 10px 16px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control-custom:focus, .form-select-custom:focus {
+        border-color: var(--color-lime);
+        box-shadow: 0 0 0 0.2rem rgba(204, 232, 48, 0.15);
+    }
+
+    /* Button Styling */
+    .btn-custom-primary {
+        background: linear-gradient(135deg, var(--color-lime) 0%, #b5d122 100%);
+        color: var(--color-dark);
+        border: none;
+        font-weight: 600;
+        padding: 12px 30px;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-custom-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(204, 232, 48, 0.3);
+    }
+
+    .btn-custom-secondary {
+        border: 2px solid #e9ecef;
+        color: #6c757d;
+        background: transparent;
+        font-weight: 600;
+        padding: 10px 24px;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-custom-secondary:hover {
+        border-color: var(--color-lime);
+        color: var(--color-lime);
+        background: rgba(204, 232, 48, 0.05);
+    }
+
+    /* Tab Styling */
+    .nav-tabs-custom {
+        border: none;
+        border-bottom: 2px solid #e9ecef;
+        gap: 1rem;
+    }
+
+    .nav-link-custom {
+        color: #6c757d !important;
+        background: transparent;
+        border: none;
+        border-bottom: 3px solid transparent;
+        font-weight: 600;
+        padding: 12px 24px;
+        transition: all 0.3s ease;
+    }
+
+    .nav-link-custom:hover, .nav-link-custom.active {
+        color: var(--color-lime) !important;
+        border-bottom-color: var(--color-lime);
+    }
+
+    .nav-link-custom .icon-badge {
+        display: inline-block;
+        background: var(--color-lime);
+        color: var(--color-dark);
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 24px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        margin-right: 8px;
+    }
+
+    /* Table Styling */
+    .table-custom thead {
+        background: #f8f9fa;
+    }
+
+    .table-custom thead th {
+        border: none;
+        border-bottom: 2px solid #e9ecef;
+        color: #333;
+        font-weight: 600;
+        padding: 16px;
+    }
+
+    .table-custom tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .table-custom tbody td {
+        border: none;
+        border-bottom: 1px solid #e9ecef;
+        padding: 14px 16px;
+    }
+
+    .badge-status {
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .badge-success {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .badge-warning {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .badge-danger {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes fadeInTab {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .tab-pane {
+        animation: fadeInTab 0.4s ease-in;
+    }
+
+    /* Toast Notification */
+    .toast-container {
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        z-index: 9999;
+    }
+
+    .toast-notification {
+        min-width: 300px;
+        max-width: 400px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        margin-bottom: 15px;
+        animation: slideInRight 0.3s ease-out;
+        overflow: hidden;
+    }
+
+    .toast-notification.success {
+        border-left: 5px solid #28a745;
+    }
+
+    .toast-notification.error {
+        border-left: 5px solid #dc3545;
+    }
+
+    .toast-notification.warning {
+        border-left: 5px solid #ffc107;
+    }
+
+    .toast-notification.info {
+        border-left: 5px solid #17a2b8;
+    }
+
+    .toast-header-custom {
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .toast-body-custom {
+        padding: 12px 16px;
+        font-size: 14px;
+        color: #333;
+    }
+
+    .toast-close {
+        background: none;
+        border: none;
+        font-size: 20px;
+        color: #999;
+        cursor: pointer;
+        padding: 0;
+        width: 24px;
+        height: 24px;
+    }
+
+    @@keyframes slideInRight {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @@keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+    }
+
+    .toast-notification.hiding {
+        animation: slideOutRight 0.3s ease-in forwards;
+    }
+</style>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Hero Banner -->
+<div class="hero-banner-custom container-fluid">
+    <h1>
+        <i class="fas fa-ticket-alt me-3"></i>ĐẶT SÂN & DỊCH VỤ <span class="highlight">TRỰC TIẾP</span>
+    </h1>
+    <p class="lead text-light fs-5 opacity-90" style="text-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+            Quản lý lịch ca trực và nghỉ phép của bạn
+        </p>
+</div>
+
+<div class="container-fluid px-4 py-4">
+    <!-- Tabs Navigation -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card-custom">
+                <ul class="nav nav-tabs-custom" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link-custom active" id="tab-booking" data-bs-toggle="tab" href="#content-booking">
+                            <span class="icon-badge">1</span>
+                            <i class="fas fa-calendar-check me-2"></i>Đặt Sân
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-custom" id="tab-service" data-bs-toggle="tab" href="#content-service">
+                            <span class="icon-badge">2</span>
+                            <i class="fas fa-concierge-bell me-2"></i>Đặt Dịch Vụ
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-content">
+        <!-- Tab 1: Booking -->
+        <div id="content-booking" class="tab-pane fade show active">
+            <div class="row">
+                <!-- Search Customer -->
+                <div class="col-lg-4">
+                    <div class="card-custom">
+                        <div class="card-header-custom">
+                            <h5><i class="fas fa-search"></i>Tìm Khách Hàng</h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <label class="form-label-custom">Tìm theo tên, SDT hoặc CCCD</label>
+                            <input type="text" class="form-control-custom w-100 mb-3" id="searchInput" placeholder="Nhập thông tin">
+                            <div id="searchResults" class="search-results" style="display: none;">
+                                <div class="list-group" id="customerList"></div>
+                            </div>
+                            <button type="button" class="btn btn-custom-primary w-100 mt-3" onclick="toggleNewCustomer()">
+                                <i class="fas fa-user-plus me-2"></i>Tạo Khách Mới
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Booking Form -->
+                <div class="col-lg-8">
+                    <div class="card-custom">
+                        <div class="card-header-custom">
+                            <h5><i class="fas fa-calendar"></i>Thông Tin Đặt Sân</h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <form id="bookingForm">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label-custom">Khách Hàng <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control-custom w-100" id="customerInfo" placeholder="Chọn khách hàng" readonly>
+                                            <input type="hidden" id="maKH">
+                                            <button type="button" class="btn btn-outline-danger" onclick="clearCustomer()"><i class="fas fa-times"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label-custom">Cơ Sở <span class="text-danger">*</span></label>
+                                        <select class="form-select-custom w-100" id="maCS" onchange="loadLoaiSanByCs()">
+                                            <option value="">Chọn cơ sở</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label-custom">Loại Sân <span class="text-danger">*</span></label>
+                                        <select class="form-select-custom w-100" id="maLoaiSan" onchange="loadCourts()">
+                                            <option value="">Chọn loại sân</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label-custom">Sân <span class="text-danger">*</span></label>
+                                        <select class="form-select-custom w-100" id="maSan">
+                                            <option value="">Chọn sân</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label-custom">Ngày Đặt <span class="text-danger">*</span></label>
+                                        <input type="date" class="form-control-custom w-100" id="ngayDat">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label-custom">Từ Giờ <span class="text-danger">*</span></label>
+                                        <input type="time" class="form-control-custom w-100" id="gioBatDau">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label-custom">Đến Giờ <span class="text-danger">*</span></label>
+                                        <input type="time" class="form-control-custom w-100" id="gioKetThuc">
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-12">
+                                        <label class="form-label-custom">Ghi Chú</label>
+                                        <textarea class="form-control-custom w-100" id="ghiChu" rows="2" placeholder="Nhập ghi chú (tùy chọn)"></textarea>
+                                    </div>
+                                </div>
+
+                                <hr>
+                                <button type="button" class="btn btn-custom-primary" onclick="submitBooking()">
+                                    <i class="fas fa-save me-2"></i>Tạo Phiếu Đặt Sân
+                                </button>
+                                <button type="reset" class="btn btn-custom-secondary ms-2">
+                                    <i class="fas fa-redo me-2"></i>Làm Mới
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Bookings -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card-custom">
+                        <div class="card-header-custom">
+                            <h5><i class="fas fa-history"></i>Phiếu Đặt Gần Đây</h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="table-responsive">
+                                <table class="table table-custom">
+                                    <thead>
+                                        <tr>
+                                            <th>Mã Phiếu</th>
+                                            <th>Khách Hàng</th>
+                                            <th>Sân</th>
+                                            <th>Ngày</th>
+                                            <th>Khung Giờ</th>
+                                            <th>Trạng Thái</th>
+                                            <th>Thao Tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bookingTable">
+                                        <tr><td colspan="7" class="text-center text-muted py-4"><i class="fas fa-inbox me-2"></i>Chưa có phiếu đặt</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Services -->
+        <div id="content-service" class="tab-pane fade">
+            <div class="row">
+                <!-- Service Search -->
+                <div class="col-lg-4">
+                    <div class="card-custom">
+                        <div class="card-header-custom">
+                            <h5><i class="fas fa-search"></i>Tìm Khách Hàng</h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <label class="form-label-custom">Tìm theo tên, SDT hoặc CCCD</label>
+                            <input type="text" class="form-control-custom w-100 mb-3" id="searchInputService" placeholder="Nhập thông tin">
+                            <div id="searchResultsService" class="search-results" style="display: none;">
+                                <div class="list-group" id="customerListService"></div>
+                            </div>
+                            <button type="button" class="btn btn-custom-primary w-100 mt-3" onclick="toggleNewCustomerService()">
+                                <i class="fas fa-user-plus me-2"></i>Tạo Khách Mới
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Service Form -->
+                <div class="col-lg-8">
+                    <div class="card-custom">
+                        <div class="card-header-custom">
+                            <h5><i class="fas fa-concierge-bell"></i>Thông Tin Đặt Dịch Vụ</h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <form id="serviceForm">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label-custom">Khách Hàng <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control-custom w-100" id="customerInfoService" placeholder="Chọn khách hàng" readonly>
+                                            <input type="hidden" id="maKHService">
+                                            <button type="button" class="btn btn-outline-danger" onclick="clearCustomerService()"><i class="fas fa-times"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label-custom">Dịch Vụ <span class="text-danger">*</span></label>
+                                        <select class="form-select-custom w-100" id="maDichVu" onchange="loadServiceDetails()">
+                                            <option value="">Chọn dịch vụ</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label-custom">Số Lượng <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control-custom w-100" id="soLuongDichVu" min="1" value="1">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label-custom">Giá (đ)</label>
+                                        <input type="text" class="form-control-custom w-100" id="giaDichVu" readonly placeholder="Giá sẽ hiển thị">
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-12">
+                                        <label class="form-label-custom">Ghi Chú</label>
+                                        <textarea class="form-control-custom w-100" id="ghiChuDichVu" rows="2" placeholder="Nhập ghi chú (tùy chọn)"></textarea>
+                                    </div>
+                                </div>
+
+                                <hr>
+                                <button type="button" class="btn btn-custom-primary" onclick="submitService()">
+                                    <i class="fas fa-save me-2"></i>Tạo Phiếu Dịch Vụ
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary ms-2" onclick="skipService()">
+                                    <i class="fas fa-forward me-2"></i>Bỏ Qua Dịch Vụ
+                                </button>
+                                <button type="reset" class="btn btn-custom-secondary ms-2">
+                                    <i class="fas fa-redo me-2"></i>Làm Mới
+                                </button>
+                                
+                                <hr class="mt-4">
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-success flex-fill" onclick="printConfirmation()">
+                                        <i class="fas fa-print me-2"></i>In Phiếu Xác Nhận
+                                    </button>
+                                    <button type="button" class="btn btn-warning flex-fill" onclick="sendToCashier()">
+                                        <i class="fas fa-cash-register me-2"></i>Chuyển Cho Thu Ngân Thanh Toán
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Services -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card-custom">
+                        <div class="card-header-custom">
+                            <h5><i class="fas fa-history"></i>Phiếu Dịch Vụ Gần Đây</h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="table-responsive">
+                                <table class="table table-custom">
+                                    <thead>
+                                        <tr>
+                                            <th>Mã Phiếu</th>
+                                            <th>Khách Hàng</th>
+                                            <th>Dịch Vụ</th>
+                                            <th>SL</th>
+                                            <th>Giá</th>
+                                            <th>Trạng Thái</th>
+                                            <th>Thao Tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="serviceTable">
+                                        <tr><td colspan="7" class="text-center text-muted py-4"><i class="fas fa-inbox me-2"></i>Chưa có phiếu dịch vụ</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Customer Modal -->
+<div class="modal fade" id="createCustomerModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0">
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--color-lime) 0%, #b5d122 100%); border: none;">
+                <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i>Tạo Khách Hàng Mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="createCustomerForm">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label-custom">Họ Tên <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control-custom w-100" id="newCustomerHoTen" placeholder="Nhập họ tên">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label-custom">SDT <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control-custom w-100" id="newCustomerSDT" placeholder="Nhập SDT">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label-custom">CCCD</label>
+                            <input type="text" class="form-control-custom w-100" id="newCustomerCCCD" placeholder="Nhập CCCD">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label-custom">Email</label>
+                            <input type="email" class="form-control-custom w-100" id="newCustomerEmail" placeholder="Nhập email">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label class="form-label-custom">Địa Chỉ</label>
+                            <textarea class="form-control-custom w-100" id="newCustomerDiaChi" rows="2" placeholder="Nhập địa chỉ"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-custom-primary" id="createCustomerBtn"><i class="fas fa-check me-2"></i>Tạo</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOMContentLoaded fired - Starting initialization');
+        
+        // Set today's date in both tabs
+        if (document.getElementById('ngayDat')) {
+            document.getElementById('ngayDat').valueAsDate = new Date();
+            console.log('Date set for booking form');
+        } else {
+            console.warn('Element ngayDat not found');
+        }
+        
+        // Check if dropdown elements exist
+        console.log('Checking dropdown elements:');
+        console.log('- maCS element:', document.getElementById('maCS') ? 'EXISTS' : 'NOT FOUND');
+        console.log('- maLoaiSan element:', document.getElementById('maLoaiSan') ? 'EXISTS' : 'NOT FOUND');
+        console.log('- maSan element:', document.getElementById('maSan') ? 'EXISTS' : 'NOT FOUND');
+        console.log('- maDichVu element:', document.getElementById('maDichVu') ? 'EXISTS' : 'NOT FOUND');
+        
+        // Load all dropdowns immediately (no setTimeout)
+        console.log('Starting to load dropdowns...');
+        loadCoSo();
+        loadDichVu();
+        loadPhieuDatGanDay();
+        loadPhieuDichVuGanDay();
+
+        // Create customer button
+        if (document.getElementById('createCustomerBtn')) {
+            document.getElementById('createCustomerBtn').addEventListener('click', createNewCustomer);
+        }
+    });
+
+    // LOAD DROPDOWNS
+    function loadCoSo() {
+        console.log('loadCoSo() called - fetching facilities...');
+        fetch('@Url.Action("LoadCoSo", "DatSanTrucTiep")')
+            .then(r => {
+                console.log('LoadCoSo response status:', r.status, r.statusText);
+                return r.json();
+            })
+            .then(d => {
+                console.log('LoadCoSo result:', d);
+                console.log('LoadCoSo d.success:', d.success);
+                console.log('LoadCoSo d.data:', d.data);
+                console.log('LoadCoSo d.data type:', typeof d.data);
+                console.log('LoadCoSo d.data length:', d.data ? d.data.length : 'undefined');
+                
+                if (d.success && d.data) {
+                    console.log('LoadCoSo data count:', d.data.length);
+                    let html = '<option value="">Chọn cơ sở</option>';
+                    d.data.forEach(i => {
+                        console.log('Adding facility:', i);
+                        html += `<option value="${i.MaCS || i.maCS}">${i.TenCS || i.tenCS}</option>`;
+                    });
+                    const el = document.getElementById('maCS');
+                    if (el) {
+                        el.innerHTML = html;
+                        console.log('✅ LoadCoSo dropdown populated successfully with', d.data.length, 'items');
+                    } else {
+                        console.error('❌ Element #maCS not found in DOM!');
+                    }
+                } else {
+                    console.error('❌ LoadCoSo failed or no data:', d);
+                    console.error('   - success:', d.success);
+                    console.error('   - data:', d.data);
+                }
+            })
+            .catch(err => {
+                console.error('❌ LoadCoSo error:', err);
+                console.error('Error details:', err.message, err.stack);
+            });
+    }
+
+    function loadLoaiSanByCs() {
+        const maCS = document.getElementById('maCS').value;
+        if (!maCS) return;
+        fetch('@Url.Action("LoadLoaiSan", "DatSanTrucTiep")')
+            .then(r => r.json())
+            .then(d => {
+                console.log('LoadLoaiSan result:', d);
+                if (d.success && d.data) {
+                    let html = '<option value="">Chọn loại sân</option>';
+                    d.data.forEach(i => html += `<option value="${i.MaLS || i.maLS}">${i.TenLS || i.tenLS}</option>`);
+                    const el = document.getElementById('maLoaiSan');
+                    if (el) el.innerHTML = html;
+                }
+            })
+            .catch(err => console.error('LoadLoaiSan error:', err));
+    }
+
+    function loadCourts() {
+        const maCS = document.getElementById('maCS').value;
+        const maLS = document.getElementById('maLoaiSan').value;
+        if (!maCS || !maLS) return;
+        fetch('@Url.Action("LoadSan", "DatSanTrucTiep")', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({maCS, maLS})
+        })
+        .then(r => r.json())
+        .then(d => {
+            console.log('LoadSan result:', d);
+            if (d.success && d.data) {
+                let html = '<option value="">Chọn sân</option>';
+                d.data.forEach(i => {
+                    const sucChua = i.SucChua || i.sucChua || 0;
+                    html += `<option value="${i.MaSan || i.maSan}">${i.TenSan || i.tenSan} (Chứa ${sucChua} người)</option>`;
+                });
+                const el = document.getElementById('maSan');
+                if (el) el.innerHTML = html;
+            }
+        })
+        .catch(err => console.error('LoadSan error:', err));
+    }
+
+    function loadDichVu() {
+        fetch('@Url.Action("LoadDichVu", "DatSanTrucTiep")')
+            .then(r => r.json())
+            .then(d => {
+                console.log('LoadDichVu result:', d);
+                if (d.success && d.data) {
+                    let html = '<option value="">Chọn dịch vụ</option>';
+                    d.data.forEach(i => html += `<option value="${i.MaDV || i.maDV}" data-gia="${i.Gia || i.gia}" data-soluong="${i.SoLuongTon || i.soLuongTon}" data-dvt="${i.DVT || i.dvt}">${i.TenDV || i.tenDV} (${i.Gia || i.gia}đ/${i.DVT || i.dvt})</option>`);
+                    const el = document.getElementById('maDichVu');
+                    if (el) el.innerHTML = html;
+                }
+            })
+            .catch(err => console.error('LoadDichVu error:', err));
+    }
+
+    function loadPhieuDatGanDay() {
+        console.log('🔍 Loading phiếu đặt gần đây...');
+        fetch('@Url.Action("LoadPhieuDatGanDay", "DatSanTrucTiep")')
+            .then(r => {
+                console.log('📥 Response status:', r.status);
+                return r.json();
+            })
+            .then(d => {
+                console.log('✅ LoadPhieuDatGanDay result:', d);
+                console.log('📊 Data:', JSON.stringify(d, null, 2));
+                
+                if (d.success && d.data && d.data.length > 0) {
+                    console.log('📋 Found', d.data.length, 'bookings');
+                    console.log('🔎 First booking:', d.data[0]);
+                    
+                    let html = '';
+                    d.data.forEach(item => {
+                        console.log('Processing item:', item);
+                        let cls = item.trangThai === 'Đã đặt' ? 'badge-success' : (item.trangThai === 'Đang sử dụng' ? 'badge-warning' : 'badge-danger');
+                        // USE CAMELCASE: maDatSan, tenKH, danhSachSan, ngayDat, gioBatDau, gioKetThuc, trangThai
+                        html += `<tr><td><strong>${item.maDatSan}</strong></td><td>${item.tenKH}</td><td>${item.danhSachSan}</td><td>${item.ngayDat}</td><td>${item.gioBatDau} - ${item.gioKetThuc}</td><td><span class="badge-status ${cls}">${item.trangThai}</span></td><td><button class="btn btn-sm btn-outline-primary">Chi tiết</button></td></tr>`;
+                    });
+                    document.getElementById('bookingTable').innerHTML = html;
+                    console.log('✅ Table updated successfully');
+                } else {
+                    console.log('⚠️ No data or empty array');
+                    document.getElementById('bookingTable').innerHTML = '<tr><td colspan="7" class="text-center text-muted">Chưa có phiếu đặt nào</td></tr>';
+                }
+            })
+            .catch(err => {
+                console.error('❌ LoadPhieuDatGanDay error:', err);
+                document.getElementById('bookingTable').innerHTML = '<tr><td colspan="7" class="text-center text-danger">Lỗi tải dữ liệu</td></tr>';
+            });
+    }
+
+    function loadPhieuDichVuGanDay() {
+        console.log('🔍 Loading phiếu dịch vụ gần đây...');
+        fetch('@Url.Action("LoadPhieuDichVuGanDay", "DatSanTrucTiep")')
+            .then(r => {
+                console.log('📥 Service response status:', r.status);
+                return r.json();
+            })
+            .then(d => {
+                console.log('✅ LoadPhieuDichVuGanDay result:', d);
+                
+                if (d.success && d.data && d.data.length > 0) {
+                    console.log('📋 Found', d.data.length, 'service orders');
+                    let html = '';
+                    d.data.forEach(item => {
+                        let cls = item.trangThai === 'Đã thanh toán' ? 'badge-success' : (item.trangThai === 'Chờ thanh toán' ? 'badge-warning' : 'badge-danger');
+                        // USE CAMELCASE: maDatDichVu, tenKhachHang, tenDichVu, soLuong, tongTien, trangThai
+                        html += `<tr><td><strong>${item.maDatDichVu}</strong></td><td>${item.tenKhachHang}</td><td>${item.tenDichVu}</td><td>${item.soLuong}</td><td>${item.tongTien}đ</td><td><span class="badge-status ${cls}">${item.trangThai}</span></td><td><button class="btn btn-sm btn-outline-primary">Chi tiết</button></td></tr>`;
+                    });
+                    document.getElementById('serviceTable').innerHTML = html;
+                    console.log('✅ Service table updated successfully');
+                } else {
+                    console.log('⚠️ No service data');
+                    document.getElementById('serviceTable').innerHTML = '<tr><td colspan="7" class="text-center text-muted">Chưa có phiếu dịch vụ nào</td></tr>';
+                }
+            })
+            .catch(err => {
+                console.error('❌ LoadPhieuDichVuGanDay error:', err);
+                document.getElementById('serviceTable').innerHTML = '<tr><td colspan="7" class="text-center text-danger">Lỗi tải dữ liệu</td></tr>';
+            });
+    }
+
+    // CUSTOMER SEARCH
+    let searchTimeout;
+    if (document.getElementById('searchInput')) {
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            clearTimeout(searchTimeout);
+            const keyword = e.target.value.trim();
+            if (keyword.length < 2) {
+                document.getElementById('searchResults').style.display = 'none';
+                return;
+            }
+            searchTimeout = setTimeout(() => {
+                const url = new URL('@Url.Action("TimKhachHang", "DatSanTrucTiep")', window.location.origin);
+                url.searchParams.append('tuKhoa', keyword);
+                
+                fetch(url, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+                })
+                .then(r => r.json())
+                .then(d => {
+                    console.log('Search result:', d);
+                    if (d.success && d.data && d.data.length > 0) {
+                        let html = '';
+                        d.data.forEach(c => {
+                            // support different casing from backend (MaKH / maKH, HoTen / hoTen, SDT / sdt)
+                            const maKH = c.MaKH || c.maKH || '';
+                            const hoTen = c.HoTen || c.hoTen || 'Không rõ';
+                            const sdt = c.SDT || c.sdt || 'Chưa có';
+                            const cccd = c.CCCD || c.cccd || '';
+                            html += `<button type="button" class="list-group-item list-group-item-action" onclick="selectCustomer('${maKH}', '${hoTen}', '${sdt}')"><strong>${hoTen}</strong><br><small class="text-muted">${sdt}${cccd ? ' | ' + cccd : ''}</small></button>`;
+                        });
+                        document.getElementById('customerList').innerHTML = html;
+                        document.getElementById('searchResults').style.display = 'block';
+                    } else {
+                        document.getElementById('customerList').innerHTML = '<div class="alert alert-info mb-0">Không tìm thấy</div>';
+                        document.getElementById('searchResults').style.display = 'block';
+                    }
+                })
+                .catch(err => {
+                    console.error('Search error:', err);
+                    document.getElementById('customerList').innerHTML = '<div class="alert alert-danger mb-0">Lỗi tìm kiếm</div>';
+                });
+            }, 300);
+        });
+    }
+
+    function selectCustomer(maKH, hoTen, sdt) {
+        document.getElementById('maKH').value = maKH;
+        document.getElementById('customerInfo').value = hoTen + ' (' + sdt + ')';
+        document.getElementById('searchResults').style.display = 'none';
+        document.getElementById('searchInput').value = '';
+    }
+
+    function clearCustomer() {
+        document.getElementById('maKH').value = '';
+        document.getElementById('customerInfo').value = '';
+    }
+
+    function toggleNewCustomer() {
+        new bootstrap.Modal(document.getElementById('createCustomerModal')).show();
+    }
+
+    function createNewCustomer() {
+        const hoTen = document.getElementById('newCustomerHoTen').value;
+        const sdt = document.getElementById('newCustomerSDT').value;
+        if (!hoTen || !sdt) {
+            showNotification('Vui lòng nhập họ tên và SDT!', 'warning');
+            return;
+        }
+        fetch('@Url.Action("TaoKhachHang", "DatSanTrucTiep")', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                hoTen,
+                sdt,
+                cccd: document.getElementById('newCustomerCCCD').value,
+                email: document.getElementById('newCustomerEmail').value,
+                diaChi: document.getElementById('newCustomerDiaChi').value
+            })
+        })
+        .then(r => r.json())
+        .then(d => {
+            if (d.success) {
+                showNotification(d.message || 'Tạo khách hàng mới thành công!', 'success');
+                const maKH = d.maKH || d.MaKH || '';
+                const hoTen = d.hoTen || d.hoTen || d.hoTen || '';
+                const sdt = d.sdt || d.SDT || '';
+                selectCustomer(maKH, hoTen || d.hoTen || d.HoTen || '', sdt);
+                document.getElementById('createCustomerForm').reset();
+                bootstrap.Modal.getInstance(document.getElementById('createCustomerModal')).hide();
+            } else {
+                showNotification(d.message || 'Lỗi khi tạo khách hàng', 'error');
+            }
+        })
+        .catch(err => {
+            showNotification('Lỗi kết nối: ' + err.message, 'error');
+        });
+    }
+
+    // NOTIFICATION SYSTEM
+    function showNotification(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast-notification ${type}`;
+        
+        const icons = {
+            success: 'fa-check-circle',
+            error: 'fa-exclamation-circle',
+            warning: 'fa-exclamation-triangle',
+            info: 'fa-info-circle'
+        };
+        
+        const titles = {
+            success: 'Thành công',
+            error: 'Lỗi',
+            warning: 'Cảnh báo',
+            info: 'Thông báo'
+        };
+        
+        toast.innerHTML = `
+            <div class="toast-header-custom">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fas ${icons[type]}" style="font-size: 18px;"></i>
+                    <strong>${titles[type]}</strong>
+                </div>
+                <button class="toast-close" onclick="this.closest('.toast-notification').remove()">×</button>
+            </div>
+            <div class="toast-body-custom">${message}</div>
+        `;
+        
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.classList.add('hiding');
+            setTimeout(() => toast.remove(), 300);
+        }, 5000);
+    }
+
+    // BOOKING FUNCTIONS
+    function submitBooking() {
+        const maKH = document.getElementById('maKH').value.trim();
+        const maCS = document.getElementById('maCS').value;
+        const maLoaiSan = document.getElementById('maLoaiSan').value;
+        const maSan = document.getElementById('maSan').value;
+        const ngayDat = document.getElementById('ngayDat').value;
+        const gioBatDau = document.getElementById('gioBatDau').value;
+        const gioKetThuc = document.getElementById('gioKetThuc').value;
+        
+        // DEBUG: Hiển thị giá trị của tất cả field
+        console.log('submitBooking - Values:', {
+            maKH: maKH || 'EMPTY',
+            maCS: maCS || 'EMPTY',
+            maLoaiSan: maLoaiSan || 'EMPTY',
+            maSan: maSan || 'EMPTY',
+            ngayDat: ngayDat || 'EMPTY',
+            gioBatDau: gioBatDau || 'EMPTY',
+            gioKetThuc: gioKetThuc || 'EMPTY'
+        });
+        
+        // Validation từng trường rõ ràng
+        if (!maKH || maKH === '') {
+            showNotification('Vui lòng chọn khách hàng!', 'warning');
+            document.getElementById('searchInput').focus();
+            return;
+        }
+        if (!maCS || maCS === '') {
+            showNotification('Vui lòng chọn cơ sở!', 'warning');
+            document.getElementById('maCS').focus();
+            return;
+        }
+        if (!maLoaiSan || maLoaiSan === '') {
+            showNotification('Vui lòng chọn loại sân!', 'warning');
+            document.getElementById('maLoaiSan').focus();
+            return;
+        }
+        if (!maSan || maSan === '') {
+            showNotification('Vui lòng chọn sân!', 'warning');
+            document.getElementById('maSan').focus();
+            return;
+        }
+        if (!ngayDat) {
+            showNotification('Vui lòng chọn ngày đặt!', 'warning');
+            document.getElementById('ngayDat').focus();
+            return;
+        }
+        if (!gioBatDau) {
+            showNotification('Vui lòng chọn giờ bắt đầu!', 'warning');
+            document.getElementById('gioBatDau').focus();
+            return;
+        }
+        if (!gioKetThuc) {
+            showNotification('Vui lòng chọn giờ kết thúc!', 'warning');
+            document.getElementById('gioKetThuc').focus();
+            return;
+        }
+
+        // VALIDATION: Kiểm tra thời lượng theo loại sân
+        const loaiSanSelect = document.getElementById('maLoaiSan');
+        const loaiSanText = loaiSanSelect.options[loaiSanSelect.selectedIndex]?.text || '';
+        const loaiSanLower = loaiSanText.toLowerCase();
+        
+        const startTime = new Date(`${ngayDat}T${gioBatDau}`);
+        const endTime = new Date(`${ngayDat}T${gioKetThuc}`);
+        const durationMinutes = (endTime - startTime) / (1000 * 60);
+        
+        if (durationMinutes <= 0) {
+            showNotification('Giờ kết thúc phải sau giờ bắt đầu!', 'error');
+            return;
+        }
+        
+        // Kiểm tra bội số theo loại sân
+        if (loaiSanLower.includes('bóng đá') || loaiSanLower.includes('futsal')) {
+            if (durationMinutes % 90 !== 0 || durationMinutes < 90) {
+                showNotification(`Sân bóng đá mini phải đặt theo bội số 90 phút (1 trận = 90p)!<br>Thời lượng hiện tại: ${durationMinutes} phút.`, 'error');
+                return;
+            }
+        } else if (loaiSanLower.includes('tennis')) {
+            if (durationMinutes % 120 !== 0 || durationMinutes < 120) {
+                showNotification(`Sân Tennis phải đặt theo ca 2 giờ (120 phút)!<br>Thời lượng hiện tại: ${durationMinutes} phút.`, 'error');
+                return;
+            }
+        } else if (loaiSanLower.includes('cầu lông') || loaiSanLower.includes('bóng rổ')) {
+            if (durationMinutes % 60 !== 0 || durationMinutes < 60) {
+                showNotification(`Sân ${loaiSanText} phải đặt theo bội số 1 giờ (60 phút)!<br>Thời lượng hiện tại: ${durationMinutes} phút.`, 'error');
+                return;
+            }
+        }
+        
+        fetch('@Url.Action("TaoPhieuDat", "DatSanTrucTiep")', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({maKH, maSan, ngayDat, gioBatDau, gioKetThuc, ghiChu: document.getElementById('ghiChu').value})
+        })
+        .then(r => r.json())
+        .then(d => {
+            if (d.success && d.data) {
+                showNotification(d.message || 'Tạo phiếu đặt sân thành công!', 'success');
+                
+                // Store booking data globally
+                window.currentBooking = d.data;
+                
+                // Auto switch to service tab
+                const serviceTab = document.getElementById('tab-service');
+                const bookingTab = document.getElementById('tab-booking');
+                
+                // Activate service tab
+                serviceTab.click();
+                
+                // Load customer info into service form (readonly)
+                document.getElementById('customerInfoService').value = `${d.data.tenKH} (${d.data.sdtKH})`;
+                document.getElementById('maKHService').value = d.data.maKH;
+                
+                // Disable customer selection in service tab
+                document.getElementById('searchInputService').disabled = true;
+                
+                // Load services based on facility and court type
+                loadDichVuByCoSoVaLoaiSan(d.data.maCoSo, d.data.maLoaiSan);
+                
+                // Reset booking form
+                document.getElementById('bookingForm').reset();
+                clearCustomer();
+                loadPhieuDatGanDay();
+            } else {
+                showNotification(d.message || 'Có lỗi xảy ra khi tạo phiếu đặt sân', 'error');
+            }
+        })
+        .catch(err => {
+            showNotification('Lỗi kết nối: ' + err.message, 'error');
+        });
+    }
+    
+    // Load services based on facility and court type
+    function loadDichVuByCoSoVaLoaiSan(maCS, maLS) {
+        const url = '@Url.Action("LoadDichVu", "DatSanTrucTiep")?maCS=' + maCS + '&maLS=' + maLS;
+        
+        fetch(url)
+        .then(r => r.json())
+        .then(d => {
+            const select = document.getElementById('maDichVu');
+            select.innerHTML = '<option value="">Chọn dịch vụ</option>';
+            
+            if (d.success && d.data) {
+                d.data.forEach(dv => {
+                    const option = document.createElement('option');
+                    option.value = dv.MaDV || dv.maDV;
+                    option.textContent = `${dv.TenDV || dv.tenDV} - ${formatCurrency(dv.Gia || dv.gia)}/${dv.DVT || dv.dvt} (Còn: ${dv.SoLuongTon || dv.soLuongTon})`;
+                    option.dataset.gia = dv.Gia || dv.gia;
+                    option.dataset.soLuongTon = dv.SoLuongTon || dv.soLuongTon;
+                    select.appendChild(option);
+                });
+                showNotification('Đã tải danh sách dịch vụ phù hợp!', 'info');
+            } else {
+                showNotification('Không có dịch vụ phù hợp!', 'warning');
+            }
+        })
+        .catch(err => {
+            showNotification('Lỗi tải dịch vụ: ' + err.message, 'error');
+        });
+    }
+    
+    // Helper function to format currency
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+    }
+    
+    // Load service details when selected
+    function loadServiceDetails() {
+        const select = document.getElementById('maDichVu');
+        const selectedOption = select.options[select.selectedIndex];
+        
+        if (selectedOption.value) {
+            document.getElementById('giaDichVu').value = formatCurrency(selectedOption.dataset.gia);
+        } else {
+            document.getElementById('giaDichVu').value = '';
+        }
+    }
+    
+    // Submit service
+    function submitService() {
+        if (!window.currentBooking) {
+            showNotification('Vui lòng đặt sân trước!', 'warning');
+            return;
+        }
+        
+        const maDV = document.getElementById('maDichVu').value;
+        const soLuong = document.getElementById('soLuongDichVu').value;
+        const ghiChu = document.getElementById('ghiChuDichVu').value;
+        
+        if (!maDV || !soLuong || soLuong <= 0) {
+            showNotification('Vui lòng chọn dịch vụ và nhập số lượng!', 'warning');
+            return;
+        }
+        
+        // Check stock
+        const select = document.getElementById('maDichVu');
+        const selectedOption = select.options[select.selectedIndex];
+        const soLuongTon = parseInt(selectedOption.dataset.soLuongTon);
+        
+        if (parseInt(soLuong) > soLuongTon) {
+            showNotification(`Số lượng vượt quá tồn kho! Còn lại: ${soLuongTon}`, 'error');
+            return;
+        }
+        
+        fetch('@Url.Action("TaoPhieuDichVu", "DatSanTrucTiep")', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                maDatSan: window.currentBooking.maDatSan.toString(),
+                maDV,
+                soLuong,
+                ghiChu
+            })
+        })
+        .then(r => r.json())
+        .then(d => {
+            if (d.success) {
+                showNotification(d.message || 'Thêm dịch vụ thành công!', 'success');
+                
+                // Reset form
+                document.getElementById('serviceForm').reset();
+                document.getElementById('giaDichVu').value = '';
+                
+                // Reload services to update stock
+                loadDichVuByCoSoVaLoaiSan(window.currentBooking.maCoSo, window.currentBooking.maLoaiSan);
+            } else {
+                showNotification(d.message || 'Có lỗi xảy ra', 'error');
+            }
+        })
+        .catch(err => {
+            showNotification('Lỗi kết nối: ' + err.message, 'error');
+        });
+    }
+    
+    // Clear service customer (not allowed since it's from booking)
+    function clearCustomerService() {
+        showNotification('Không thể xóa thông tin khách hàng từ phiếu đặt sân!', 'warning');
+    }
+    
+    // Skip service - proceed to confirmation
+    function skipService() {
+        if (!window.currentBooking) {
+            showNotification('Vui lòng đặt sân trước!', 'warning');
+            return;
+        }
+        
+        showNotification('Đã bỏ qua đặt dịch vụ. Có thể in phiếu xác nhận hoặc chuyển cho thu ngân!', 'info');
+    }
+    
+    // Print confirmation slip
+    function printConfirmation() {
+        if (!window.currentBooking) {
+            showNotification('Vui lòng đặt sân trước!', 'warning');
+            return;
+        }
+        
+        // Open print view in new window
+        const printUrl = '@Url.Action("PrintConfirmation", "DatSanTrucTiep")?maDatSan=' + window.currentBooking.maDatSan;
+        window.open(printUrl, '_blank', 'width=800,height=600');
+        showNotification('Đang mở cửa sổ in phiếu...', 'info');
+    }
+    
+    // Send to cashier for payment
+    function sendToCashier() {
+        if (!window.currentBooking) {
+            showNotification('Vui lòng đặt sân trước!', 'warning');
+            return;
+        }
+        
+        if (!confirm('Xác nhận chuyển phiếu đặt sân cho thu ngân thanh toán?')) {
+            return;
+        }
+        
+        fetch('@Url.Action("ChuyenThuNgan", "DatSanTrucTiep")', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({maDatSan: window.currentBooking.maDatSan.toString()})
+        })
+        .then(r => r.json())
+        .then(d => {
+            if (d.success) {
+                showNotification('Đã chuyển cho thu ngân thanh toán thành công!', 'success');
+                
+                // Reset form and booking context
+                window.currentBooking = null;
+                document.getElementById('bookingForm').reset();
+                document.getElementById('serviceForm').reset();
+                clearCustomer();
+                
+                // Switch back to booking tab
+                document.getElementById('tab-booking').click();
+                
+                // Enable customer search in service tab again
+                document.getElementById('searchInputService').disabled = false;
+                document.getElementById('customerInfoService').value = '';
+                document.getElementById('maKHService').value = '';
+                
+                // Refresh recent bookings
+                loadPhieuDatGanDay();
+            } else {
+                showNotification(d.message || 'Có lỗi xảy ra', 'error');
+            }
+        })
+        .catch(err => {
+            showNotification('Lỗi kết nối: ' + err.message, 'error');
+        });
+    }
+
+    // SERVICE FUNCTIONS
+    let searchTimeoutService;
+    const searchInputServiceEl = document.getElementById('searchInputService');
+    if (searchInputServiceEl) {
+        searchInputServiceEl.addEventListener('input', function(e) {
+            clearTimeout(searchTimeoutService);
+            const keyword = e.target.value.trim();
+            if (keyword.length < 2) {
+                document.getElementById('searchResultsService').style.display = 'none';
+                return;
+            }
+            searchTimeoutService = setTimeout(() => {
+                const url = new URL('@Url.Action("TimKhachHang", "DatSanTrucTiep")', window.location.origin);
+                url.searchParams.append('tuKhoa', keyword);
+                
+                fetch(url, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+                })
+                .then(r => r.json())
+                .then(d => {
+                    console.log('Search service result:', d);
+                    if (d.success && d.data && d.data.length > 0) {
+                        let html = '';
+                        d.data.forEach(c => {
+                            const maKH = c.MaKH || c.maKH || '';
+                            const hoTen = c.HoTen || c.hoTen || 'Không rõ';
+                            const sdt = c.SDT || c.sdt || 'Chưa có';
+                            const cccd = c.CCCD || c.cccd || '';
+                            html += `<button type="button" class="list-group-item list-group-item-action" onclick="selectCustomerService('${maKH}', '${hoTen}', '${sdt}')"><strong>${hoTen}</strong><br><small class="text-muted">${sdt}${cccd ? ' | ' + cccd : ''}</small></button>`;
+                        });
+                        document.getElementById('customerListService').innerHTML = html;
+                        document.getElementById('searchResultsService').style.display = 'block';
+                    } else {
+                        document.getElementById('customerListService').innerHTML = '<div class="alert alert-info mb-0">Không tìm thấy</div>';
+                        document.getElementById('searchResultsService').style.display = 'block';
+                    }
+                })
+                .catch(err => console.error('Search service error:', err));
+            }, 300);
+        });
+    }
+
+    function selectCustomerService(maKH, hoTen, sdt) {
+        document.getElementById('maKHService').value = maKH;
+        document.getElementById('customerInfoService').value = hoTen + ' (' + sdt + ')';
+        document.getElementById('searchResultsService').style.display = 'none';
+        document.getElementById('searchInputService').value = '';
+    }
+
+    function clearCustomerService() {
+        document.getElementById('maKHService').value = '';
+        document.getElementById('customerInfoService').value = '';
+    }
+
+    function toggleNewCustomerService() {
+        new bootstrap.Modal(document.getElementById('createCustomerModal')).show();
+    }
+
+    function loadServiceDetails() {
+        const maDichVu = document.getElementById('maDichVu').value;
+        const option = document.querySelector(`#maDichVu option[value="${maDichVu}"]`);
+        if (option) {
+            const gia = option.getAttribute('data-gia');
+            document.getElementById('giaDichVu').value = gia + 'đ';
+        }
+    }
+
+    function submitService() {
+        const maKH = document.getElementById('maKHService').value;
+        const maDichVu = document.getElementById('maDichVu').value;
+        const soLuong = parseInt(document.getElementById('soLuongDichVu').value);
+        if (!maKH || !maDichVu || !soLuong) {
+            showNotification('Vui lòng điền đủ thông tin!', 'warning');
+            return;
+        }
+        fetch('@Url.Action("TaoPhieuDichVu", "DatSanTrucTiep")', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({maKH, maDichVu, soLuong, ghiChu: document.getElementById('ghiChuDichVu').value})
+        })
+        .then(r => r.json())
+        .then(d => {
+            if (d.success) {
+                showNotification(d.message || 'Tạo phiếu dịch vụ thành công!', 'success');
+                document.getElementById('serviceForm').reset();
+                clearCustomerService();
+                loadPhieuDichVuGanDay();
+            } else {
+                showNotification(d.message || 'Có lỗi xảy ra khi tạo phiếu dịch vụ', 'error');
+            }
+        })
+        .catch(err => {
+            showNotification('Lỗi kết nối: ' + err.message, 'error');
+        });
+    }
+</script>

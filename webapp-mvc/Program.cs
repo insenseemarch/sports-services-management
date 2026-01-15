@@ -25,6 +25,8 @@ builder.Services.AddScoped<DatabaseHelper>();
 builder.Services.AddHostedService<AutoCancelService>();
 
 var app = builder.Build();
+app.UseDeveloperExceptionPage();
+
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

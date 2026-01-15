@@ -1,0 +1,479 @@
+@{
+    ViewData["Title"] = "Lịch Làm Việc";
+}
+
+<style>
+    .tab-custom {
+        border: none;
+        border-bottom: 3px solid transparent;
+        color: #6c757d;
+        font-weight: 600;
+        padding: 12px 24px;
+        transition: all 0.3s ease;
+    }
+    .tab-custom:hover {
+        border-bottom-color: #a3cf06;
+        color: #2d3e50;
+    }
+    .tab-custom.active {
+        border-bottom-color: #a3cf06;
+        color: #2d3e50;
+        background: transparent;
+    }
+    .badge-status {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border-radius: 6px;
+    }
+    .badge-success { background: #10b981; color: white; }
+    .badge-warning { background: #f59e0b; color: white; }
+    .badge-danger { background: #ef4444; color: white; }
+    .badge-info { background: #3b82f6; color: white; }
+    .shift-card {
+        transition: all 0.3s ease;
+        border-left: 5px solid #a3cf06;
+    }
+    .shift-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15) !important;
+    }
+</style>
+
+<!-- Hero Section -->
+<div class="position-relative w-100 d-flex align-items-center justify-content-center mb-4" 
+     style="height: 400px; background: url('https://images.unsplash.com/photo-1461896836934-ffe607ba8211?q=80&w=1920&auto=format&fit=crop') center/cover no-repeat; padding-top: 85px; z-index: 1;">
+    <!-- Green Gradient Overlay -->
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(135deg, rgba(29, 78, 36, 0.85) 0%, rgba(76, 175, 80, 0.75) 50%, rgba(163, 207, 6, 0.65) 100%);"></div>
+    
+    <div class="text-center position-relative px-3" style="z-index: 2;">
+        <h1 class="display-3 fw-bold text-white mb-3" style="text-shadow: 0 4px 12px rgba(0,0,0,0.4);">
+            <i class="fas fa-calendar-alt me-3"></i>LỊCH LÀM VIỆC
+        </h1>
+        <p class="lead text-light fs-5 opacity-90" style="text-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+            Quản lý lịch ca trực và nghỉ phép của bạn
+        </p>
+    </div>
+</div>
+
+<div class="container py-4">
+    
+    <!-- Tabs Navigation -->
+    <div class="card border-0 mb-4 shadow-sm" style="border-radius: 20px; border: 5px solid #a3cf06;">
+        <div class="card-body p-3">
+            <ul class="nav nav-tabs border-0" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link tab-custom active" data-bs-toggle="tab" data-bs-target="#lichCaTruc">
+                        <i class="fas fa-calendar-check me-2"></i>Lịch Ca Trực
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link tab-custom" data-bs-toggle="tab" data-bs-target="#dangKyCa">
+                        <i class="fas fa-user-plus me-2"></i>Đăng Ký Ca Trực
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link tab-custom" data-bs-toggle="tab" data-bs-target="#xinNghiPhep">
+                        <i class="fas fa-file-medical me-2"></i>Xin Nghỉ Phép
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link tab-custom" data-bs-toggle="tab" data-bs-target="#lichSuNghiPhep">
+                        <i class="fas fa-history me-2"></i>Lịch Sử Nghỉ Phép
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Tab Contents -->
+    <div class="tab-content">
+        
+        <!-- Tab 1: Lịch Ca Trực -->
+        <div class="tab-pane fade show active" id="lichCaTruc">
+            <!-- Filter -->
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px;">
+                <div class="card-body p-4">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-secondary small">
+                                <i class="fas fa-calendar-day me-1 text-primary"></i>TỪ NGÀY
+                            </label>
+                            <input type="date" id="fromDate" class="form-control py-2" style="border-radius: 10px;" value="@DateTime.Now.ToString("yyyy-MM-dd")">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-secondary small">
+                                <i class="fas fa-calendar-day me-1 text-danger"></i>ĐẾN NGÀY
+                            </label>
+                            <input type="date" id="toDate" class="form-control py-2" style="border-radius: 10px;" value="@DateTime.Now.AddDays(30).ToString("yyyy-MM-dd")">
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn w-100 py-2 fw-bold shadow" 
+                                    style="background: var(--color-lime); color: var(--color-dark); border-radius: 10px;" 
+                                    onclick="loadLichCaTruc()">
+                                <i class="fas fa-search me-2"></i>LỌC
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schedule Table -->
+            <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead style="background: #f8f9fa;">
+                                <tr>
+                                    <th class="px-4 py-3 fw-bold">Ngày Trực</th>
+                                    <th class="px-4 py-3 fw-bold">Khung Giờ</th>
+                                    <th class="px-4 py-3 fw-bold">Cơ Sở</th>
+                                    <th class="px-4 py-3 fw-bold">Phụ Cấp</th>
+                                    <th class="px-4 py-3 fw-bold">Người Quản Lý</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scheduleTableBody">
+                                <tr>
+                                    <td colspan="5" class="text-center py-5">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <p class="text-muted mt-2">Đang tải dữ liệu...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Đăng Ký Ca Trực -->
+        <div class="tab-pane fade" id="dangKyCa">
+            <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4">
+                        <i class="fas fa-clipboard-list me-2 text-success"></i>Ca Trực Có Thể Đăng Ký
+                    </h5>
+                    <div id="availableShiftsContainer">
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="text-muted mt-2">Đang tải ca trực khả dụng...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Xin Nghỉ Phép -->
+        <div class="tab-pane fade" id="xinNghiPhep">
+            <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4">
+                        <i class="fas fa-file-medical me-2 text-warning"></i>Đơn Xin Nghỉ Phép
+                    </h5>
+                    <form id="formXinNghiPhep">
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">Ca Trực <span class="text-danger">*</span></label>
+                                <select name="CaNghi" id="selectCaNghi" class="form-select py-2" required>
+                                    <option value="">-- Chọn ca trực của bạn --</option>
+                                </select>
+                                <small class="text-muted">Chỉ hiển thị các ca trực của bạn trong thời gian sắp tới</small>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">Người Thay Thế</label>
+                                <select name="NguoiThayThe" id="selectNguoiThayThe" class="form-select py-2">
+                                    <option value="">-- Chọn người thay thế (tùy chọn) --</option>
+                                </select>
+                                <small class="text-muted">Danh sách nhân viên không bị trùng lịch trong ca trực này</small>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">Lý Do <span class="text-danger">*</span></label>
+                                <textarea name="LyDo" class="form-control" rows="4" required placeholder="Nhập lý do xin nghỉ phép..."></textarea>
+                            </div>
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-lg w-100 fw-bold shadow" 
+                                        style="background: var(--color-lime); color: var(--color-dark); border-radius: 10px;">
+                                    <i class="fas fa-paper-plane me-2"></i>GỬI ĐƠN XIN NGHỈ
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 4: Lịch Sử Nghỉ Phép -->
+        <div class="tab-pane fade" id="lichSuNghiPhep">
+            <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead style="background: #f8f9fa;">
+                                <tr>
+                                    <th class="px-4 py-3 fw-bold">Mã Đơn</th>
+                                    <th class="px-4 py-3 fw-bold">Ngày Nghỉ</th>
+                                    <th class="px-4 py-3 fw-bold">Ca Trực</th>
+                                    <th class="px-4 py-3 fw-bold">Lý Do</th>
+                                    <th class="px-4 py-3 fw-bold">Người Thay Thế</th>
+                                    <th class="px-4 py-3 fw-bold">Trạng Thái</th>
+                                    <th class="px-4 py-3 fw-bold">Ngày Duyệt</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaveHistoryTableBody">
+                                <tr>
+                                    <td colspan="7" class="text-center py-5">
+                                        <div class="spinner-border text-primary" role="status"></div>
+                                        <p class="text-muted mt-2">Đang tải lịch sử...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Load initial data
+            loadLichCaTruc();
+            loadAvailableShifts();
+            loadLeaveHistory();
+            loadShiftsForLeave();
+
+            // Handle leave request form
+            $('#formXinNghiPhep').on('submit', function(e) {
+                e.preventDefault();
+                submitLeaveRequest();
+            });
+
+            // Load available staff when shift is selected
+            $('#selectCaNghi').on('change', function() {
+                const maCaTruc = $(this).val();
+                console.log('Ca truc selected:', maCaTruc);
+                if (maCaTruc) {
+                    console.log('Calling loadStaffForReplacement with maCaTruc:', maCaTruc);
+                    loadStaffForReplacement(maCaTruc);
+                } else {
+                    $('#selectNguoiThayThe').html('<option value="">-- Chọn người thay thế (tùy chọn) --</option>');
+                }
+            });
+        });
+
+        function loadLichCaTruc() {
+            var fromDate = $('#fromDate').val();
+            var toDate = $('#toDate').val();
+            
+            fetch(`@Url.Action("GetMySchedule", "LichLamViec")?fromDate=${fromDate}&toDate=${toDate}`)
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success && d.data && d.data.length > 0) {
+                        let html = '';
+                        d.data.forEach(item => {
+                            html += `<tr class="align-middle">
+                                <td class="px-4 py-3"><strong>${item.ngayTruc}</strong></td>
+                                <td class="px-4 py-3"><span class="badge-status badge-info">${item.gioTruc}</span></td>
+                                <td class="px-4 py-3">${item.tenCoSo}</td>
+                                <td class="px-4 py-3"><strong class="text-success">${item.phuCap}đ</strong></td>
+                                <td class="px-4 py-3">${item.nguoiQuanLy}</td>
+                            </tr>`;
+                        });
+                        $('#scheduleTableBody').html(html);
+                    } else {
+                        $('#scheduleTableBody').html('<tr><td colspan="5" class="text-center py-5 text-muted">Không có ca trực nào trong khoảng thời gian này</td></tr>');
+                    }
+                })
+                .catch(err => {
+                    console.error('Error loading schedule:', err);
+                    $('#scheduleTableBody').html('<tr><td colspan="5" class="text-center py-5 text-danger">Lỗi tải dữ liệu</td></tr>');
+                });
+        }
+
+        function loadAvailableShifts() {
+            fetch('@Url.Action("GetAvailableShifts", "LichLamViec")')
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success && d.data && d.data.length > 0) {
+                        let html = '<div class="row g-3">';
+                        d.data.forEach(item => {
+                            html += `<div class="col-md-6">
+                                <div class="card shift-card border-0 shadow-sm h-100">
+                                    <div class="card-body p-4">
+                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                            <div>
+                                                <h6 class="fw-bold mb-1">${item.ngayTruc}</h6>
+                                                <span class="badge-status badge-info">${item.gioTruc}</span>
+                                            </div>
+                                            <span class="badge bg-light text-dark">${item.soNhanVienHienTai}/${item.soNhanVienCanThiet}</span>
+                                        </div>
+                                        <p class="text-secondary small mb-3">
+                                            <i class="fas fa-map-marker-alt me-2 text-warning"></i>${item.tenCoSo}
+                                        </p>
+                                        <button class="btn btn-sm w-100 fw-bold" 
+                                                style="background: var(--color-lime); color: var(--color-dark);"
+                                                onclick="registerShift(${item.maCaTruc})">
+                                            <i class="fas fa-check me-2"></i>ĐĂNG KÝ
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>`;
+                        });
+                        html += '</div>';
+                        $('#availableShiftsContainer').html(html);
+                    } else {
+                        $('#availableShiftsContainer').html('<div class="alert alert-info"><i class="fas fa-info-circle me-2"></i>Hiện không có ca trực nào cần thêm nhân viên</div>');
+                    }
+                })
+                .catch(err => {
+                    console.error('Error loading shifts:', err);
+                    $('#availableShiftsContainer').html('<div class="alert alert-danger">Lỗi tải dữ liệu</div>');
+                });
+        }
+
+        function loadLeaveHistory() {
+            fetch('@Url.Action("GetLeaveHistory", "LichLamViec")')
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success && d.data && d.data.length > 0) {
+                        let html = '';
+                        d.data.forEach(item => {
+                            let statusClass = item.trangThai === 'Đã duyệt' ? 'badge-success' : 
+                                            (item.trangThai === 'Chờ duyệt' ? 'badge-warning' : 'badge-danger');
+                            html += `<tr class="align-middle">
+                                <td class="px-4 py-3"><strong>${item.maDon}</strong></td>
+                                <td class="px-4 py-3">${item.ngayNghi}</td>
+                                <td class="px-4 py-3"><span class="badge-status badge-info">${item.gioTruc || 'N/A'}</span></td>
+                                <td class="px-4 py-3">${item.lyDo}</td>
+                                <td class="px-4 py-3">${item.nguoiThayThe || '<em class="text-muted">Chưa có</em>'}</td>
+                                <td class="px-4 py-3"><span class="badge-status ${statusClass}">${item.trangThai}</span></td>
+                                <td class="px-4 py-3">${item.ngayDuyet || '<em class="text-muted">Chưa duyệt</em>'}</td>
+                            </tr>`;
+                        });
+                        $('#leaveHistoryTableBody').html(html);
+                    } else {
+                        $('#leaveHistoryTableBody').html('<tr><td colspan="7" class="text-center py-5 text-muted">Chưa có đơn nghỉ phép nào</td></tr>');
+                    }
+                })
+                .catch(err => {
+                    console.error('Error loading leave history:', err);
+                    $('#leaveHistoryTableBody').html('<tr><td colspan="7" class="text-center py-5 text-danger">Lỗi tải dữ liệu</td></tr>');
+                });
+        }
+
+        function loadShiftsForLeave() {
+            console.log('Loading shifts for leave request...');
+            fetch('@Url.Action("GetMyUpcomingShifts", "LichLamViec")')
+                .then(r => r.json())
+                .then(d => {
+                    console.log('Shifts loaded:', d);
+                    if (d.success && d.data) {
+                        let html = '<option value="">-- Chọn ca trực của bạn --</option>';
+                        d.data.forEach(item => {
+                            html += `<option value="${item.maCaTruc}">${item.ngayTruc} - ${item.gioTruc} (${item.tenCoSo})</option>`;
+                        });
+                        $('select[name="CaNghi"]').html(html);
+                        console.log('Loaded', d.data.length, 'shifts into dropdown');
+                    } else {
+                        console.error('Failed to load shifts:', d.message);
+                    }
+                })
+                .catch(err => console.error('Error loading shifts:', err));
+        }
+
+        function loadStaffForReplacement(maCaTruc) {
+            const url = maCaTruc 
+                ? `@Url.Action("GetStaffForReplacement", "LichLamViec")?maCaTruc=${maCaTruc}`
+                : '@Url.Action("GetStaffForReplacement", "LichLamViec")';
+            
+            console.log('Loading staff for replacement, URL:', url);
+            
+            fetch(url)
+                .then(r => {
+                    console.log('Response status:', r.status);
+                    return r.json();
+                })
+                .then(d => {
+                    console.log('Staff data received:', d);
+                    if (d.success && d.data) {
+                        let html = '<option value="">-- Chọn người thay thế (tùy chọn) --</option>';
+                        d.data.forEach(item => {
+                            html += `<option value="${item.maNV}">${item.hoTen} - ${item.chucVu}</option>`;
+                        });
+                        $('select[name="NguoiThayThe"]').html(html);
+                        console.log('Updated dropdown with', d.data.length, 'staff members');
+                        
+                        if (d.data.length === 0) {
+                            $('select[name="NguoiThayThe"]').html('<option value="">-- Không có nhân viên rảnh --</option>');
+                        }
+                    } else {
+                        console.error('Failed to load staff:', d.message);
+                    }
+                })
+                .catch(err => {
+                    console.error('Error loading staff:', err);
+                    $('select[name="NguoiThayThe"]').html('<option value="">-- Lỗi tải danh sách --</option>');
+                });
+        }
+
+        function registerShift(maCaTruc) {
+            if (!confirm('Bạn có chắc muốn đăng ký ca trực này?')) return;
+            
+            fetch('@Url.Action("RegisterShift", "LichLamViec")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ MaCaTruc: maCaTruc })
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    showToast('success', '✅ Đăng ký ca trực thành công!');
+                    loadAvailableShifts();
+                    loadLichCaTruc();
+                } else {
+                    showToast('error', '❌ Lỗi: ' + d.message);
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                showToast('error', 'Lỗi kết nối!');
+            });
+        }
+
+        function submitLeaveRequest() {
+            var formData = new FormData($('#formXinNghiPhep')[0]);
+            var data = {
+                CaNghi: formData.get('CaNghi'),
+                NguoiThayThe: formData.get('NguoiThayThe'),
+                LyDo: formData.get('LyDo')
+            };
+
+            console.log('Submitting leave request:', data);
+
+            fetch('@Url.Action("SubmitLeaveRequest", "LichLamViec")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    showToast('success', '✅ Gửi đơn nghỉ phép thành công!');
+                    $('#formXinNghiPhep')[0].reset();
+                    loadLeaveHistory();
+                } else {
+                    showToast('error', '❌ Lỗi: ' + d.message);
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                showToast('error', 'Lỗi kết nối!');
+            });
+        }
+    </script>
+}
+

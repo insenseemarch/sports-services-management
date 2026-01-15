@@ -1,0 +1,202 @@
+@{
+    ViewData["Title"] = "Hồ Sơ Cá Nhân";
+}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2 class="mb-3">
+                <i class="fas fa-user me-3" style="color: #0f9b0f;"></i>
+                Hồ Sơ Cá Nhân
+            </h2>
+            <p class="text-muted">Quản lý thông tin cá nhân và cài đặt tài khoản</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>Thông Tin Cá Nhân
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Họ và Tên</label>
+                            <input type="text" class="form-control" value="@ViewBag.HoTen" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">CCCD</label>
+                            <input type="text" class="form-control" value="@ViewBag.CCCD" readonly>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Ngày Sinh</label>
+                            <input type="date" class="form-control" value="@(ViewBag.NgaySinh != null ? ((DateTime)ViewBag.NgaySinh).ToString("yyyy-MM-dd") : "")" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Chức Vụ</label>
+                            <input type="text" class="form-control" value="@ViewBag.ChucVu" readonly>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Cơ Sở</label>
+                            <input type="text" class="form-control" value="@ViewBag.TenCoSo" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Lương</label>
+                            <input type="text" class="form-control" value="@ViewBag.Luong" readonly>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h5 class="mb-3">Cài Đặt Liên Hệ</h5>
+
+                    <form id="updateProfileForm">
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">Email <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="email" value="@ViewBag.Email" required>
+                                <small class="text-muted">Nhập email để cập nhật thông tin liên lạc</small>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">Số Điện Thoại <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" id="sdt" value="@ViewBag.SDT" required>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">Địa Chỉ</label>
+                                <textarea class="form-control" id="diaChi" rows="3">@ViewBag.DiaChi</textarea>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <button type="button" class="btn btn-primary" onclick="updateProfile()">
+                                    <i class="fas fa-save me-2"></i>Lưu Thay Đổi
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Stats Card -->
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-body text-center">
+                    <div style="font-size: 2rem; color: #0f9b0f; margin-bottom: 10px;">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <p class="text-muted small mb-1">Giờ Làm Việc (Tháng Này)</p>
+                    <h4 class="mb-0">160 Giờ</h4>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-body text-center">
+                    <div style="font-size: 2rem; color: #ffd93d; margin-bottom: 10px;">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                    <p class="text-muted small mb-1">Ngày Phép Còn Lại</p>
+                    <h4 class="mb-0">12 Ngày</h4>
+                </div>
+            </div>
+
+            <!-- Update Password -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lock me-2"></i>Đổi Mật Khẩu
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label small">Mật Khẩu Hiện Tại</label>
+                        <input type="password" class="form-control form-control-sm" id="oldPassword">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small">Mật Khẩu Mới</label>
+                        <input type="password" class="form-control form-control-sm" id="newPassword">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small">Xác Nhận Mật Khẩu</label>
+                        <input type="password" class="form-control form-control-sm" id="confirmPassword">
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary w-100" onclick="changePassword()">
+                        <i class="fas fa-key me-2"></i>Cập Nhật
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateProfile() {
+        const email = document.getElementById('email').value;
+        const sdt = document.getElementById('sdt').value;
+        const diaChi = document.getElementById('diaChi').value;
+
+        if (!email || !sdt) {
+            showToast('warning', 'Vui lòng điền đủ thông tin bắt buộc!');
+            return;
+        }
+
+        fetch('@Url.Action("CaiDatTaiKhoan", "HoSoNhanVien")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email: email,
+                sdt: sdt,
+                diaChi: diaChi
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('success', data.message);
+                location.reload();
+            } else {
+                showToast('error', 'Lỗi: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('error', 'Có lỗi xảy ra!');
+        });
+    }
+
+    function changePassword() {
+        const oldPassword = document.getElementById('oldPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (!oldPassword || !newPassword || !confirmPassword) {
+            showToast('warning', 'Vui lòng điền đủ thông tin!');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            showToast('warning', 'Mật khẩu mới không khớp!');
+            return;
+        }
+
+        showToast('info', 'Chức năng đổi mật khẩu sẽ được cập nhật');
+    }
+</script>

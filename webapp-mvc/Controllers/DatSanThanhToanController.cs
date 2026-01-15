@@ -24,6 +24,13 @@ namespace webapp_mvc.Controllers
                 return RedirectToAction("DangNhap", "TaiKhoan");
             }
 
+            var vaiTro = HttpContext.Session.GetString("VaiTro")?.Trim();
+            // CHỐT CHẶN: Nếu là Nhân viên -> Đá sang StaffPreview ngay lập tức
+            if (!string.IsNullOrEmpty(vaiTro) && !string.Equals(vaiTro, "Khách hàng", StringComparison.OrdinalIgnoreCase))
+            {
+                 return RedirectToAction("StaffPreview", new { maDatSan = maDatSan });
+            }
+
             var model = new ThanhToanKhachHangViewModel
             {
                 MaDatSan = maDatSan
@@ -38,7 +45,13 @@ namespace webapp_mvc.Controllers
                 LEFT JOIN SAN s ON d.MaSan = s.MaSan
                 LEFT JOIN LOAISAN ls ON s.MaLS = ls.MaLS
                 LEFT JOIN COSO cs ON s.MaCS = cs.MaCS
-                WHERE p.MaDatSan = @MaDatSan AND p.MaKH = @MaKH";
+                WHERE p.MaDatSan = @MaDatSan";
+
+            // Nếu là Khách hàng thì mới bắt buộc check chính chủ. Nhân viên xem thoải mái.
+            if (string.Equals(vaiTro, "Khách hàng", StringComparison.OrdinalIgnoreCase))
+            {
+                 sqlPhieu += " AND p.MaKH = @MaKH";
+            }
 
             var dtPhieu = _db.ExecuteQuery(sqlPhieu, 
                 new SqlParameter("@MaDatSan", maDatSan),
@@ -57,6 +70,23 @@ namespace webapp_mvc.Controllers
             model.NgayDat = Convert.ToDateTime(row["NgayDat"]);
             model.GioBatDau = (TimeSpan)row["GioBatDau"];
             model.GioKetThuc = (TimeSpan)row["GioKetThuc"];
+
+            // Lấy tên khách hàng từ phiếu đặt (p.MaKH)
+            string bookingMaKH = row["MaKH"].ToString();
+            string sqlInfoKH = "SELECT HoTen, SDT FROM KHACHHANG WHERE MaKH = @MaKH";
+            var dtInfo = _db.ExecuteQuery(sqlInfoKH, new SqlParameter("@MaKH", bookingMaKH));
+            
+            if (dtInfo.Rows.Count > 0)
+            {
+                ViewBag.TenKhachHang = dtInfo.Rows[0]["HoTen"].ToString();
+                ViewBag.SDTKhachHang = dtInfo.Rows[0]["SDT"].ToString();
+            }
+            else
+            {
+                ViewBag.TenKhachHang = "Khách vãng lai";
+                ViewBag.SDTKhachHang = "";
+            }
+
             
             // Calc detailed info
             model.DonViTinh = row["DVT"] != DBNull.Value ? row["DVT"].ToString() : "Giờ";
@@ -251,6 +281,266 @@ namespace webapp_mvc.Controllers
             }
             
             return View();
+        }
+        // GET: Xem trước phiếu đặt sân (Giao diện dành cho Nhân viên)
+        // GET: Xem trước phiếu đặt sân (Giao diện dành cho Nhân viên)
+        public IActionResult StaffPreview(long maDatSan)
+        {
+            try 
+            {
+                var maUser = HttpContext.Session.GetString("MaUser");
+                if (string.IsNullOrEmpty(maUser)) return RedirectToAction("DangNhap", "TaiKhoan");
+
+                var model = new ThanhToanKhachHangViewModel { MaDatSan = maDatSan };
+
+                // Dùng SQL cơ bản nhất để tránh lỗi thiếu cột (NguoiLap, NgayTao)
+                string sqlPhieu = @"
+                    SELECT p.MaDatSan, p.MaKH, p.NgayDat, p.GioBatDau, p.GioKetThuc, p.TrangThai,
+                           s.MaSan, ls.TenLS, ls.DVT, cs.TenCS
+                    FROM PHIEUDATSAN p
+                    LEFT JOIN DATSAN d ON p.MaDatSan = d.MaDatSan
+                    LEFT JOIN SAN s ON d.MaSan = s.MaSan
+                    LEFT JOIN LOAISAN ls ON s.MaLS = ls.MaLS
+                    LEFT JOIN COSO cs ON s.MaCS = cs.MaCS
+                    WHERE p.MaDatSan = @MaDatSan";
+
+                var dtPhieu = _db.ExecuteQuery(sqlPhieu, new SqlParameter("@MaDatSan", maDatSan));
+                if (dtPhieu.Rows.Count == 0) 
+                {
+                    return Content($"LỖI CRITICAL: Không tìm thấy phiếu đặt sân với ID = {maDatSan} trong cơ sở dữ liệu.\nNgười dùng hiện tại: {maUser}.\nHãy kiểm tra lại bảng PHIEUDATSAN xem có dòng nào có MaDatSan = {maDatSan} không.");
+                }
+
+                var row = dtPhieu.Rows[0];
+                model.MaSan = row["MaSan"]?.ToString() ?? "";
+                model.TenSan = row["MaSan"] != DBNull.Value ? $"{row["TenLS"]} - {row["MaSan"]}" : "Dịch vụ lẻ";
+                model.TenCoSo = row["TenCS"]?.ToString() ?? "";
+                model.NgayDat = Convert.ToDateTime(row["NgayDat"]);
+                model.GioBatDau = (TimeSpan)row["GioBatDau"];
+                model.GioKetThuc = (TimeSpan)row["GioKetThuc"];
+
+                // Lấy tên Khách Hàng
+                string maKH = row["MaKH"].ToString();
+                var dtKH = _db.ExecuteQuery("SELECT HoTen, SDT FROM KHACHHANG WHERE MaKH = @MaKH", new SqlParameter("@MaKH", maKH));
+                if (dtKH.Rows.Count > 0)
+                {
+                    ViewBag.TenKhachHang = dtKH.Rows[0]["HoTen"].ToString();
+                    ViewBag.SDTKhachHang = dtKH.Rows[0]["SDT"].ToString();
+                }
+                else
+                {
+                    ViewBag.TenKhachHang = "Khách vãng lai";
+                    ViewBag.SDTKhachHang = "---";
+                }
+
+                // Lấy tên Người Lập (Tạm thời lấy currentUser nếu DB thiếu cột NguoiLap)
+                ViewBag.TenNguoiLap = "Nhân viên"; // Default
+                if (row.Table.Columns.Contains("NguoiLap") && row["NguoiLap"] != DBNull.Value)
+                {
+                   string maNguoiLap = row["NguoiLap"].ToString();
+                   var dtNV = _db.ExecuteQuery("SELECT HoTen FROM NHANVIEN WHERE MaNV = @MaNV", new SqlParameter("@MaNV", maNguoiLap));
+                   if(dtNV.Rows.Count > 0) ViewBag.TenNguoiLap = dtNV.Rows[0]["HoTen"].ToString();
+                }
+                else
+                {
+                    // Fallback: Tìm tên nhân viên hiện tại
+                     var dtNV = _db.ExecuteQuery("SELECT HoTen FROM NHANVIEN WHERE MaNV = @MaNV", new SqlParameter("@MaNV", maUser));
+                     if(dtNV.Rows.Count > 0) ViewBag.TenNguoiLap = dtNV.Rows[0]["HoTen"].ToString();
+                }
+
+                // Ngày lập phiếu (Default Now nếu thiếu cột)
+                ViewBag.NgayLap = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+                if (row.Table.Columns.Contains("NgayTao") && row["NgayTao"] != DBNull.Value)
+                {
+                    ViewBag.NgayLap = Convert.ToDateTime(row["NgayTao"]).ToString("dd/MM/yyyy HH:mm");
+                }
+
+            // TÍNH TOÁN TIỀN
+            // 1. Tiền Sân
+            double durationMins = (model.GioKetThuc - model.GioBatDau).TotalMinutes;
+            string courtType = row["TenLS"]?.ToString().ToLower() ?? "";
+            
+            if (courtType.Contains("bóng đá") || courtType.Contains("mini"))
+            {
+                model.SoLuongSan = (decimal)(durationMins / 90.0);
+                model.DonViTinh = "Trận (90p)";
+            } 
+            else if (courtType.Contains("tennis"))
+            {
+                model.SoLuongSan = (decimal)(durationMins / 120.0);
+                 model.DonViTinh = "Ca (2h)";
+            }
+            else
+            {
+                model.SoLuongSan = (decimal)(durationMins / 60.0);
+                 model.DonViTinh = "Giờ";
+            }
+
+            string sqlTienSan = "SELECT dbo.f_TinhTienSan(@MaDatSan)";
+            model.TienSan = _db.ExecuteScalar<decimal>(sqlTienSan, new SqlParameter("@MaDatSan", maDatSan));
+            if (model.SoLuongSan > 0) model.DonGiaSan = model.TienSan / model.SoLuongSan;
+
+            // 2. Tiền Dịch Vụ
+            string sqlDichVu = @"
+                SELECT ld.TenLoai as TenDV, ct.SoLuong, ct.ThanhTien
+                FROM CT_DICHVUDAT ct
+                JOIN DICHVU dv ON ct.MaDV = dv.MaDV
+                JOIN LOAIDV ld ON dv.MaLoaiDV = ld.MaLoaiDV
+                WHERE ct.MaDatSan = @MaDatSan";
+
+            var dtDichVu = _db.ExecuteQuery(sqlDichVu, new SqlParameter("@MaDatSan", maDatSan));
+            model.DanhSachDichVu = new List<DichVuDatItem>();
+            foreach (DataRow r in dtDichVu.Rows)
+            {
+                model.DanhSachDichVu.Add(new DichVuDatItem
+                {
+                    TenDV = r["TenDV"].ToString(),
+                    SoLuong = Convert.ToInt32(r["SoLuong"]),
+                    ThanhTien = Convert.ToDecimal(r["ThanhTien"])
+                });
+            }
+             model.TienDichVu = model.DanhSachDichVu.Sum(x => x.ThanhTien);
+             model.TongCong = model.TienSan + model.TienDichVu;
+             model.ThanhTien = model.TongCong; // Nhân viên thì hiện tổng trước, chưa trừ ưu đãi (hoặc có thể trừ luôn tùy logic) - Hiện tại giữ nguyên tổng
+
+             return View(model);
+            }
+            catch (Exception ex)
+            {
+                return Content("Error loading staff preview: " + ex.Message);
+            }
+        }
+
+        // GET: Partial View cho Modal (Phiếu đặt sân)
+        public IActionResult StaffPreviewPartial(long maDatSan)
+        {
+            try 
+            {
+                var maUser = HttpContext.Session.GetString("MaUser");
+                // Không redirect ở đây, nếu lỗi return Empty partial hoặc Content lỗi
+                if (string.IsNullOrEmpty(maUser)) return Content("Session Expired");
+
+                var model = new ThanhToanKhachHangViewModel { MaDatSan = maDatSan };
+
+                string sqlPhieu = @"
+                    SELECT p.MaDatSan, p.MaKH, p.NgayDat, p.GioBatDau, p.GioKetThuc, p.TrangThai,
+                           s.MaSan, ls.TenLS, ls.DVT, cs.TenCS
+                    FROM PHIEUDATSAN p
+                    LEFT JOIN DATSAN d ON p.MaDatSan = d.MaDatSan
+                    LEFT JOIN SAN s ON d.MaSan = s.MaSan
+                    LEFT JOIN LOAISAN ls ON s.MaLS = ls.MaLS
+                    LEFT JOIN COSO cs ON s.MaCS = cs.MaCS
+                    WHERE p.MaDatSan = @MaDatSan";
+
+                var dtPhieu = _db.ExecuteQuery(sqlPhieu, new SqlParameter("@MaDatSan", maDatSan));
+                if (dtPhieu.Rows.Count == 0) return Content("Booking Not Found");
+
+                var row = dtPhieu.Rows[0];
+                model.MaSan = row["MaSan"]?.ToString() ?? "";
+                model.TenSan = row["MaSan"] != DBNull.Value ? $"{row["TenLS"]} - {row["MaSan"]}" : "Dịch vụ lẻ";
+                model.TenCoSo = row["TenCS"]?.ToString() ?? "";
+                model.NgayDat = Convert.ToDateTime(row["NgayDat"]);
+                model.GioBatDau = (TimeSpan)row["GioBatDau"];
+                model.GioKetThuc = (TimeSpan)row["GioKetThuc"];
+
+                string maKH = row["MaKH"].ToString();
+                var dtKH = _db.ExecuteQuery("SELECT HoTen, SDT FROM KHACHHANG WHERE MaKH = @MaKH", new SqlParameter("@MaKH", maKH));
+                if (dtKH.Rows.Count > 0)
+                {
+                    ViewBag.TenKhachHang = dtKH.Rows[0]["HoTen"].ToString();
+                    ViewBag.SDTKhachHang = dtKH.Rows[0]["SDT"].ToString();
+                }
+                else
+                {
+                    ViewBag.TenKhachHang = "Khách vãng lai";
+                    ViewBag.SDTKhachHang = "---";
+                }
+
+                // Lấy tên Người Lập (Tạm thời lấy currentUser nếu DB thiếu cột NguoiLap)
+                ViewBag.TenNguoiLap = "Nhân viên"; 
+                if (row.Table.Columns.Contains("NguoiLap") && row["NguoiLap"] != DBNull.Value)
+                {
+                   string maNguoiLap = row["NguoiLap"].ToString();
+                   var dtNV = _db.ExecuteQuery("SELECT HoTen FROM NHANVIEN WHERE MaNV = @MaNV", new SqlParameter("@MaNV", maNguoiLap));
+                   if(dtNV.Rows.Count > 0) ViewBag.TenNguoiLap = dtNV.Rows[0]["HoTen"].ToString();
+                }
+                else
+                {
+                     var dtNV = _db.ExecuteQuery("SELECT HoTen FROM NHANVIEN WHERE MaNV = @MaNV", new SqlParameter("@MaNV", maUser));
+                     if(dtNV.Rows.Count > 0) ViewBag.TenNguoiLap = dtNV.Rows[0]["HoTen"].ToString();
+                }
+
+                ViewBag.NgayLap = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+                if (row.Table.Columns.Contains("NgayTao") && row["NgayTao"] != DBNull.Value)
+                {
+                    ViewBag.NgayLap = Convert.ToDateTime(row["NgayTao"]).ToString("dd/MM/yyyy HH:mm");
+                }
+
+                // Tính tiền (Logic y hệt hàm trên)
+                double durationMins = (model.GioKetThuc - model.GioBatDau).TotalMinutes;
+                string courtType = row["TenLS"]?.ToString().ToLower() ?? "";
+            
+                if (courtType.Contains("bóng đá") || courtType.Contains("mini")) { model.SoLuongSan = (decimal)(durationMins / 90.0); model.DonViTinh = "Trận (90p)"; } 
+                else if (courtType.Contains("tennis")) { model.SoLuongSan = (decimal)(durationMins / 120.0); model.DonViTinh = "Ca (2h)"; }
+                else { model.SoLuongSan = (decimal)(durationMins / 60.0); model.DonViTinh = "Giờ"; }
+
+                string sqlTienSan = "SELECT dbo.f_TinhTienSan(@MaDatSan)";
+                model.TienSan = _db.ExecuteScalar<decimal>(sqlTienSan, new SqlParameter("@MaDatSan", maDatSan));
+                if (model.SoLuongSan > 0) model.DonGiaSan = model.TienSan / model.SoLuongSan;
+
+                string sqlDichVu = @"
+                    SELECT ld.TenLoai as TenDV, ct.SoLuong, ct.ThanhTien
+                    FROM CT_DICHVUDAT ct
+                    JOIN DICHVU dv ON ct.MaDV = dv.MaDV
+                    JOIN LOAIDV ld ON dv.MaLoaiDV = ld.MaLoaiDV
+                    WHERE ct.MaDatSan = @MaDatSan";
+
+                var dtDichVu = _db.ExecuteQuery(sqlDichVu, new SqlParameter("@MaDatSan", maDatSan));
+                model.DanhSachDichVu = new List<DichVuDatItem>();
+                foreach (DataRow r in dtDichVu.Rows)
+                {
+                    model.DanhSachDichVu.Add(new DichVuDatItem {
+                        TenDV = r["TenDV"].ToString(),
+                        SoLuong = Convert.ToInt32(r["SoLuong"]),
+                        ThanhTien = Convert.ToDecimal(r["ThanhTien"])
+                    });
+                }
+                model.TienDichVu = model.DanhSachDichVu.Sum(x => x.ThanhTien);
+                model.TongCong = model.TienSan + model.TienDichVu;
+                model.ThanhTien = model.TongCong;
+
+                return PartialView("_StaffReceipt", model);
+            }
+            catch (Exception ex)
+            {
+                return Content("Error loading receipt: " + ex.Message);
+            }
+        }
+
+        // POST: Xử lý nút bấm của Nhân viên
+        [HttpPost]
+        public IActionResult StaffAction(long maDatSan, string actionType)
+        {
+            try
+            {
+                if (actionType == "confirm")
+                {
+                    // Nút "Tạo phiếu đặt sân": Xác nhận phiếu (Chuyển trạng thái Nháp -> Đã đặt/Chờ thanh toán)
+                    _db.ExecuteNonQuery("UPDATE PHIEUDATSAN SET TrangThai = N'Chờ thanh toán' WHERE MaDatSan = @Id", new SqlParameter("@Id", maDatSan));
+                    return Json(new { success = true, message = "Đã tạo phiếu thành công!", redirectUrl = Url.Action("Index", "NhanVien") }); // Về trang chủ NV hoặc Lịch làm việc
+                }
+                else if (actionType == "send_cashier")
+                {
+                    // Nút "Chuyển sang thu ngân": Có thể giống confirm nhưng có thông báo khác, hoặc update trạng thái đặc biệt
+                    _db.ExecuteNonQuery("UPDATE PHIEUDATSAN SET TrangThai = N'Chờ thanh toán' WHERE MaDatSan = @Id", new SqlParameter("@Id", maDatSan));
+                    // Trong thực tế có thể bắn noti cho thu ngân, ở đây tạm update DB
+                    return Json(new { success = true, message = "Đã chuyển phiếu sang bộ phận thu ngân!", redirectUrl = Url.Action("Index", "NhanVien") });
+                }
+            }
+            catch(Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi: " + ex.Message });
+            }
+             return Json(new { success = false, message = "Hành động không hợp lệ" });
         }
     }
 }

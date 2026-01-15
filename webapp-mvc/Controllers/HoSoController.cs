@@ -44,7 +44,7 @@ namespace webapp_mvc.Controllers
             var maUser = HttpContext.Session.GetString("MaUser");
             if (string.IsNullOrEmpty(maUser)) return RedirectToAction("DangNhap", "TaiKhoan");
 
-            // Chỉ cho phép cập nhật thông tin cá nhân cơ bản
+            // Update KHACHHANG
             string sql = @"UPDATE KHACHHANG 
                            SET HoTen=@HoTen, SDT=@SDT, Email=@Email, DiaChi=@DiaChi, 
                                NgaySinh=@NgaySinh, CCCD=@CCCD 

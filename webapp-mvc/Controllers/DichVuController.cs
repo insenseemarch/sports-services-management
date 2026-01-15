@@ -423,6 +423,33 @@ namespace webapp_mvc.Controllers
                 return RedirectToAction("Index", new { maDatSan = model.MaDatSan, msg = string.Join("; ", errors) });
             }
 
+            // Kiểm tra AJAX request
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                var vaiTroAjax = HttpContext.Session.GetString("VaiTro")?.Trim();
+                bool isStaff = !string.IsNullOrEmpty(vaiTroAjax) && !string.Equals(vaiTroAjax, "Khách hàng", StringComparison.OrdinalIgnoreCase);
+
+                if (isStaff)
+                {
+                    // Nhân viên -> Hiện Popup Modal
+                    return Json(new { success = true, maDatSan = model.MaDatSan, showModal = true });
+                }
+                else
+                {
+                    // Khách hàng -> Redirect sang trang Thanh Toán
+                    return Json(new { success = true, redirectUrl = Url.Action("Index", "DatSanThanhToan", new { maDatSan = model.MaDatSan }) });
+                }
+            }
+
+            // Fallback cho form submit thường (nếu JS fail)
+            // Kiểm tra vai trò để điều hướng
+            var vaiTro = HttpContext.Session.GetString("VaiTro")?.Trim();
+            if (!string.IsNullOrEmpty(vaiTro) && !string.Equals(vaiTro, "Khách hàng", StringComparison.OrdinalIgnoreCase))
+            {
+                return RedirectToAction("StaffPreview", "DatSanThanhToan", new { maDatSan = model.MaDatSan });
+            }
+
+            // Mặc định cho Khách hàng
             return RedirectToAction("Index", "DatSanThanhToan", new { maDatSan = model.MaDatSan });
         }
     }

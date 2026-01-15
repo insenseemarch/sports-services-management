@@ -137,6 +137,10 @@
                                 </a>
                             </li>
                             
+                            @* Menu Chung *@
+                            <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("DatSan") hover-lime" asp-controller="DatSan" asp-action="Index">Đặt Sân</a></li>
+                            <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("DichVu") hover-lime" asp-controller="DichVu" asp-action="Index">Dịch Vụ</a></li>
+
                             @* Menu cho Quản lý *@
                             @if (isManager)
                             {
@@ -148,23 +152,17 @@
                                 <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("Management", "ThongKe") hover-lime" asp-controller="Management" asp-action="ThongKe">Thống Kê</a></li>
                                 <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("Management", "QuanLyGia") hover-lime" asp-controller="Management" asp-action="QuanLyGia">Quản Lý Giá</a></li>
                             }
-                            @* Menu cho Lễ tân *@
-                            else if (isReceptionist)
+                            
+                            @* Menu cho Nhân Viên / Lễ Tân *@
+                            @if (!string.IsNullOrEmpty(vaiTro) && vaiTro != "Khách hàng") 
                             {
-                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("DatSanTrucTiep") hover-lime" asp-controller="DatSanTrucTiep" asp-action="Index">Đặt Sân TT</a></li>
-                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("LichLamViec") hover-lime" asp-controller="LichLamViec" asp-action="Index">Lịch Làm Việc</a></li>
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("NhanVien", "Index") hover-lime" asp-controller="NhanVien" asp-action="Index">Phiếu Đặt Sân</a></li>
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("NhanVien", "LichLamViec") hover-lime" asp-controller="NhanVien" asp-action="LichLamViec">Lịch Làm Việc</a></li>
                             }
-                            @* Menu cho nhân viên khác *@
-                            else if (isStaff)
+
+                            @* Menu cho Khách Hàng *@
+                            @if (string.IsNullOrEmpty(vaiTro) || vaiTro == "Khách hàng")
                             {
-                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("LichLamViec") hover-lime" asp-controller="LichLamViec" asp-action="Index">Lịch Làm Việc</a></li>
-                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("BaoCaoLoi") hover-lime" asp-controller="BaoCaoLoi" asp-action="Index">Báo Cáo Lỗi</a></li>
-                            }
-                            @* Menu cho khách hàng *@
-                            else
-                            {
-                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("DatSan") hover-lime" asp-controller="DatSan" asp-action="Index">Đặt Sân</a></li>
-                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("DichVu") hover-lime" asp-controller="DichVu" asp-action="Index">Dịch Vụ</a></li>
                                 <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("LichSuDatSan") hover-lime protected-link" asp-controller="LichSuDatSan" asp-action="Index">Lịch Sử</a></li>
                             }
                         </ul>
@@ -187,7 +185,7 @@
                                 <ul class="dropdown-menu dropdown-menu-end mt-2 shadow-lg border-0 rounded-3">
                                     @if (!string.IsNullOrEmpty(vaiTro) && vaiTro != "Khách hàng")
                                     {
-                                        <li><a class="dropdown-item py-2" href="@Url.Action("Index", "HoSoNhanVien")"><i class="fas fa-user me-2 text-primary"></i>Hồ Sơ</a></li>
+                                        <li><a class="dropdown-item py-2" href="@Url.Action("Profile", "NhanVien")"><i class="fas fa-user me-2 text-primary"></i>Hồ Sơ</a></li>
                                     }
                                     else
                                     {
@@ -220,61 +218,6 @@
                             }
                         </ul>
                     </div>
-                </div>
-            </div>
-        </nav>
-    </header>
-                </div>
-
-                <!-- User Actions Right -->
-                <div class="navbar-nav" style="min-width: 150px; justify-content: flex-end;">
-                    <ul class="navbar-nav">
-                        @if (Context.Session.GetString("Username") != null)
-                        {
-                            <!-- Logged in -->
-                            <li class="nav-item dropdown">
-                                <a class="nav-link d-flex align-items-center bg-white rounded-pill px-3 py-1 shadow-sm" href="#" role="button" data-bs-toggle="dropdown" style="border: 2px solid rgba(255,255,255,0.2);">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center me-2" 
-                                         style="width: 28px; height: 28px; background: var(--color-lime);">
-                                        <i class="fas fa-user small" style="color: var(--color-dark);"></i>
-                                    </div>
-                                    <span class="fw-bold text-dark small">@Context.Session.GetString("HoTen")</span>
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end mt-2 shadow-lg border-0 rounded-3">
-                                    @if (!string.IsNullOrEmpty(vaiTro) && vaiTro != "Khách hàng")
-                                    {
-                                        <li><a class="dropdown-item py-2" href="@Url.Action("Index", "HoSoNhanVien")"><i class="fas fa-user me-2 text-primary"></i>Hồ Sơ</a></li>
-                                    }
-                                    else
-                                    {
-                                        <li><a class="dropdown-item py-2" href="@Url.Action("Index", "HoSo")"><i class="fas fa-user me-2 text-primary"></i>Hồ Sơ</a></li>
-                                    }
-                                    <li><a class="dropdown-item py-2" href="@Url.Action("Index", "LichSuDatSan")"><i class="fas fa-history me-2 text-info"></i>Lịch Sử</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item py-2 text-danger" href="@Url.Action("DangXuat", "TaiKhoan")"><i class="fas fa-sign-out-alt me-2"></i>Đăng Xuất</a></li>
-                                </ul>
-                            </li>
-                        }
-                        else
-                        {
-                            <!-- Not logged in -->
-                            <li class="nav-item">
-                                <div class="dropdown">
-                                    <a class="d-flex align-items-center text-decoration-none bg-white rounded-pill px-1 ps-3 py-1 shadow-sm" href="#" role="button" data-bs-toggle="dropdown">
-                                        <span class="fw-bold text-dark me-2 small">Tài Khoản</span>
-                                        <div class="rounded-circle d-flex align-items-center justify-content-center" 
-                                             style="width: 30px; height: 30px; background: var(--color-dark);">
-                                            <i class="fas fa-user text-white small"></i>
-                                        </div>
-                                    </a>
-                                    <ul class="dropdown-menu dropdown-menu-end mt-2 shadow-lg border-0 rounded-3">
-                                        <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#loginModal"><i class="fas fa-sign-in-alt me-2 text-success"></i>Đăng Nhập</a></li>
-                                        <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#registerModal"><i class="fas fa-user-plus me-2 text-primary"></i>Đăng Ký</a></li>
-                                    </ul>
-                                </div>
-                            </li>
-                        }
-                    </ul>
                 </div>
             </div>
         </nav>

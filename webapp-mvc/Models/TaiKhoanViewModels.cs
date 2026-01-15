@@ -28,10 +28,9 @@ namespace webapp_mvc.Models
         [Display(Name = "Số điện thoại")]
         public string SDT { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Vui lòng nhập email")]
         [EmailAddress(ErrorMessage = "Email không hợp lệ")]
         [Display(Name = "Email")]
-        public string Email { get; set; } = string.Empty;
+        public string? Email { get; set; } = string.Empty;
 
         [Display(Name = "CCCD")]
         public string? CCCD { get; set; }

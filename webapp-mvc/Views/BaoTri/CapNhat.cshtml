@@ -1,0 +1,169 @@
+@model webapp_mvc.Models.ViewModels.PhieuBaoTriViewModel
+
+@{
+    ViewData["Title"] = "Cập Nhật Phiếu Bảo Trì";
+}
+
+<!-- Banner Header giống trang Lịch Sử -->
+<div class="position-relative w-100 d-flex align-items-center justify-content-center mb-5 shadow-sm" 
+     style="height: 300px; background: linear-gradient(135deg, #20bf55 0%, #01baef 100%); padding-top: 60px;">
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: rgba(0,0,0,0.2);"></div>
+    
+    <div class="text-center position-relative" style="z-index: 2;">
+        <h1 class="display-4 fw-bold text-white mb-3 text-uppercase">
+            <i class="fas fa-tools me-3"></i>Cập Nhật Phiếu Bảo Trì
+        </h1>
+        <p class="lead text-white fs-5 opacity-75">
+            Mã phiếu: <span class="badge bg-white text-success fw-bold rounded-pill px-3 py-2 shadow-sm">#@Model.MaPhieu</span>
+        </p>
+    </div>
+</div>
+
+<div class="container pb-5" style="margin-top: -60px; position: relative; z-index: 3;">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <form asp-action="CapNhat" method="post">
+                <input type="hidden" name="maPhieu" value="@Model.MaPhieu" />
+                <input type="hidden" name="maSan" value="@Model.MaSan" />
+
+                <!-- Thông báo lỗi/thành công -->
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger shadow-sm border-0 rounded-3 mb-4">
+                        <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+                    </div>
+                }
+
+                <div class="row g-4">
+                    <!-- Column 1: Thông tin cố định (Info Panel) -->
+                    <div class="col-md-5">
+                        <div class="card border-0 shadow-sm h-100" style="border-radius: 20px; background: #fff;">
+                            <div class="card-header border-0 py-3 text-white text-center" style="background: #1abc9c; border-radius: 20px 20px 0 0;">
+                                <h5 class="mb-0 fw-bold"><i class="fas fa-info-circle me-2"></i>Thông Tin Sân</h5>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="vstack gap-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-light p-3 text-primary me-3">
+                                            <i class="fas fa-basketball-ball fa-lg"></i>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">Sân</small>
+                                            <div class="fs-5 fw-bold text-dark">@Model.MaSan</div>
+                                            <small class="text-muted">@Model.TenLS</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-light p-3 text-success me-3">
+                                            <i class="fas fa-building fa-lg"></i>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">Cơ Sở</small>
+                                            <div class="fs-6 fw-bold text-dark">@Model.TenCS</div>
+                                            <small class="text-muted">@Model.DiaChi</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-light p-3 text-warning me-3">
+                                            <i class="fas fa-calendar-alt fa-lg"></i>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">Ngày Bắt Đầu</small>
+                                            <div class="fs-6 fw-bold text-dark">@Model.NgayBatDau.ToString("dd/MM/yyyy")</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-light p-3 text-info me-3">
+                                            <i class="fas fa-calendar-check fa-lg"></i>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">KT Dự Kiến</small>
+                                            <div class="fs-6 fw-bold text-dark">
+                                                @(Model.NgayKetThucDuKien.HasValue ? Model.NgayKetThucDuKien.Value.ToString("dd/MM/yyyy") : "---")
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Column 2: Form Cập Nhật (Update Panel) -->
+                    <div class="col-md-7">
+                        <div class="card border-0 shadow-sm h-100" style="border-radius: 20px;">
+                            <div class="card-header border-0 py-3 text-white text-center" style="background: #065f46; border-radius: 20px 20px 0 0;">
+                                <h5 class="mb-0 fw-bold"><i class="fas fa-tasks me-2"></i>Nội Dung Cập Nhật</h5>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="row g-3">
+                                    <!-- Trạng thái Phiếu -->
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold text-secondary">Trạng Thái Phiếu</label>
+                                        <select name="trangThaiPhieu" class="form-select form-select-lg border-2 shadow-none" style="border-color: #1abc9c;">
+                                            <option value="Chờ xử lý" selected="@(Model.TrangThai == "Chờ xử lý")">Chờ xử lý</option>
+                                            <option value="Đang xử lý" selected="@(Model.TrangThai == "Đang xử lý")">Đang xử lý</option>
+                                            <option value="Hoàn thành" selected="@(Model.TrangThai == "Hoàn thành")">Hoàn thành</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Tình trạng Sân -->
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold text-secondary">Tình Trạng Sân</label>
+                                        <select name="tinhTrangSan" class="form-select form-select-lg border-2 shadow-none" style="border-color: #f1c40f;">
+                                            <option value="Còn Trống" selected="@(Model.TinhTrangSan == "Còn Trống")">Còn Trống</option>
+                                            <option value="Đang Bảo Trì" selected="@(Model.TinhTrangSan == "Đang Bảo Trì")">Đang Bảo Trì</option>
+                                            <option value="Không Hoạt Động" selected="@(Model.TinhTrangSan == "Không Hoạt Động")">Không Hoạt Động</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Ngày KT Thực Tế -->
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold text-secondary">Ngày KT Thực Tế</label>
+                                        <input type="date" name="ngayKetThucThucTe" class="form-control form-control-lg border-light bg-light"
+                                               value="@(Model.NgayKetThucThucTe.HasValue ? Model.NgayKetThucThucTe.Value.ToString("yyyy-MM-dd") : "")" />
+                                    </div>
+
+                                    <!-- Chi Phí -->
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold text-danger">Chi Phí (VNĐ)</label>
+                                        <div class="input-group input-group-lg">
+                                            <input type="number" name="chiPhi" class="form-control fw-bold text-danger border-danger bg-white" 
+                                                   value="@Convert.ToInt32(Model.ChiPhi)" min="0" step="1000" />
+                                            <span class="input-group-text bg-danger text-white border-danger">₫</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Mô Tả -->
+                                    <div class="col-12 mt-4">
+                                        <label class="form-label fw-semibold text-secondary">Mô Tả Sự Cố / Công Việc</label>
+                                        <textarea name="moTaSuCo" class="form-control bg-light border-0 p-3" rows="4" 
+                                                  style="border-radius: 15px; resize: none;" 
+                                                  placeholder="Nhập nội dung chi tiết...">@Model.MoTaSuCo</textarea>
+                                    </div>
+
+                                    <!-- Submit Button -->
+                                    <div class="col-12 mt-4">
+                                        <button type="submit" class="btn btn-lg w-100 text-white fw-bold shadow-lg hover-scale" 
+                                                style="background: linear-gradient(45deg, #11998e, #38ef7d); border: none; border-radius: 50px; padding: 12px;">
+                                            <i class="fas fa-save me-2"></i>LƯU CẬP NHẬT
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-scale:hover {
+        transform: scale(1.02);
+        transition: transform 0.2s ease;
+    }
+</style>

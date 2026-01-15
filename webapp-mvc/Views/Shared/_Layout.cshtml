@@ -73,8 +73,8 @@
                                 <a class="nav-link fw-semibold px-3 @IsActive("Home") hover-lime" asp-area="" asp-controller="Home" asp-action="Index">Trang Chủ</a>
                             </li>
                             
-                            <!-- Menu Chung (Ẩn với Thu ngân) -->
-                            @if (vaiTro != "Thu ngân")
+                            <!-- Menu Chung (Ẩn với Thu ngân và Kỹ thuật) -->
+                            @if (vaiTro != "Thu ngân" && vaiTro != "Kỹ thuật")
                             {
                                 <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("DatSan") hover-lime" asp-controller="DatSan" asp-action="Index">Đặt Sân</a></li>
                                 <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("DichVu") hover-lime" asp-controller="DichVu" asp-action="Index">Dịch Vụ</a></li>
@@ -86,11 +86,18 @@
                                 <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("LichSuDatSan") hover-lime protected-link" asp-controller="LichSuDatSan" asp-action="Index">Lịch Sử</a></li>
                             }
 
-                            <!-- Menu Nhân Viên / Lễ Tân / Thu Ngân -->
-                            @if (!string.IsNullOrEmpty(vaiTro) && vaiTro != "Khách hàng") 
+                            <!-- Menu Nhân Viên / Lễ Tân / Thu Ngân (Không hiển thị cho Kỹ thuật) -->
+                            @if (!string.IsNullOrEmpty(vaiTro) && vaiTro != "Khách hàng" && vaiTro != "Kỹ thuật") 
                             {
                                 var labelPhieu = (vaiTro == "Thu ngân") ? "Thanh Toán" : "Phiếu Đặt Sân";
                                 <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("NhanVien", "Index") hover-lime" asp-controller="NhanVien" asp-action="Index">@labelPhieu</a></li>
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("NhanVien", "LichLamViec") hover-lime" asp-controller="NhanVien" asp-action="LichLamViec">Lịch Làm Việc</a></li>
+                            }
+                            
+                            <!-- Menu Kỹ Thuật -->
+                            @if (vaiTro == "Kỹ thuật")
+                            {
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("BaoTri") hover-lime" asp-controller="BaoTri" asp-action="Index">Bảo Trì Sân</a></li>
                                 <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("NhanVien", "LichLamViec") hover-lime" asp-controller="NhanVien" asp-action="LichLamViec">Lịch Làm Việc</a></li>
                             }
                         </ul>

@@ -1,0 +1,379 @@
+@{
+    ViewData["Title"] = "Sửa Thông Tin Nhân Viên";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var employee = ViewBag.Employee as webapp_mvc.Models.NhanVienItem;
+    var coSoList = ViewBag.CoSoList as List<dynamic>;
+}
+
+<style>
+    :root {
+        --color-primary: #0f9b0f;
+        --color-lime: #cce830;
+        --color-dark: #1a1a1a;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, var(--color-primary) 0%, #0d7f0d 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 15px rgba(15, 155, 15, 0.2);
+        animation: slideDown 0.5s ease-out;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .form-container {
+        background: white;
+        border-radius: 12px;
+        padding: 2.5rem;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--color-primary);
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 3px solid var(--color-lime);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .form-label .required {
+        color: #ff6b6b;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 0.75rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px rgba(15, 155, 15, 0.1);
+    }
+
+    .form-control:disabled {
+        background-color: #f5f5f5;
+        cursor: not-allowed;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, var(--color-primary), #0d7f0d);
+        color: white;
+        border: none;
+        padding: 0.9rem 2rem;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(15, 155, 15, 0.3);
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(15, 155, 15, 0.4);
+    }
+
+    .btn-cancel {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 0.9rem 2rem;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        margin-left: 1rem;
+    }
+
+    .btn-cancel:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+    }
+
+    @@keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .input-group-icon {
+        position: relative;
+    }
+
+    .input-group-icon i {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #999;
+    }
+
+    .input-group-icon .form-control {
+        padding-left: 2.75rem;
+    }
+
+    .info-badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background: #e3f2fd;
+        color: #1976d2;
+        border-radius: 8px;
+        font-weight: 600;
+        margin-left: 1rem;
+    }
+</style>
+
+<div class="container py-4">
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="page-header">
+        <h1>
+            <i class="fas fa-user-edit"></i>
+            Sửa Thông Tin Nhân Viên
+        </h1>
+    </div>
+
+    @if (employee != null)
+    {
+        <div class="form-container">
+            <form method="post" asp-action="SuaNhanVien" asp-controller="Management" id="employeeForm">
+                <input type="hidden" name="maNV" value="@employee.MaNV" />
+                
+                <!-- Thông tin cơ bản -->
+                <div class="section-title">
+                    <i class="fas fa-id-card"></i>
+                    Thông Tin Cơ Bản
+                    <span class="info-badge">@employee.MaNV</span>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">Họ Tên <span class="required">*</span></label>
+                            <div class="input-group-icon">
+                                <i class="fas fa-user"></i>
+                                <input type="text" class="form-control" name="hoTen" required 
+                                       value="@employee.HoTen" placeholder="Nguyễn Văn A">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">Số Điện Thoại <span class="required">*</span></label>
+                            <div class="input-group-icon">
+                                <i class="fas fa-phone"></i>
+                                <input type="tel" class="form-control" name="sdt" required 
+                                       value="@employee.SDT" placeholder="0901234567" pattern="[0-9]{10}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">CCCD <span class="required">*</span></label>
+                            <div class="input-group-icon">
+                                <i class="fas fa-id-card-alt"></i>
+                                <input type="text" class="form-control" name="cccd" required 
+                                       value="@employee.CCCD" placeholder="001234567890" pattern="[0-9]{12}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">Ngày Sinh</label>
+                            <div class="input-group-icon">
+                                <i class="fas fa-birthday-cake"></i>
+                                <input type="date" class="form-control" name="ngaySinh" 
+                                       value="@employee.NgaySinh?.ToString("yyyy-MM-dd")"
+                                       max="@DateTime.Now.AddYears(-18).ToString("yyyy-MM-dd")">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label class="form-label">Địa Chỉ</label>
+                            <div class="input-group-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <input type="text" class="form-control" name="diaChi" 
+                                       value="@employee.DiaChi" placeholder="123 Đường ABC, Quận XYZ">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thông tin công việc -->
+                <div class="section-title mt-4">
+                    <i class="fas fa-briefcase"></i>
+                    Thông Tin Công Việc
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">Chức Vụ <span class="required">*</span></label>
+                            <input type="text" class="form-control" name="chucVu" required 
+                                   value="@employee.ChucVu" placeholder="Nhân viên">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">Cơ Sở <span class="required">*</span></label>
+                            <select class="form-select" name="maCS" required>
+                                @if (coSoList != null)
+                                {
+                                    @foreach (var cs in coSoList)
+                                    {
+                                        <option value="@cs.MaCS" selected="@(cs.MaCS == employee.MaCS)">
+                                            @cs.TenCoSo
+                                        </option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">Lương Cơ Bản <span class="required">*</span></label>
+                            <div class="input-group-icon">
+                                <i class="fas fa-dollar-sign"></i>
+                                <input type="number" class="form-control" name="luongCoBan" required 
+                                       value="@employee.LuongCoBan" placeholder="5000000" min="0" step="100000">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">Vai Trò <span class="required">*</span></label>
+                            <select class="form-select" name="vaiTro" required>
+                                <option value="Quản lý" selected="@(employee.VaiTro == "Quản lý")">Quản lý</option>
+                                <option value="Lễ tân" selected="@(employee.VaiTro == "Lễ tân")">Lễ tân</option>
+                                <option value="Nhân viên kỹ thuật" selected="@(employee.VaiTro == "Nhân viên kỹ thuật")">Nhân viên kỹ thuật</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thông tin tài khoản -->
+                <div class="section-title mt-4">
+                    <i class="fas fa-lock"></i>
+                    Thông Tin Tài Khoản
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">Tên Đăng Nhập</label>
+                            <div class="input-group-icon">
+                                <i class="fas fa-user-circle"></i>
+                                <input type="text" class="form-control" value="@employee.TenDangNhap" disabled>
+                            </div>
+                            <small class="text-muted">Không thể thay đổi tên đăng nhập</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">Mật Khẩu Mới</label>
+                            <div class="input-group-icon">
+                                <i class="fas fa-key"></i>
+                                <input type="password" class="form-control" name="matKhau" 
+                                       placeholder="••••••••" minlength="6">
+                            </div>
+                            <small class="text-muted">Để trống nếu không muốn đổi mật khẩu</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-submit">
+                        <i class="fas fa-save me-2"></i>Cập Nhật
+                    </button>
+                    <a href="@Url.Action("NhanSu", "Management")" class="btn btn-cancel">
+                        <i class="fas fa-times me-2"></i>Hủy
+                    </a>
+                </div>
+            </form>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            Không tìm thấy thông tin nhân viên!
+        </div>
+    }
+</div>
+
+<script>
+    // Form validation
+    document.getElementById('employeeForm')?.addEventListener('submit', function(e) {
+        const sdt = document.querySelector('input[name="sdt"]').value;
+        const cccd = document.querySelector('input[name="cccd"]').value;
+        
+        if (!/^[0-9]{10}$/.test(sdt)) {
+            showToast('warning', 'Số điện thoại phải có 10 chữ số!');
+            e.preventDefault();
+            return false;
+        }
+        
+        if (!/^[0-9]{12}$/.test(cccd)) {
+            showToast('warning', 'CCCD phải có 12 chữ số!');
+            e.preventDefault();
+            return false;
+        }
+    });
+</script>

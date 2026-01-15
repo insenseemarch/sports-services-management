@@ -1,0 +1,1192 @@
+@{
+    ViewData["Title"] = "Quản Lý Giá & Ưu Đãi";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+<style>
+    .price-container {
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @@keyframes slideInDown {
+        from { opacity: 0; transform: translateY(-30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @@keyframes slideInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-banner {
+        position: relative;
+        width: 100%;
+        height: 400px;
+        background: url('https://www.pricingsolutions.com/wp-content/uploads/2019/09/discussion-about-price-management.jpg') center/cover no-repeat;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+
+    .hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(29, 78, 36, 0.85) 0%, rgba(76, 175, 80, 0.75) 50%, rgba(163, 207, 6, 0.65) 100%);
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        padding: 0 1rem;
+    }
+
+    .hero-content h1 {
+        font-size: 3.5rem;
+        font-weight: bold;
+        color: white;
+        text-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        margin-bottom: 1rem;
+        animation: slideInDown 0.8s ease-out;
+    }
+
+    .hero-content p {
+        font-size: 1.25rem;
+        color: rgba(255, 255, 255, 0.9);
+        text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        animation: slideInUp 0.8s ease-out;
+    }
+
+    /* Tab Navigation */
+    .nav-tabs-custom {
+        border-bottom: 3px solid #4caf50;
+        margin-bottom: 2rem;
+    }
+
+    .nav-tabs-custom .nav-link {
+        border: none;
+        color: #666;
+        font-weight: 600;
+        font-size: 1.1rem;
+        padding: 1rem 2rem;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .nav-tabs-custom .nav-link:hover {
+        color: #4caf50;
+        background: rgba(76, 175, 80, 0.1);
+    }
+
+    .nav-tabs-custom .nav-link.active {
+        color: #4caf50;
+        background: #fff;
+        border-bottom: 3px solid #4caf50;
+    }
+
+    .nav-tabs-custom .nav-link.active::after {
+        content: '';
+        position: absolute;
+        bottom: -3px;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: #cce830;
+    }
+
+    /* Cards */
+    .data-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+        animation: slideInUp 0.4s ease-out;
+    }
+
+    .data-card:hover {
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        transform: translateY(-4px);
+    }
+
+    .data-card h5 {
+        color: #2e7d32;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Buttons */
+    .btn-green {
+        background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+        border: none;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    }
+
+    .btn-green:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        background: linear-gradient(135deg, #5cb85f 0%, #388e3c 100%);
+        color: white;
+    }
+
+    .btn-accent {
+        background: linear-gradient(135deg, #cce830 0%, #a8c920 100%);
+        color: #2e7d32;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 700;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(204, 232, 48, 0.3);
+    }
+
+    .btn-accent:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(204, 232, 48, 0.5);
+        background: linear-gradient(135deg, #d4f036 0%, #b5d928 100%);
+        color: #1b5e20;
+    }
+
+    /* Table */
+    .table-custom {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .table-custom thead {
+        background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+        color: white;
+    }
+
+    .table-custom thead th {
+        border: none;
+        padding: 1rem;
+        font-weight: 600;
+    }
+
+    .table-custom tbody tr {
+        transition: all 0.3s ease;
+    }
+
+    .table-custom tbody tr:hover {
+        background: rgba(76, 175, 80, 0.05);
+        transform: scale(1.01);
+    }
+
+    .table-custom tbody td {
+        padding: 1rem;
+        vertical-align: middle;
+    }
+
+    /* Badge */
+    .badge-custom {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .badge-active {
+        background: linear-gradient(135deg, #d4edda 0%, #b5f2c4 100%);
+        color: #155724;
+    }
+
+    .badge-inactive {
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        color: #721c24;
+    }
+
+    .badge-weekday {
+        background: linear-gradient(135deg, #cce5ff 0%, #a2d2ff 100%);
+        color: #004085;
+    }
+
+    .badge-weekend {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        color: #856404;
+    }
+
+    .badge-holiday {
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        color: #721c24;
+    }
+
+    /* Promotion Card */
+    .promo-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+        border-left: 5px solid #4caf50;
+        animation: slideInUp 0.4s ease-out;
+    }
+
+    .promo-card:hover {
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        transform: translateY(-4px);
+    }
+
+    .promo-card.inactive {
+        border-left-color: #ccc;
+        opacity: 0.7;
+    }
+
+    .promo-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 1rem;
+    }
+
+    .promo-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #2e7d32;
+        margin-bottom: 0.5rem;
+    }
+
+    .promo-discount {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #4caf50;
+    }
+
+    .promo-details {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .promo-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    /* Form */
+    .form-control:focus {
+        border-color: #4caf50;
+        box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+    }
+
+    .form-select:focus {
+        border-color: #4caf50;
+        box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+    }
+
+    /* Modal */
+    .modal-content {
+        border: none;
+        border-radius: 20px;
+        overflow: hidden;
+        animation: modalSlideIn 0.3s ease-out;
+    }
+
+    @@keyframes modalSlideIn {
+        from { opacity: 0; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+        color: white;
+        border: none;
+        padding: 1.5rem;
+    }
+
+    /* Filter card */
+    .filter-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        animation: slideInUp 0.4s ease-out;
+    }
+
+    /* System params form */
+    .param-item {
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid #4caf50;
+        transition: all 0.3s ease;
+    }
+
+    .param-item:hover {
+        background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f2 100%);
+        transform: translateX(4px);
+    }
+
+    .param-label {
+        font-weight: 600;
+        color: #2e7d32;
+        margin-bottom: 0.5rem;
+    }
+
+    .param-desc {
+        font-size: 0.85rem;
+        color: #666;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #999;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.3;
+    }
+</style>
+
+<div class="price-container">
+    <!-- Hero Banner -->
+    <div class="hero-banner">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1>
+                <i class="fas fa-tags me-3"></i>QUẢN LÝ GIÁ & ƯU ĐÃI
+            </h1>
+            <p class="lead">Thiết lập giá cả và chương trình khuyến mãi</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Tab Navigation -->
+        <ul class="nav nav-tabs nav-tabs-custom" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#tab-khunggio">
+                    <i class="fas fa-clock me-2"></i>Khung Giờ & Giá
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#tab-uudai">
+                    <i class="fas fa-gift me-2"></i>Ưu Đãi & Khuyến Mãi
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#tab-thamso">
+                    <i class="fas fa-cog me-2"></i>Tham Số Hệ Thống
+                </a>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- TAB 1: KHUNG GIỜ & GIÁ -->
+            <div class="tab-pane fade show active" id="tab-khunggio">
+                <!-- Filters -->
+                <div class="filter-card">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label"><i class="fas fa-futbol me-2"></i>Loại sân</label>
+                            <select id="filterLoaiSan" class="form-select">
+                                <option value="">Tất cả loại sân</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label"><i class="fas fa-calendar-day me-2"></i>Loại ngày</label>
+                            <select id="filterLoaiNgay" class="form-select">
+                                <option value="">Tất cả</option>
+                                <option value="Thuong">Ngày thường</option>
+                                <option value="CuoiTuan">Cuối tuần</option>
+                                <option value="Le">Ngày lễ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label d-block">&nbsp;</label>
+                            <button class="btn btn-green w-100" onclick="loadKhungGio()">
+                                <i class="fas fa-search me-2"></i>Lọc
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Button -->
+                <div class="mb-3 text-end">
+                    <button class="btn btn-accent" data-bs-toggle="modal" data-bs-target="#modalTaoKhungGio">
+                        <i class="fas fa-plus-circle me-2"></i>Thêm Khung Giờ Mới
+                    </button>
+                </div>
+
+                <!-- Time Slots Table -->
+                <div class="data-card">
+                    <h5><i class="fas fa-list me-2"></i>Danh Sách Khung Giờ</h5>
+                    <div class="table-responsive">
+                        <table class="table table-custom">
+                            <thead>
+                                <tr>
+                                    <th>Loại Sân</th>
+                                    <th>Tên Khung Giờ</th>
+                                    <th>Giờ</th>
+                                    <th>Loại Ngày</th>
+                                    <th>Giá (VNĐ)</th>
+                                    <th>Ngày Áp Dụng</th>
+                                    <th>Trạng Thái</th>
+                                    <th>Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableKhungGio">
+                                <tr>
+                                    <td colspan="8" class="text-center">
+                                        <div class="spinner-border text-success" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: ƯU ĐÃI & KHUYẾN MÃI -->
+            <div class="tab-pane fade" id="tab-uudai">
+                <!-- Filters -->
+                <div class="filter-card">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label"><i class="fas fa-tag me-2"></i>Loại ưu đãi</label>
+                            <select id="filterLoaiUuDai" class="form-select">
+                                <option value="">Tất cả</option>
+                                <option value="CapBac">Cấp bậc</option>
+                                <option value="HocSinhSinhVien">Học sinh/Sinh viên</option>
+                                <option value="KhungGio">Khung giờ</option>
+                                <option value="NgayTrongTuan">Ngày trong tuần</option>
+                                <option value="ComboGio">Combo giờ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label"><i class="fas fa-toggle-on me-2"></i>Trạng thái</label>
+                            <select id="filterTrangThaiUD" class="form-select">
+                                <option value="">Tất cả</option>
+                                <option value="true">Đang hoạt động</option>
+                                <option value="false">Tạm dừng</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label d-block">&nbsp;</label>
+                            <button class="btn btn-green w-100" onclick="loadUuDai()">
+                                <i class="fas fa-search me-2"></i>Lọc
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Button -->
+                <div class="mb-3 text-end">
+                    <button class="btn btn-accent" data-bs-toggle="modal" data-bs-target="#modalTaoUuDai">
+                        <i class="fas fa-plus-circle me-2"></i>Tạo Ưu Đãi Mới
+                    </button>
+                </div>
+
+                <!-- Promotions List -->
+                <div id="listUuDai">
+                    <div class="text-center">
+                        <div class="spinner-border text-success" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: THAM SỐ HỆ THỐNG -->
+            <div class="tab-pane fade" id="tab-thamso">
+                <div class="data-card">
+                    <h5><i class="fas fa-sliders-h me-2"></i>Cấu Hình Hệ Thống</h5>
+                    <form id="formThamSo">
+                        <div id="listThamSo">
+                            <div class="text-center">
+                                <div class="spinner-border text-success" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end mt-3">
+                            <button type="button" class="btn btn-green" onclick="saveThamSo()">
+                                <i class="fas fa-save me-2"></i>Lưu Cấu Hình
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Tạo/Sửa Khung Giờ -->
+<div class="modal fade" id="modalTaoKhungGio" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-clock me-2"></i><span id="modalKGTitle">Thêm Khung Giờ Mới</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formKhungGio">
+                    <input type="hidden" id="maKG" />
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Loại sân <span class="text-danger">*</span></label>
+                            <select id="kgLoaiSan" class="form-select" required>
+                                <option value="">-- Chọn loại sân --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Loại ngày <span class="text-danger">*</span></label>
+                            <select id="kgLoaiNgay" class="form-select" required>
+                                <option value="Thuong">Ngày thường</option>
+                                <option value="CuoiTuan">Cuối tuần</option>
+                                <option value="Le">Ngày lễ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">Tên khung giờ</label>
+                            <input type="text" id="kgTenKhungGio" class="form-control" placeholder="VD: Sáng - Ngày thường" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Giờ bắt đầu <span class="text-danger">*</span></label>
+                            <input type="time" id="kgGioBatDau" class="form-control" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Giờ kết thúc <span class="text-danger">*</span></label>
+                            <input type="time" id="kgGioKetThuc" class="form-control" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Giá áp dụng (VNĐ) <span class="text-danger">*</span></label>
+                            <input type="number" id="kgGiaApDung" class="form-control" min="0" step="1000" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Ngày bắt đầu áp dụng <span class="text-danger">*</span></label>
+                            <input type="date" id="kgNgayApDung" class="form-control" required />
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-green" onclick="saveKhungGio()">
+                    <i class="fas fa-save me-2"></i>Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Tạo/Sửa Ưu Đãi -->
+<div class="modal fade" id="modalTaoUuDai" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-gift me-2"></i><span id="modalUDTitle">Tạo Ưu Đãi Mới</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formUuDai">
+                    <input type="hidden" id="maUD" />
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">Tên chương trình <span class="text-danger">*</span></label>
+                            <input type="text" id="udTenCT" class="form-control" placeholder="VD: Ưu đãi học sinh - sinh viên" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Loại ưu đãi <span class="text-danger">*</span></label>
+                            <select id="udLoaiUuDai" class="form-select" required>
+                                <option value="">-- Chọn loại --</option>
+                                <option value="CapBac">Theo cấp bậc thành viên</option>
+                                <option value="HocSinhSinhVien">Học sinh/Sinh viên</option>
+                                <option value="KhungGio">Theo khung giờ</option>
+                                <option value="NgayTrongTuan">Theo ngày trong tuần</option>
+                                <option value="ComboGio">Combo nhiều giờ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Tỷ lệ giảm giá (%) <span class="text-danger">*</span></label>
+                            <input type="number" id="udTyLeGiamGia" class="form-control" min="0" max="100" step="0.1" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Ngày bắt đầu <span class="text-danger">*</span></label>
+                            <input type="date" id="udNgayBatDau" class="form-control" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Ngày kết thúc <span class="text-danger">*</span></label>
+                            <input type="date" id="udNgayKetThuc" class="form-control" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Giá trị đơn tối thiểu (VNĐ)</label>
+                            <input type="number" id="udGiaTriMin" class="form-control" min="0" step="1000" value="0" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Số giờ tối thiểu (cho combo)</label>
+                            <input type="number" id="udSoGioMin" class="form-control" min="0" value="0" />
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">Điều kiện áp dụng</label>
+                            <textarea id="udDieuKien" class="form-control" rows="3" 
+                                placeholder="Mô tả chi tiết điều kiện áp dụng ưu đãi..."></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-green" onclick="saveUuDai()">
+                    <i class="fas fa-save me-2"></i>Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    let loaiSanList = [];
+    let currentEditKG = null;
+    let currentEditUD = null;
+
+    $(document).ready(function() {
+        loadLoaiSan();
+        loadKhungGio();
+        loadUuDai();
+        loadThamSo();
+
+        // Set default dates
+        const today = new Date().toISOString().split('T')[0];
+        $('#kgNgayApDung').val(today);
+        $('#udNgayBatDau').val(today);
+        
+        const nextYear = new Date();
+        nextYear.setFullYear(nextYear.getFullYear() + 1);
+        $('#udNgayKetThuc').val(nextYear.toISOString().split('T')[0]);
+    });
+
+    // ===== KHUNG GIỜ & GIÁ =====
+
+    function loadLoaiSan() {
+        $.ajax({
+            url: '@Url.Action("GetLoaiSan", "Management")',
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    loaiSanList = response.data;
+                    let options = '<option value="">-- Chọn loại sân --</option>';
+                    let filterOptions = '<option value="">Tất cả loại sân</option>';
+                    response.data.forEach(ls => {
+                        options += `<option value="${ls.maLS}">${ls.tenLS}</option>`;
+                        filterOptions += `<option value="${ls.maLS}">${ls.tenLS}</option>`;
+                    });
+                    $('#kgLoaiSan').html(options);
+                    $('#filterLoaiSan').html(filterOptions);
+                }
+            }
+        });
+    }
+
+    function loadKhungGio() {
+        const maLS = $('#filterLoaiSan').val();
+        const loaiNgay = $('#filterLoaiNgay').val();
+
+        $.ajax({
+            url: '@Url.Action("GetDanhSachKhungGio", "Management")',
+            type: 'GET',
+            data: { maLS, loaiNgay },
+            success: function(response) {
+                if (response.success) {
+                    renderKhungGio(response.data);
+                } else {
+                    showToast('error', response.message);
+                }
+            },
+            error: function() {
+                showToast('error', 'Lỗi tải danh sách khung giờ');
+            }
+        });
+    }
+
+    // Helper functions for mapping PascalCase to Vietnamese
+    const LoaiNgayMap = {
+        'Thuong': 'Ngày thường',
+        'CuoiTuan': 'Cuối tuần',
+        'Le': 'Ngày lễ'
+    };
+
+    const LoaiUuDaiMap = {
+        'CapBac': 'Theo cấp bậc thành viên',
+        'HocSinhSinhVien': 'Học sinh/Sinh viên',
+        'KhungGio': 'Theo khung giờ',
+        'NgayTrongTuan': 'Theo ngày trong tuần',
+        'ComboGio': 'Combo nhiều giờ',
+        'Chung': 'Chung'
+    };
+
+    function renderKhungGio(data) {
+        const tbody = $('#tableKhungGio');
+        if (data.length === 0) {
+            tbody.html('<tr><td colspan="8" class="text-center text-muted">Chưa có khung giờ nào</td></tr>');
+            return;
+        }
+
+        let html = '';
+        data.forEach(kg => {
+            const loaiNgayBadge = kg.loaiNgay === 'Thuong' ? 'badge-weekday' : 
+                                  kg.loaiNgay === 'CuoiTuan' ? 'badge-weekend' : 'badge-holiday';
+            // NULL or true = active, only false/'Tạm dừng' = inactive
+            const isActive = kg.trangThai !== 'Tạm dừng' && kg.trangThai !== false;
+            const statusBadge = isActive ? 'badge-active' : 'badge-inactive';
+
+            html += `
+                <tr>
+                    <td><strong>${kg.tenLS}</strong></td>
+                    <td>${kg.tenKhungGio || '-'}</td>
+                    <td>${kg.gioBatDau} - ${kg.gioKetThuc}</td>
+                    <td><span class="badge-custom ${loaiNgayBadge}">${LoaiNgayMap[kg.loaiNgay] || kg.loaiNgay}</span></td>
+                    <td><strong>${Number(kg.giaApDung).toLocaleString('vi-VN')} ₫</strong></td>
+                    <td>${kg.ngayApDung}</td>
+                    <td><span class="badge-custom ${statusBadge}">${isActive ? 'Đang hoạt động' : 'Tạm dừng'}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="editKhungGio('${kg.maKG}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteKhungGio('${kg.maKG}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+        tbody.html(html);
+    }
+
+    function editKhungGio(maKG) {
+        // Find the time slot data
+        $.ajax({
+            url: '@Url.Action("GetDanhSachKhungGio", "Management")',
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    const kg = response.data.find(k => k.maKG === maKG);
+                    if (kg) {
+                        currentEditKG = maKG;
+                        $('#modalKGTitle').text('Sửa Khung Giờ');
+                        $('#maKG').val(kg.maKG);
+                        $('#kgLoaiSan').val(kg.maLS);
+                        $('#kgLoaiNgay').val(kg.loaiNgay);
+                        $('#kgTenKhungGio').val(kg.tenKhungGio);
+                        $('#kgGioBatDau').val(kg.gioBatDau);
+                        $('#kgGioKetThuc').val(kg.gioKetThuc);
+                        $('#kgGiaApDung').val(kg.giaApDung);
+                        $('#kgNgayApDung').val(kg.ngayApDung.split('/').reverse().join('-'));
+                        $('#modalTaoKhungGio').modal('show');
+                    }
+                }
+            }
+        });
+    }
+
+    function saveKhungGio() {
+        const form = $('#formKhungGio')[0];
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const data = {
+            maKG: $('#maKG').val(),
+            maLS: $('#kgLoaiSan').val(),
+            gioBatDau: $('#kgGioBatDau').val(),
+            gioKetThuc: $('#kgGioKetThuc').val(),
+            ngayApDung: $('#kgNgayApDung').val(),
+            giaApDung: parseFloat($('#kgGiaApDung').val()),
+            loaiNgay: $('#kgLoaiNgay').val(),
+            tenKhungGio: $('#kgTenKhungGio').val()
+        };
+
+        const url = currentEditKG ? '@Url.Action("CapNhatKhungGio", "Management")' : 
+                                    '@Url.Action("TaoKhungGio", "Management")';
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function(response) {
+                if (response.success) {
+                    showToast('success', response.message);
+                    $('#modalTaoKhungGio').modal('hide');
+                    resetFormKhungGio();
+                    loadKhungGio();
+                } else {
+                    showToast('error', response.message);
+                }
+            },
+            error: function() {
+                showToast('error', 'Lỗi khi lưu khung giờ');
+            }
+        });
+    }
+
+    function deleteKhungGio(maKG) {
+        if (!confirm('Bạn có chắc muốn xóa khung giờ này?')) return;
+
+        $.ajax({
+            url: '@Url.Action("XoaKhungGio", "Management")',
+            type: 'POST',
+            data: { maKG },
+            success: function(response) {
+                if (response.success) {
+                    showToast('success', response.message);
+                    loadKhungGio();
+                } else {
+                    showToast('error', response.message);
+                }
+            },
+            error: function() {
+                showToast('error', 'Lỗi khi xóa khung giờ');
+            }
+        });
+    }
+
+    function resetFormKhungGio() {
+        currentEditKG = null;
+        $('#formKhungGio')[0].reset();
+        $('#modalKGTitle').text('Thêm Khung Giờ Mới');
+        $('#maKG').val('');
+        const today = new Date().toISOString().split('T')[0];
+        $('#kgNgayApDung').val(today);
+    }
+
+    $('#modalTaoKhungGio').on('hidden.bs.modal', function() {
+        resetFormKhungGio();
+    });
+
+    // ===== ƯU ĐÃI =====
+
+    function loadUuDai() {
+        const loaiUuDai = $('#filterLoaiUuDai').val();
+        const trangThai = $('#filterTrangThaiUD').val();
+
+        $.ajax({
+            url: '@Url.Action("GetDanhSachUuDai", "Management")',
+            type: 'GET',
+            data: { loaiUuDai, trangThai },
+            success: function(response) {
+                if (response.success) {
+                    renderUuDai(response.data);
+                } else {
+                    showToast('error', response.message);
+                }
+            },
+            error: function() {
+                showToast('error', 'Lỗi tải danh sách ưu đãi');
+            }
+        });
+    }
+
+    function renderUuDai(data) {
+        const container = $('#listUuDai');
+        if (data.length === 0) {
+            container.html('<div class="empty-state"><i class="fas fa-gift"></i><h4>Chưa có ưu đãi nào</h4></div>');
+            return;
+        }
+
+        let html = '';
+        data.forEach(ud => {
+            // Determine status based on NgayKetThuc
+            let isExpired = false;
+            let statusText = 'Đang hoạt động';
+            let statusBadge = 'badge-active';
+            
+            if (ud.ngayKetThuc && ud.ngayKetThuc !== '') {
+                const parts = ud.ngayKetThuc.split('/');
+                const endDate = new Date(parts[2], parts[1] - 1, parts[0]);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                if (endDate < today) {
+                    isExpired = true;
+                    statusText = 'Đã kết thúc';
+                    statusBadge = 'badge-inactive';
+                }
+            }
+            
+            const activeClass = isExpired ? 'inactive' : '';
+            html += `
+                <div class="promo-card ${activeClass}">
+                    <div class="promo-header">
+                        <div>
+                            <div class="promo-title">${ud.tenCT}</div>
+                            <span class="badge-custom ${statusBadge}">
+                                ${statusText}
+                            </span>
+                            <span class="badge-custom badge-weekday ms-2">${LoaiUuDaiMap[ud.loaiUuDai] || ud.loaiUuDai}</span>
+                        </div>
+                        <div class="promo-discount">${ud.tyLeGiamGia}%</div>
+                    </div>
+                    <div class="promo-details">
+                        <p class="mb-2"><strong>Thời gian:</strong> ${ud.ngayBatDau} - ${ud.ngayKetThuc || 'Không giới hạn'}</p>
+                        <p class="mb-2"><strong>Điều kiện:</strong> ${ud.dieuKienApDung || 'Không có'}</p>
+                        ${ud.giaTriToiThieu > 0 ? `<p class="mb-2"><strong>Giá trị tối thiểu:</strong> ${Number(ud.giaTriToiThieu).toLocaleString('vi-VN')} ₫</p>` : ''}
+                        ${ud.soGioToiThieu > 0 ? `<p class="mb-2"><strong>Số giờ tối thiểu:</strong> ${ud.soGioToiThieu} giờ</p>` : ''}
+                    </div>
+                    <div class="promo-actions">
+                        <button class="btn btn-sm ${ud.trangThai ? 'btn-warning' : 'btn-success'}" 
+                                onclick="toggleUuDai('${ud.maUD}', ${!ud.trangThai})">
+                            <i class="fas fa-${ud.trangThai ? 'pause' : 'play'}"></i>
+                            ${ud.trangThai ? 'Tạm dừng' : 'Kích hoạt'}
+                        </button>
+                        <button class="btn btn-sm btn-primary" onclick="editUuDai('${ud.maUD}')">
+                            <i class="fas fa-edit"></i> Sửa
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteUuDai('${ud.maUD}')">
+                            <i class="fas fa-trash"></i> Xóa
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        container.html(html);
+    }
+
+    function editUuDai(maUD) {
+        $.ajax({
+            url: '@Url.Action("GetDanhSachUuDai", "Management")',
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    const ud = response.data.find(u => u.maUD === maUD);
+                    if (ud) {
+                        currentEditUD = maUD;
+                        $('#modalUDTitle').text('Sửa Ưu Đãi');
+                        $('#maUD').val(ud.maUD);
+                        $('#udTenCT').val(ud.tenCT);
+                        $('#udLoaiUuDai').val(ud.loaiUuDai);
+                        $('#udTyLeGiamGia').val(ud.tyLeGiamGia);
+                        $('#udNgayBatDau').val(ud.ngayBatDau.split('/').reverse().join('-'));
+                        $('#udNgayKetThuc').val(ud.ngayKetThuc.split('/').reverse().join('-'));
+                        $('#udGiaTriMin').val(ud.giaTriToiThieu);
+                        $('#udSoGioMin').val(ud.soGioToiThieu);
+                        $('#udDieuKien').val(ud.dieuKienApDung);
+                        $('#modalTaoUuDai').modal('show');
+                    }
+                }
+            }
+        });
+    }
+
+    function saveUuDai() {
+        const form = $('#formUuDai')[0];
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const data = {
+            maUD: $('#maUD').val(),
+            tenCT: $('#udTenCT').val(),
+            tyLeGiamGia: parseFloat($('#udTyLeGiamGia').val()),
+            dieuKienApDung: $('#udDieuKien').val(),
+            loaiUuDai: $('#udLoaiUuDai').val(),
+            ngayBatDau: $('#udNgayBatDau').val(),
+            ngayKetThuc: $('#udNgayKetThuc').val(),
+            giaTriToiThieu: parseFloat($('#udGiaTriMin').val()),
+            soGioToiThieu: parseInt($('#udSoGioMin').val())
+        };
+
+        const url = currentEditUD ? '@Url.Action("CapNhatUuDai", "Management")' : 
+                                    '@Url.Action("TaoUuDai", "Management")';
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function(response) {
+                if (response.success) {
+                    showToast('success', response.message);
+                    $('#modalTaoUuDai').modal('hide');
+                    resetFormUuDai();
+                    loadUuDai();
+                } else {
+                    showToast('error', response.message);
+                }
+            },
+            error: function() {
+                showToast('error', 'Lỗi khi lưu ưu đãi');
+            }
+        });
+    }
+
+    function toggleUuDai(maUD, trangThai) {
+        $.ajax({
+            url: '@Url.Action("BatTatUuDai", "Management")',
+            type: 'POST',
+            data: { maUD, trangThai },
+            success: function(response) {
+                if (response.success) {
+                    showToast('success', response.message);
+                    loadUuDai();
+                } else {
+                    showToast('error', response.message);
+                }
+            },
+            error: function() {
+                showToast('error', 'Lỗi khi thay đổi trạng thái');
+            }
+        });
+    }
+
+    function deleteUuDai(maUD) {
+        if (!confirm('Bạn có chắc muốn xóa ưu đãi này?')) return;
+
+        $.ajax({
+            url: '@Url.Action("XoaUuDai", "Management")',
+            type: 'POST',
+            data: { maUD },
+            success: function(response) {
+                if (response.success) {
+                    showToast('success', response.message);
+                    loadUuDai();
+                } else {
+                    showToast('error', response.message);
+                }
+            },
+            error: function() {
+                showToast('error', 'Lỗi khi xóa ưu đãi');
+            }
+        });
+    }
+
+    function resetFormUuDai() {
+        currentEditUD = null;
+        $('#formUuDai')[0].reset();
+        $('#modalUDTitle').text('Tạo Ưu Đãi Mới');
+        $('#maUD').val('');
+        const today = new Date().toISOString().split('T')[0];
+        $('#udNgayBatDau').val(today);
+        const nextYear = new Date();
+        nextYear.setFullYear(nextYear.getFullYear() + 1);
+        $('#udNgayKetThuc').val(nextYear.toISOString().split('T')[0]);
+    }
+
+    $('#modalTaoUuDai').on('hidden.bs.modal', function() {
+        resetFormUuDai();
+    });
+
+    // ===== THAM SỐ HỆ THỐNG =====
+
+    function loadThamSo() {
+        $.ajax({
+            url: '@Url.Action("GetThamSoHeThong", "Management")',
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    renderThamSo(response.data);
+                } else {
+                    showToast('error', response.message);
+                }
+            },
+            error: function() {
+                showToast('error', 'Lỗi tải tham số hệ thống');
+            }
+        });
+    }
+
+    function renderThamSo(data) {
+        const container = $('#listThamSo');
+        if (data.length === 0) {
+            container.html('<p class="text-muted">Chưa có tham số nào</p>');
+            return;
+        }
+
+        let html = '';
+        data.forEach(ts => {
+            html += `
+                <div class="param-item">
+                    <div class="param-label">${ts.tenThamSo}</div>
+                    <div class="param-desc">${ts.moTa}</div>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="param_${ts.maThamSo}" 
+                               value="${ts.giaTri}" data-ma="${ts.maThamSo}" />
+                        <span class="input-group-text">${ts.donVi}</span>
+                    </div>
+                    <small class="text-muted">Cập nhật lần cuối: ${ts.ngayCapNhat}</small>
+                </div>
+            `;
+        });
+        container.html(html);
+    }
+
+    function saveThamSo() {
+        const parameters = [];
+        $('[id^="param_"]').each(function() {
+            parameters.push({
+                maThamSo: $(this).data('ma'),
+                giaTri: $(this).val()
+            });
+        });
+
+        $.ajax({
+            url: '@Url.Action("CapNhatThamSo", "Management")',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(parameters),
+            success: function(response) {
+                if (response.success) {
+                    showToast('success', response.message);
+                    loadThamSo();
+                } else {
+                    showToast('error', response.message);
+                }
+            },
+            error: function() {
+                showToast('error', 'Lỗi khi lưu tham số');
+            }
+        });
+    }
+
+    // ===== UTILITIES =====
+
+    function showToast(type, message) {
+        const bgColor = type === 'success' ? '#4caf50' : '#f44336';
+        Toastify({
+            text: message,
+            duration: 3000,
+            gravity: "top",
+            position: "right",
+            backgroundColor: bgColor,
+        }).showToast();
+    }
+</script>
+}

@@ -337,7 +337,7 @@
                 contentType: false,
                 success: function(response) {
                     if (response.success) {
-                        alert(response.message); // Hoặc hiển thị đẹp hơn tùy ý
+                        showToast(response.success ? 'success' : 'error', response.message);
                         window.location.href = '/TaiKhoan/DangNhap'; // Chuyển về trang đăng nhập (hoặc home)
                     } else {
                         if (response.field) {
@@ -358,7 +358,7 @@
                     }
                 },
                 error: function() {
-                    alert('Có lỗi kết nối server!');
+                    showToast('error', 'Có lỗi kết nối server!');
                 },
                 complete: function() {
                     btn.prop('disabled', false).html(originalText);

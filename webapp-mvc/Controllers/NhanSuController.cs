@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
 using System.Data.SqlClient;
 using webapp_mvc.Models;
 
@@ -40,7 +42,7 @@ namespace webapp_mvc.Controllers
 
                 // 2. Load Danh Sach NV
                 string sqlNV = @"
-                    SELECT nv.MaNV, nv.HoTen, nv.ChucVu, nv.SDT, nv.LuongCoBan, cs.TenCS, tk.TenDangNhap 
+                    SELECT nv.MaNV, nv.HoTen, nv.ChucVu, nv.SDT, nv.LuongCoBan, cs.TenCS, tk.TenDangNhap, nv.TrangThai
                     FROM NHANVIEN nv
                     LEFT JOIN COSO cs ON nv.MaCS = cs.MaCS
                     LEFT JOIN TAIKHOAN tk ON nv.MaTK = tk.MaTK
@@ -61,7 +63,8 @@ namespace webapp_mvc.Controllers
                                 SDT = r["SDT"] != DBNull.Value ? r["SDT"].ToString()! : "",
                                 LuongCoBan = r["LuongCoBan"] != DBNull.Value ? Convert.ToDecimal(r["LuongCoBan"]) : 0,
                                 TenCoSo = r["TenCS"] != DBNull.Value ? r["TenCS"].ToString()! : "",
-                                TenDangNhap = r["TenDangNhap"] != DBNull.Value ? r["TenDangNhap"].ToString()! : ""
+                                TenDangNhap = r["TenDangNhap"] != DBNull.Value ? r["TenDangNhap"].ToString()! : "",
+                                TrangThai = r["TrangThai"] != DBNull.Value ? r["TrangThai"].ToString()! : "Đang làm"
                             });
                         }
                     }
@@ -138,20 +141,131 @@ namespace webapp_mvc.Controllers
             return Index(""); 
         }
         [HttpPost]
-        public IActionResult Delete(string id)
+        public IActionResult XoaNhanVien(string maNV)
         {
             try
             {
-                 // Delete NHANVIEN first. (Note: Will fail if FK exists)
-                 _db.ExecuteNonQuery("DELETE FROM NHANVIEN WHERE MaNV = @ID", new SqlParameter("@ID", id));
-                 // Optional: Delete TAIKHOAN associated? A bit complex if we need MaTK.
-                 
-                 return RedirectToAction("Index", new { msg = "Xóa nhân viên thành công!" });
+                // First, get MaTK for this employee
+                string? maTK = null;
+                using (var conn = _db.GetConnection())
+                {
+                    conn.Open();
+                    string sqlGetMaTK = "SELECT MaTK FROM NHANVIEN WHERE MaNV = @MaNV";
+                    using (var cmd = new SqlCommand(sqlGetMaTK, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@MaNV", maNV);
+                        var result = cmd.ExecuteScalar();
+                        if (result != null)
+                            maTK = result.ToString();
+                    }
+                }
+
+                if (string.IsNullOrEmpty(maTK))
+                {
+                    return Json(new { success = false, message = "Không tìm thấy nhân viên" });
+                }
+
+                // Check if employee has related data in other tables
+                bool hasRelatedData = false;
+                using (var conn = _db.GetConnection())
+                {
+                    conn.Open();
+                    
+                        // Check multiple tables for references. Use per-table queries wrapped in try/catch
+                        // to avoid failing when some optional tables do not exist in the current DB.
+                        var checkQueries = new List<string>
+                        {
+                            "SELECT COUNT(*) FROM PHIEUDATSAN WHERE NguoiLap = @MaNV",
+                            "SELECT COUNT(*) FROM THAMGIACATRUC WHERE MaNV = @MaNV",
+                            "SELECT COUNT(*) FROM DONNGHIPHEP WHERE MaNV = @MaNV",
+                            "SELECT COUNT(*) FROM PHIEUNHAPKHO WHERE NguoiNhap = @MaNV",
+                            "SELECT COUNT(*) FROM PHIEUBAOTRI WHERE MaNV = @MaNV",
+                            "SELECT COUNT(*) FROM BAOCAOTHONGKE WHERE NguoiLapPhieu = @MaNV"
+                        };
+
+                        foreach (var q in checkQueries)
+                        {
+                            try
+                            {
+                                using (var cmd = new SqlCommand(q, conn))
+                                {
+                                    cmd.Parameters.AddWithValue("@MaNV", maNV);
+                                    var obj = cmd.ExecuteScalar();
+                                    if (obj != null && Convert.ToInt32(obj) > 0)
+                                    {
+                                        hasRelatedData = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            catch (SqlException)
+                            {
+                                // Table or column may not exist in this DB snapshot; skip and continue checking others.
+                                continue;
+                            }
+                        }
+                }
+
+                if (hasRelatedData)
+                {
+                    // Has related data - update to "Nghỉ việc" status instead of deleting
+                    // Clear MaCS (workplace) and set LuongCoBan to NULL
+                    string sqlUpdate = @"
+                        UPDATE NHANVIEN 
+                        SET MaCS = NULL, 
+                            LuongCoBan = NULL,
+                            TrangThai = N'Đã nghỉ việc'
+                        WHERE MaNV = @MaNV";
+                    
+                    _db.ExecuteNonQuery(sqlUpdate, new SqlParameter("@MaNV", maNV));
+                    
+                    return Json(new { 
+                        success = true, 
+                        fullyDeleted = false,
+                        message = "Nhân viên có dữ liệu liên quan. Đã chuyển sang trạng thái 'Nghỉ việc' và xóa thông tin cơ sở, lương." 
+                    });
+                }
+                else
+                {
+                    // No related data - safe to delete completely
+                    try
+                    {
+                        _db.ExecuteNonQuery("DELETE FROM NHANVIEN WHERE MaNV = @MaNV", 
+                            new SqlParameter("@MaNV", maNV));
+                        
+                        // Also delete TAIKHOAN
+                        _db.ExecuteNonQuery("DELETE FROM TAIKHOAN WHERE MaTK = @MaTK", 
+                            new SqlParameter("@MaTK", maTK));
+                        
+                        return Json(new { 
+                            success = true, 
+                            fullyDeleted = true,
+                            message = "Xóa nhân viên thành công!" 
+                        });
+                    }
+                    catch (SqlException ex)
+                    {
+                        // If still fails due to other FK constraints, update instead
+                        string sqlUpdate = @"
+                            UPDATE NHANVIEN 
+                            SET MaCS = NULL, 
+                                LuongCoBan = NULL,
+                                TrangThai = N'Đã nghỉ việc'
+                            WHERE MaNV = @MaNV";
+                        
+                        _db.ExecuteNonQuery(sqlUpdate, new SqlParameter("@MaNV", maNV));
+                        
+                        return Json(new { 
+                            success = true, 
+                            fullyDeleted = false,
+                            message = "Nhân viên có ràng buộc dữ liệu. Đã chuyển sang trạng thái 'Nghỉ việc'." 
+                        });
+                    }
+                }
             }
             catch (Exception ex)
             {
-                // Likely FK constraint
-                return RedirectToAction("Index", new { msg = "Lỗi: Không thể xóa nhân viên này (đang có dữ liệu liên quan)." });
+                return Json(new { success = false, message = ex.Message });
             }
         }
     }

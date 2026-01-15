@@ -1,0 +1,909 @@
+@{
+    ViewData["Title"] = "Phê Duyệt Nghỉ Phép";
+}
+
+@{
+    var leaveRequests = ViewBag.LeaveRequests as List<dynamic> ?? new List<dynamic>();
+}
+
+@functions {
+    string GetProp(object obj, string name)
+    {
+        return obj?
+            .GetType()?
+            .GetProperty(name)?
+            .GetValue(obj)?
+            .ToString() ?? "";
+    }
+
+    DateTime? GetDate(object obj, string name)
+    {
+        var v = obj?
+            .GetType()?
+            .GetProperty(name)?
+            .GetValue(obj);
+        return v as DateTime?;
+    }
+}
+
+
+
+<style>
+    .leave-container {
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+        color: white;
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        animation: slideInDown 0.6s ease-out;
+    }
+
+    @@keyframes slideInDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .leave-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+        overflow: hidden;
+        animation: slideInUp 0.4s ease-out;
+    }
+
+    @@keyframes slideInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .leave-card:hover {
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        transform: translateY(-4px);
+    }
+
+    .leave-card-header {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-bottom: 3px solid;
+    }
+
+    .leave-card.pending .leave-card-header {
+        border-bottom-color: #ffc107;
+    }
+
+    .leave-card.approved .leave-card-header {
+        border-bottom-color: #28a745;
+    }
+
+    .leave-card.rejected .leave-card-header {
+        border-bottom-color: #dc3545;
+    }
+
+    .leave-status-badge {
+        padding: 0.5rem 1.2rem;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        animation: pulse 2s infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.8; }
+    }
+
+    .leave-info-item {
+        display: flex;
+        align-items: start;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .leave-info-item:last-child {
+        border-bottom: none;
+    }
+
+    .leave-info-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        flex-shrink: 0;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-top: 1px solid #e9ecef;
+    }
+
+    .btn-approve {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border: none;
+        padding: 0.6rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+
+    .btn-approve:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
+        color: white;
+    }
+
+    .btn-reject {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        border: none;
+        padding: 0.6rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    }
+
+    .btn-reject:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(220, 53, 69, 0.4);
+        color: white;
+    }
+
+    .filter-tabs {
+        display: flex;
+        gap: 1rem;
+        background: white;
+        padding: 1rem;
+        border-radius: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+        border: 0;
+    }
+
+    .filter-tab {
+        flex: 1;
+        padding: 1rem;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .filter-tab:hover {
+        border-color: #d9f02b;
+        transform: translateY(-2px);
+    }
+
+    .filter-tab.active {
+        border-color: #d9f02b;
+        background: linear-gradient(135deg, #fcfde4 0%, #fefef0 100%);
+        box-shadow: 0 4px 12px rgba(217, 240, 43, 0.3);
+    }
+
+    .filter-tab .count {
+        font-size: 1.8rem;
+        font-weight: 700;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .search-filters {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        animation: slideInUp 0.5s ease-out;
+    }
+
+    .search-filters .form-label {
+        font-weight: 600;
+        color: #2e7d32;
+        margin-bottom: 0.5rem;
+    }
+
+    .search-filters .form-control, .search-filters .form-select {
+        border-radius: 10px;
+        border: 2px solid #e0e0e0;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .search-filters .form-control:focus, .search-filters .form-select:focus {
+        border-color: #4caf50;
+        box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+    }
+
+    .btn-search {
+        background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-search:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+    }
+
+    .btn-reset {
+        background: #f5f5f5;
+        color: #666;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-reset:hover {
+        background: #e0e0e0;
+        border-color: #bdbdbd;
+    }
+
+    .replacement-selector {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+
+    .employee-option {
+        padding: 0.75rem;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: white;
+    }
+
+    .employee-option:hover {
+        border-color: #28a745;
+        background: #e8f5e9;
+    }
+
+    .employee-option.selected {
+        border-color: #28a745;
+        background: #d4edda;
+    }
+
+    .timeline-item {
+        position: relative;
+        padding-left: 2rem;
+        padding-bottom: 1.5rem;
+    }
+
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 2px;
+        height: 100%;
+        background: #e9ecef;
+    }
+
+    .timeline-item::after {
+        content: '';
+        position: absolute;
+        left: -4px;
+        top: 0;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #ffc107;
+    }
+
+    .timeline-item:last-child::before {
+        display: none;
+    }
+</style>
+
+<div class="container-fluid py-4 leave-container">
+    <!-- Hero Banner -->
+    <div class="position-relative w-100 d-flex align-items-center justify-content-center mb-4" style="height: 400px; background: url('https://images.unsplash.com/photo-1521737852567-6949f3f9f2b5?q=80&w=2047') center/cover no-repeat;">
+        <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(135deg, rgba(29, 78, 36, 0.85) 0%, rgba(76, 175, 80, 0.75) 50%, rgba(163, 207, 6, 0.65) 100%);"></div>
+        <div class="position-relative text-center text-white px-4" style="z-index: 1;">
+            <h1 class="display-3 fw-bold mb-3" style="text-shadow: 3px 3px 6px rgba(0,0,0,0.4);">
+                <i class="fas fa-user-check me-3"></i>
+                PHÊ DUYỆT ĐƠN NGHỈ PHÉP
+            </h1>
+            <p class="lead mb-4 opacity-90" style="font-size: 1.3rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+                Quản lý và phê duyệt đơn nghỉ phép của nhân viên
+            </p>
+            <a href="@Url.Action("Index", "Home")" class="btn rounded-pill px-4 shadow" style="background: #d9f02b; color: #111; font-weight: 600;">
+                <i class="fas fa-arrow-left me-2"></i>
+                Quay Lại
+            </a>
+        </div>
+    </div>
+
+    <!-- Search Filters -->
+    <div class="search-filters">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label"><i class="fas fa-calendar-alt me-2"></i>Từ Ngày</label>
+                <input type="date" class="form-control" id="filterFromDate">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label"><i class="fas fa-calendar-alt me-2"></i>Đến Ngày</label>
+                <input type="date" class="form-control" id="filterToDate">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label"><i class="fas fa-building me-2"></i>Chi Nhánh</label>
+                <select class="form-select" id="filterBranch">
+                    <option value="">Tất cả chi nhánh</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label"><i class="fas fa-user me-2"></i>Nhân Viên</label>
+                <input type="text" class="form-control" id="filterEmployee" placeholder="Tìm theo tên...">
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-12 text-end">
+                <button type="button" class="btn btn-reset" onclick="resetSearchFilters()">
+                    <i class="fas fa-redo me-2"></i>Đặt Lại
+                </button>
+                <button type="button" class="btn btn-search" onclick="applySearchFilters()">
+                    <i class="fas fa-search me-2"></i>Tìm Kiếm
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+        <div class="filter-tab active" onclick="filterLeaves('all')">
+            <span class="count">@leaveRequests.Count</span>
+            <div class="fw-bold">Tất Cả</div>
+        </div>
+        <div class="filter-tab" onclick="filterLeaves('pending')">
+            <span class="count text-warning">
+                @{
+                    var list1 = ViewBag.LeaveRequests as System.Collections.Generic.List<dynamic>;
+                    var pendingCount = 0;
+                    if (list1 != null)
+                    {
+                        foreach (var item in list1)
+                        {
+                            var type = item.GetType();
+                            var prop = type.GetProperty("TrangThai");
+                            if (prop != null)
+                            {
+                                var val = prop.GetValue(item)?.ToString();
+                                if (val == "Chờ duyệt") pendingCount++;
+                            }
+                        }
+                    }
+                }
+                @pendingCount
+            </span>
+            <div class="fw-bold">Chờ Duyệt</div>
+        </div>
+        <div class="filter-tab" onclick="filterLeaves('approved')">
+            <span class="count text-success">
+                @{
+                    var list2 = ViewBag.LeaveRequests as System.Collections.Generic.List<dynamic>;
+                    var approvedCount = 0;
+                    if (list2 != null)
+                    {
+                        foreach (var item in list2)
+                        {
+                            var type = item.GetType();
+                            var prop = type.GetProperty("TrangThai");
+                            if (prop != null)
+                            {
+                                var val = prop.GetValue(item)?.ToString();
+                                if (val == "Đã duyệt") approvedCount++;
+                            }
+                        }
+                    }
+                }
+                @approvedCount
+            </span>
+            <div class="fw-bold">Đã Duyệt</div>
+        </div>
+        <div class="filter-tab" onclick="filterLeaves('rejected')">
+            <span class="count text-danger">
+                @{
+                    var list3 = ViewBag.LeaveRequests as System.Collections.Generic.List<dynamic>;
+                    var rejectedCount = 0;
+                    if (list3 != null)
+                    {
+                        foreach (var item in list3)
+                        {
+                            var type = item.GetType();
+                            var prop = type.GetProperty("TrangThai");
+                            if (prop != null)
+                            {
+                                var val = prop.GetValue(item)?.ToString();
+                                if (val == "Từ chối") rejectedCount++;
+                            }
+                        }
+                    }
+                }
+                @rejectedCount
+            </span>
+            <div class="fw-bold">Đã Từ Chối</div>
+        </div>
+    </div>
+
+    <!-- Leave Requests List -->
+    <div class="row" id="leaveRequestsList">
+        @if (ViewBag.LeaveRequests != null && ViewBag.LeaveRequests.Count > 0)
+        {
+            foreach (var leave in leaveRequests)
+            {
+                var leaveType = leave.GetType();
+                var trangThaiProp = leaveType.GetProperty("TrangThai");
+                var trangThaiValue = trangThaiProp?.GetValue(leave)?.ToString() ?? "";
+                
+                var statusClass = trangThaiValue == "Chờ duyệt" ? "pending" : 
+                                  trangThaiValue == "Đã duyệt" ? "approved" : "rejected";
+                var statusBadgeClass = trangThaiValue == "Chờ duyệt" ? "bg-warning text-dark" : 
+                                       trangThaiValue == "Đã duyệt" ? "bg-success" : "bg-danger";
+
+                var tuNgayStr = GetDate(leave, "TuNgay")?.ToString("dd/MM/yyyy") ?? "";
+                var denNgayStr = GetDate(leave, "DenNgay")?.ToString("dd/MM/yyyy") ?? "";
+                var tenCS = GetProp(leave, "TenCS");
+
+                <div class="col-lg-6 leave-card-wrapper" 
+                     data-status="@(string.IsNullOrEmpty(trangThaiValue) ? "" : trangThaiValue.ToLower().Replace(" ", "-"))"
+                     data-tungay="@tuNgayStr"
+                     data-denngay="@denNgayStr"
+                     data-coso="@tenCS">
+
+                    <div class="leave-card @statusClass">
+                        <div class="leave-card-header">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h5 class="mb-2 fw-bold">
+                                        <i class="fas fa-user-circle me-2 text-primary"></i>
+                                        @GetProp(leave, "HoTen")
+                                    </h5>
+                                    <small class="text-muted">
+                                        <i class="far fa-calendar me-1"></i>
+                                        Gửi ngày: @(GetDate(leave, "NgayGui")?.ToString("dd/MM/yyyy HH:mm") ?? "")
+                                    </small>
+                                </div>
+                                <span class="leave-status-badge @statusBadgeClass">
+                                    @trangThaiValue
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="card-body p-4">
+                            <!-- Leave Information -->
+                            <div class="leave-info-item">
+                                <div class="leave-info-icon bg-primary bg-opacity-10">
+                                    <i class="fas fa-tag text-primary"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <small class="text-muted d-block">Loại nghỉ</small>
+                                    <strong>@GetProp(leave, "LoaiNghi")</strong>
+                                </div>
+                            </div>
+
+                            <div class="leave-info-item">
+                                <div class="leave-info-icon bg-success bg-opacity-10">
+                                    <i class="fas fa-calendar-alt text-success"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <small class="text-muted d-block">Thời gian nghỉ</small>
+                                    <strong>
+                                        @(GetDate(leave, "TuNgay")?.ToString("dd/MM/yyyy HH:mm") ?? "")
+                                        <i class="fas fa-arrow-right mx-2"></i> 
+                                        @(GetDate(leave, "DenNgay")?.ToString("HH:mm") ?? "")
+                                    </strong>
+                                    <span class="badge bg-secondary ms-2">
+                                        @{
+                                            var tu = GetDate(leave, "TuNgay");
+                                            var den = GetDate(leave, "DenNgay");
+                                        }
+                                        @if (tu != null && den != null)
+                                        {
+                                            <span class="badge bg-secondary ms-2">
+                                                @(((DateTime)den - (DateTime)tu).Days + 1) ngày
+                                            </span>
+                                        }
+
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="leave-info-item">
+                                <div class="leave-info-icon bg-info bg-opacity-10">
+                                    <i class="fas fa-comment-alt text-info"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <small class="text-muted d-block">Lý do</small>
+                                    <p class="mb-0">@GetProp(leave, "LyDo")</p>
+                                </div>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(GetProp(leave, "TenNguoiThayThe")))
+                            {
+                                <div class="leave-info-item">
+                                    <div class="leave-info-icon bg-warning bg-opacity-10">
+                                        <i class="fas fa-user-friends text-warning"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <small class="text-muted d-block">Người thay thế</small>
+                                        <strong>@GetProp(leave, "TenNguoiThayThe")</strong>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        @if (trangThaiValue == "Chờ duyệt")
+                        {
+                            <div class="action-buttons">
+                                <button class="btn btn-approve flex-grow-1" 
+                                        onclick="approveLeave('@GetProp(leave,"MaDon")', '@GetProp(leave,"HoTen")', '@GetProp(leave,"CaNghi")')">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    Phê Duyệt
+                                </button>
+                                <button class="btn btn-reject flex-grow-1" 
+                                        onclick = "rejectLeave('@GetProp(leave,"MaDon")', '@GetProp(leave, "HoTen")')">
+                                    <i class="fas fa-times-circle me-2"></i>
+                                    Từ Chối
+                                </button>
+                                <button class="btn btn-outline-secondary" 
+                                        onclick="viewHistory('@GetProp(leave, "MaNV")')" title="Lịch sử nghỉ phép">
+                                    <i class="fas fa-history"></i>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox fa-4x text-muted mb-3 opacity-25"></i>
+                    <h5 class="text-muted">Không có đơn nghỉ phép nào</h5>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Approve Modal -->
+<div class="modal fade" id="approveModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius: 15px; border: 0;">
+            <div class="modal-header text-white" style="background: linear-gradient(135deg, #1d4e24 0%, #4caf50 50%, #a3cf06 100%); border-radius: 15px 15px 0 0;">
+                <h5 class="modal-title">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Phê Duyệt Đơn Nghỉ Phép
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Bạn có chắc muốn phê duyệt đơn nghỉ phép của <strong id="approveEmployeeName"></strong>?</p>
+                
+                <div class="replacement-selector">
+                    <label class="form-label fw-bold">Chọn người thay thế (không bắt buộc):</label>
+                    <div id="replacementList">
+                        <!-- Will be populated dynamically -->
+                        <div class="employee-option">
+                            <div class="d-flex align-items-center">
+                                <input type="radio" name="replacement" value="NV001" class="me-3">
+                                <div>
+                                    <div class="fw-bold">Nguyễn Văn A</div>
+                                    <small class="text-muted">Lễ tân - Rảnh vào ngày nghỉ</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="employee-option">
+                            <div class="d-flex align-items-center">
+                                <input type="radio" name="replacement" value="NV002" class="me-3">
+                                <div>
+                                    <div class="fw-bold">Trần Thị B</div>
+                                    <small class="text-muted">Kỹ thuật - Rảnh vào ngày nghỉ</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <label class="form-label">Ghi chú:</label>
+                    <textarea class="form-control" rows="2" placeholder="Ghi chú cho nhân viên..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer" style="border: 0;">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn rounded-pill px-4 shadow" style="background: #d9f02b; color: #111; font-weight: 600;" onclick="confirmApprove()">
+                    <i class="fas fa-check me-2"></i>
+                    Xác Nhận Phê Duyệt
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius: 15px; border: 0;">
+            <div class="modal-header text-white" style="background: linear-gradient(135deg, #c62828 0%, #d32f2f 50%, #f44336 100%); border-radius: 15px 15px 0 0;">
+                <h5 class="modal-title">
+                    <i class="fas fa-times-circle me-2"></i>
+                    Từ Chối Đơn Nghỉ Phép
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Bạn có chắc muốn từ chối đơn nghỉ phép của <strong id="rejectEmployeeName"></strong>?</p>
+                
+                <div>
+                    <label class="form-label fw-bold">Lý do từ chối: <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="rejectReason" rows="4" 
+                              placeholder="Nhập lý do từ chối..." required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer" style="border: 0;">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger rounded-pill px-4 shadow" onclick="confirmReject()">
+                    <i class="fas fa-times me-2"></i>
+                    Xác Nhận Từ Chối
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentLeaveId = '';
+    let currentCaNghi = null;
+
+    function filterLeaves(status) {
+        const cards = document.querySelectorAll('.leave-card-wrapper');
+        const tabs = document.querySelectorAll('.filter-tab');
+        
+        // Update active tab
+        tabs.forEach(tab => tab.classList.remove('active'));
+        event.target.closest('.filter-tab').classList.add('active');
+
+        // Filter cards
+        cards.forEach(card => {
+            const cardStatus = card.getAttribute('data-status');
+            if (status === 'all' || cardStatus === status.replace(' ', '-')) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    function approveLeave(maDon, hoTen, caNghi) {
+        currentLeaveId = maDon;
+        currentCaNghi = caNghi;
+        document.getElementById('approveEmployeeName').textContent = hoTen;
+        console.log('Approving leave:', maDon, 'with shift:', caNghi);
+        
+        // Load replacement staff for specific shift
+        const url = caNghi 
+            ? `@Url.Action("GetStaffForReplacement","LichLamViec")?maCaTruc=${caNghi}`
+            : '@Url.Action("GetStaffForReplacement","LichLamViec")';
+        
+        console.log('Loading replacement staff from:', url);
+        fetch(url)
+            .then(r => r.json())
+            .then(payload => {
+                console.log('Replacement staff data:', payload);
+                const list = document.getElementById('replacementList');
+                list.innerHTML = '';
+                if (payload.success && payload.data && payload.data.length > 0) {
+                    payload.data.forEach(s => {
+                        const node = document.createElement('div');
+                        node.className = 'employee-option';
+                        node.innerHTML = `<div class="d-flex align-items-center"><input type="radio" name="replacement" value="${s.maNV}" class="me-3"><div><div class="fw-bold">${s.hoTen}</div><small class="text-muted">${s.chucVu}</small></div></div>`;
+                        list.appendChild(node);
+                    });
+                } else {
+                    list.innerHTML = '<div class="text-muted">Không có nhân viên rảnh cho ca này</div>';
+                }
+                new bootstrap.Modal(document.getElementById('approveModal')).show();
+            })
+            .catch(err => { 
+                console.error('Error loading replacement staff:', err); 
+                showToast('error', 'Lỗi tải danh sách nhân viên: ' + err.message); 
+            });
+    }
+
+    function rejectLeave(maDon, hoTen) {
+        currentLeaveId = maDon;
+        document.getElementById('rejectEmployeeName').textContent = hoTen;
+        new bootstrap.Modal(document.getElementById('rejectModal')).show();
+    }
+
+    async function confirmApprove() {
+        const replacement = document.querySelector('input[name="replacement"]:checked');
+        const maNguoiThay = replacement ? replacement.value : '';
+        
+        console.log('Confirming approval with replacement:', maNguoiThay);
+        
+        try {
+            const formData = new URLSearchParams();
+            formData.append('maDon', currentLeaveId);
+            if (maNguoiThay) {
+                formData.append('nguoiThayThe', maNguoiThay);
+            }
+            
+            const res = await fetch('@Url.Action("DuyetDon","Management")', {
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+            });
+            
+            const payload = await res.json();
+            console.log('Approval response:', payload);
+            
+            if (!payload.success) {
+                throw new Error(payload.message || 'Lỗi phê duyệt');
+            }
+            
+            showToast(payload.success ? 'success' : 'error', payload.message);
+            location.reload();
+        } catch (err) {
+            console.error('Approval error:', err);
+            alert('Lỗi: ' + err.message);
+        }
+    }
+
+    async function confirmReject() {
+        const reason = document.getElementById('rejectReason').value;
+        if (!reason.trim()) { showToast('warning', 'Vui lòng nhập lý do từ chối!'); return; }
+        try {
+            const res = await fetch('@Url.Action("TuChoiDon","Management")', {
+                method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `maDon=${encodeURIComponent(currentLeaveId)}&lyDo=${encodeURIComponent(reason)}`
+            });
+            const payload = await res.json();
+            if (!payload.success) throw new Error(payload.message || 'Lỗi từ chối');
+            alert(payload.message);
+            location.reload();
+        } catch (err) {
+            alert('Lỗi: ' + err.message);
+        }
+    }
+
+    function viewHistory(maNV) {
+        showToast('info', 'Xem lịch sử nghỉ phép của nhân viên: ' + maNV);
+        // TODO: Implement view history
+    }
+
+    // Add click handler for employee options
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.employee-option')) {
+            const option = e.target.closest('.employee-option');
+            document.querySelectorAll('.employee-option').forEach(opt => opt.classList.remove('selected'));
+            option.classList.add('selected');
+            option.querySelector('input[type="radio"]').checked = true;
+        }
+    });
+
+    // Load facilities for filter dropdown
+    document.addEventListener('DOMContentLoaded', function() {
+        loadFacilities();
+    });
+
+    function loadFacilities() {
+        fetch('@Url.Action("GetDanhSachCoSo", "Management")')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.data) {
+                    const select = document.getElementById('filterBranch');
+                    data.data.forEach(cs => {
+                        const option = document.createElement('option');
+                        option.value = cs.maCS;
+                        option.textContent = cs.tenCS;
+                        select.appendChild(option);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Failed to load facilities:', error);
+            });
+    }
+
+    function applySearchFilters() {
+        const fromDate = document.getElementById('filterFromDate').value;
+        const toDate = document.getElementById('filterToDate').value;
+        const selectedFacility = document.getElementById('filterBranch').value;
+        const employeeName = document.getElementById('filterEmployee').value.toLowerCase().trim();
+
+        const cards = document.querySelectorAll('.leave-card-wrapper');
+        
+        cards.forEach(card => {
+            let shouldShow = true;
+
+            // Filter by employee name
+            if (employeeName) {
+                const nameElement = card.querySelector('h5');
+                const cardName = nameElement ? nameElement.textContent.toLowerCase() : '';
+                if (!cardName.includes(employeeName)) {
+                    shouldShow = false;
+                }
+            }
+
+            // Filter by dates - Use data attributes
+            if (shouldShow && (fromDate || toDate)) {
+                const tuNgayStr = card.getAttribute('data-tungay'); // dd/MM/yyyy
+                if (tuNgayStr) {
+                    const tuNgay = parseVietnameseDate(tuNgayStr);
+                    if (tuNgay) {
+                        if (fromDate) {
+                            const from = new Date(fromDate);
+                            if (tuNgay < from) shouldShow = false;
+                        }
+                        if (toDate) {
+                            const to = new Date(toDate);
+                            if (tuNgay > to) shouldShow = false;
+                        }
+                    }
+                }
+            }
+
+            // Filter by facility - Use data attribute
+            if (shouldShow && selectedFacility) {
+                const cardFacility = card.getAttribute('data-coso');
+                if (cardFacility !== selectedFacility) {
+                    shouldShow = false;
+                }
+            }
+
+            card.style.display = shouldShow ? 'block' : 'none';
+        });
+    }
+
+    function parseVietnameseDate(dateStr) {
+        // Parse dd/MM/yyyy format
+        const parts = dateStr.split('/');
+        if (parts.length === 3) {
+            return new Date(parts[2], parts[1] - 1, parts[0]);
+        }
+        return null;
+    }
+
+    function resetSearchFilters() {
+        document.getElementById('filterFromDate').value = '';
+        document.getElementById('filterToDate').value = '';
+        document.getElementById('filterBranch').value = '';
+        document.getElementById('filterEmployee').value = '';
+        
+        // Show all cards
+        document.querySelectorAll('.leave-card-wrapper').forEach(card => {
+            card.style.display = 'block';
+        });
+    }
+</script>

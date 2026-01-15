@@ -3,15 +3,42 @@
     ViewData["Title"] = "Quản Lý Nhân Sự";
 }
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 nhansu-page">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold">
             <i class="fas fa-users-cog me-2 text-primary"></i>Quản Lý Nhân Sự
         </h2>
-        <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#createModal">
+        <button class="btn rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#createModal">
             <i class="fas fa-plus me-2"></i>Thêm Nhân Viên
         </button>
     </div>
+
+    <style>
+        /* Custom button color for all buttons in NhanSu views */
+        .nhansu-page .btn {
+            background-color: #d9f02b !important;
+            border-color: #d9f02b !important;
+            color: #111 !important;
+        }
+        .nhansu-page .btn i, .nhansu-page .btn .fas, .nhansu-page .btn .fa {
+            color: #111 !important;
+        }
+        .nhansu-page .btn.btn-light {
+            background-color: #f8f9fa !important;
+            color: #111 !important;
+            border-color: #ddd !important;
+        }
+        .nhansu-page .btn.btn-close {
+            filter: none !important;
+        }
+        .nhansu-page .btn.btn-outline-primary,
+        .nhansu-page .btn.btn-outline-danger {
+            background-color: #d9f02b !important;
+            border-color: #d9f02b !important;
+            color: #111 !important;
+        }
+        .nhansu-page .badge.bg-info { background-color: #d9f02b !important; color: #111 !important; }
+    </style>
 
     <!-- Search & Filter -->
     <div class="card border-0 shadow-sm mb-4">
@@ -74,14 +101,23 @@
                                         @item.HoTen
                                     </div>
                                 </td>
-                                <td><span class="badge bg-info text-dark">@item.ChucVu</span></td>
+                                <td>
+                                    @if(!string.IsNullOrEmpty(item.TrangThai) && item.TrangThai != "Đang làm")
+                                    {
+                                        <span class="badge bg-secondary text-white">@item.TrangThai</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-info text-dark">@item.ChucVu</span>
+                                    }
+                                </td>
                                 <td>@item.TenCoSo</td>
                                 <td>@item.SDT</td>
                                 <td>@item.LuongCoBan.ToString("N0") đ</td>
                                 <td>@item.TenDangNhap</td>
                                 <td class="text-end pe-4">
-                                    <button class="btn btn-sm btn-outline-primary me-2"><i class="fas fa-edit"></i></button>
-                                    <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash-alt"></i></button>
+                                    <button class="btn btn-sm me-2 btn-edit"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-sm btn-delete" data-manv="@item.MaNV"><i class="fas fa-trash-alt"></i></button>
                                 </td>
                             </tr>
                         }
@@ -170,6 +206,52 @@
                         </div>
                     </div>
                 </div>
+
+                        <script>
+                            (function(){
+                                function disableRowActions(row){
+                                    row.style.opacity = '0.6';
+                                    var btns = row.querySelectorAll('button');
+                                    btns.forEach(function(b){ b.disabled = true; });
+                                }
+
+                                document.querySelectorAll('.nhansu-page .btn-delete').forEach(function(btn){
+                                    btn.addEventListener('click', function(e){
+                                        e.preventDefault();
+                                        var maNV = this.getAttribute('data-manv');
+                                        if(!confirm('Bạn có chắc muốn xóa nhân viên này?')) return;
+                                        var row = this.closest('tr');
+
+                                        fetch('/NhanSu/XoaNhanVien', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                            body: 'maNV=' + encodeURIComponent(maNV)
+                                        })
+                                        .then(function(r){ return r.json(); })
+                                        .then(function(json){
+                                            if(json.success){
+                                                // Always show 'Đã nghỉ việc' on UI regardless of whether it was fully deleted in DB
+                                                var chucVuCell = row.querySelector('td:nth-child(3)');
+                                                if(chucVuCell){
+                                                    chucVuCell.innerHTML = '<span class="badge bg-secondary text-white">Đã nghỉ việc</span>';
+                                                }
+                                                // optionally clear workplace and salary columns
+                                                var csCell = row.querySelector('td:nth-child(4)'); if(csCell) csCell.textContent = '';
+                                                var luongCell = row.querySelector('td:nth-child(6)'); if(luongCell) luongCell.textContent = '';
+                                                disableRowActions(row);
+                                                showToast(json.success ? 'success' : 'error', json.message || 'Đã xử lý xóa nhân viên.');
+                                            } else {
+                                                showToast('error', 'Lỗi: ' + (json.message || 'Không thể xóa'));
+                                            }
+                                        })
+                                        .catch(function(err){
+                                            console.error(err);
+                                            showToast('error', 'Có lỗi xảy ra khi xóa.');
+                                        });
+                                    });
+                                });
+                            })();
+                        </script>
                 <div class="modal-footer border-0">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
                     <button type="submit" class="btn btn-primary px-4">Lưu Nhân Viên</button>

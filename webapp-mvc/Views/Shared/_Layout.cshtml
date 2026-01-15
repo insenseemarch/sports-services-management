@@ -9,16 +9,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - ViệtSport</title>
-    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" />
-    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    
+    <!-- SweetAlert2 for modern toast notifications -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <style>
         .text-lime { color: var(--color-lime) !important; }
         .hover-lime:hover { color: var(--color-lime) !important; }
-        /* Fix Checkbox Visibility */
         .form-check-input:checked {
             background-color: var(--color-lime) !important;
             border-color: var(--color-lime) !important;
@@ -28,123 +28,200 @@
             border-color: var(--color-lime);
             box-shadow: 0 0 0 0.25rem rgba(204, 232, 48, 0.25);
         }
+        
+        /* Custom toast styling */
+        .swal2-popup.colored-toast {
+            border-radius: 12px !important;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
     </style>
+    
+    <script>
+        // Global toast notification utility
+        window.showToast = function(type, message, timer = 3000) {
+            const icons = { 
+                success: 'success', 
+                error: 'error', 
+                warning: 'warning', 
+                info: 'info' 
+            };
+            
+            Swal.fire({
+                icon: icons[type] || 'info',
+                title: message,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: timer,
+                timerProgressBar: true,
+                background: '#fff',
+                customClass: {
+                    popup: 'colored-toast'
+                },
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer);
+                    toast.addEventListener('mouseleave', Swal.resumeTimer);
+                }
+            });
+        };
+        
+        // Global confirm dialog utility
+        window.showConfirm = function(message, onConfirm, onCancel) {
+            Swal.fire({
+                title: message,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Xác nhận',
+                cancelButtonText: 'Hủy',
+                confirmButtonColor: '#4caf50',
+                cancelButtonColor: '#d33',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed && onConfirm) {
+                    onConfirm();
+                } else if (result.isDismissed && onCancel) {
+                    onCancel();
+                }
+            });
+        };
+    </script>
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background: transparent;">
-            <div class="container-fluid px-5 pt-3">
-                <!-- Logo Left -->
-                <a class="navbar-brand fw-bold fs-4 d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index" style="color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
-                    <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px; background: var(--color-lime);">
-                        <i class="fas fa-running" style="color: var(--color-dark);"></i>
-                    </div>
-                    <span>ViệtSport</span>
-                </a>
+        <nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background: transparent; padding: 0;">
+            <div class="container-fluid px-5 py-3">
+                <!-- Full-width blur bar containing all 3 sections -->
+                <div class="d-flex align-items-center justify-content-between w-100 px-4 py-2" 
+                     style="background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                    
+                    <!-- Logo -->
+                    <a class="navbar-brand fw-bold fs-4 d-flex align-items-center m-0" asp-area="" asp-controller="Home" asp-action="Index" 
+                       style="color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px; background: var(--color-lime);">
+                            <i class="fas fa-running" style="color: var(--color-dark);"></i>
+                        </div>
+                        <span>ViệtSport</span>
+                    </a>
 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                
-                <!-- Centered Menu Items (Pill Style) -->
-                <div class="navbar-collapse collapse d-lg-inline-flex justify-content-center">
-                    <div class="d-none d-lg-block px-4 py-2" style="background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                            aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    
+                    <!-- Menu -->
+                    <div class="navbar-collapse collapse d-lg-inline-flex justify-content-center flex-grow-1">
                         <ul class="navbar-nav mx-auto gap-2">
                             @{
                                 var currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
                                 var currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
+                                var isReceptionist = vaiTro?.Equals("Lễ tân", StringComparison.OrdinalIgnoreCase) == true;
+                                var isManager = vaiTro?.Equals("Quản lý", StringComparison.OrdinalIgnoreCase) == true;
+                                var isStaff = !string.IsNullOrEmpty(vaiTro) && vaiTro != "Khách hàng";
                                 
                                 string IsActive(string controller, string action = null) 
                                 {
-                                    // Special check for DatSan & DatSanThanhToan
-                                    if (controller == "DatSan" && currentController == "DatSanThanhToan") return "text-lime fw-bold";
+                                    if (controller == "DatSan" && currentController == "DatSanThanhToan")
+                                        return "text-lime fw-bold";
                                     
-                                    if (string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        if (string.IsNullOrEmpty(action)) return "text-lime fw-bold";
-                                        if (string.Equals(currentAction, action, StringComparison.OrdinalIgnoreCase)) return "text-lime fw-bold";
-                                    }
-                                    return "text-white";
+                                    bool controllerMatch = string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase);
+                                    bool actionMatch = action == null || string.Equals(currentAction, action, StringComparison.OrdinalIgnoreCase);
+                                    
+                                    return (controllerMatch && actionMatch) ? "text-lime fw-bold" : "text-white";
                                 }
                             }
                             
+                            @* Trang chủ cho tất cả *@
                             <li class="nav-item">
-                                <a class="nav-link fw-semibold px-3 @IsActive("Home") hover-lime" asp-area="" asp-controller="Home" asp-action="Index">Trang Chủ</a>
+                                <a class="nav-link fw-semibold px-3 @IsActive("Home") hover-lime" asp-area="" asp-controller="Home" asp-action="Index">
+                                    Trang Chủ
+                                </a>
                             </li>
                             
-                            <!-- Menu Chung (Ẩn với Thu ngân) -->
-                            @if (vaiTro != "Thu ngân")
+                            @* Menu Chung (Ẩn với Thu ngân và Quản lý) *@
+                            @if (vaiTro != "Thu ngân" && !isManager)
                             {
                                 <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("DatSan") hover-lime" asp-controller="DatSan" asp-action="Index">Đặt Sân</a></li>
                                 <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("DichVu") hover-lime" asp-controller="DichVu" asp-action="Index">Dịch Vụ</a></li>
                             }
-                            
-                            <!-- Menu Khách Hàng -->
-                            @if (string.IsNullOrEmpty(vaiTro) || vaiTro == "Khách hàng")
-                            {
-                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("LichSuDatSan") hover-lime protected-link" asp-controller="LichSuDatSan" asp-action="Index">Lịch Sử</a></li>
-                            }
 
-                            <!-- Menu Nhân Viên / Lễ Tân / Thu Ngân -->
-                            @if (!string.IsNullOrEmpty(vaiTro) && vaiTro != "Khách hàng") 
+                            @* Menu cho Quản lý *@
+                            @if (isManager)
+                            {
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("NhanVien", "LichLamViec") hover-lime" asp-controller="NhanVien" asp-action="LichLamViec">Lịch Làm Việc</a></li>
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("Management", "NhanSu") hover-lime" asp-controller="Management" asp-action="NhanSu">Nhân sự</a></li>
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("Management", "PhanCongCaTruc") hover-lime" asp-controller="Management" asp-action="PhanCongCaTruc">Phân Công</a></li>
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("Management", "PheDuyetNghiPhep") hover-lime" asp-controller="Management" asp-action="PheDuyetNghiPhep">Phê Duyệt</a></li>
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("Management", "BaoCaoLoiSan") hover-lime" asp-controller="Management" asp-action="BaoCaoLoiSan">Báo Cáo</a></li>
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("Management", "ThongKe") hover-lime" asp-controller="Management" asp-action="ThongKe">Thống Kê</a></li>
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("Management", "QuanLyGia") hover-lime" asp-controller="Management" asp-action="QuanLyGia">Quản Lý Giá</a></li>
+                            }
+                            
+                            @* Menu cho Nhân Viên / Lễ Tân / Thu Ngân (không hiện cho Quản lý) *@
+                            @if (!string.IsNullOrEmpty(vaiTro) && vaiTro != "Khách hàng" && !isManager) 
                             {
                                 var labelPhieu = (vaiTro == "Thu ngân") ? "Thanh Toán" : "Phiếu Đặt Sân";
                                 <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("NhanVien", "Index") hover-lime" asp-controller="NhanVien" asp-action="Index">@labelPhieu</a></li>
                                 <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("NhanVien", "LichLamViec") hover-lime" asp-controller="NhanVien" asp-action="LichLamViec">Lịch Làm Việc</a></li>
                             }
+
+                            @* Menu cho Khách Hàng *@
+                            @if (string.IsNullOrEmpty(vaiTro) || vaiTro == "Khách hàng")
+                            {
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("LichSuDatSan") hover-lime protected-link" asp-controller="LichSuDatSan" asp-action="Index">Lịch Sử</a></li>
+                            }
                         </ul>
                     </div>
-                </div>
 
-                <!-- User Actions Right -->
-                <div class="navbar-nav" style="min-width: 150px; justify-content: flex-end;">
-                    <ul class="navbar-nav">
-                        @if (Context.Session.GetString("Username") != null)
-                        {
-                            <!-- Logged in -->
-                            <li class="nav-item dropdown">
-                                <a class="nav-link d-flex align-items-center bg-white rounded-pill px-3 py-1 shadow-sm" href="#" role="button" data-bs-toggle="dropdown" style="border: 2px solid rgba(255,255,255,0.2);">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center me-2" 
-                                         style="width: 28px; height: 28px; background: var(--color-lime);">
-                                        <i class="fas fa-user small" style="color: var(--color-dark);"></i>
-                                    </div>
-                                    <span class="fw-bold text-dark small">@Context.Session.GetString("HoTen")</span>
-                                </a>
+                    <!-- User Section (within same blur bar) -->
+                    <div class="navbar-nav" style="min-width: 150px; justify-content: flex-end;">
+                        <ul class="navbar-nav">
+                            @if (Context.Session.GetString("Username") != null)
+                            {
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link d-flex align-items-center px-3 py-2" href="#" role="button" data-bs-toggle="dropdown" 
+                                       style="color: white;">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center me-2" 
+                                             style="width: 28px; height: 28px; background: var(--color-lime);">
+                                            <i class="fas fa-user small" style="color: var(--color-dark);"></i>
+                                        </div>
+                                        <span class="fw-bold small">@Context.Session.GetString("HoTen")</span>
+                                    </a>
                                 <ul class="dropdown-menu dropdown-menu-end mt-2 shadow-lg border-0 rounded-3">
-                                    @{
-                                        var userRoleFn = Context.Session.GetString("VaiTro");
-                                        var profileUrl = (!string.IsNullOrEmpty(userRoleFn) && userRoleFn != "Khách hàng") 
-                                            ? Url.Action("Profile", "NhanVien") 
-                                            : Url.Action("Index", "HoSo");
+                                    @if (!string.IsNullOrEmpty(vaiTro) && vaiTro != "Khách hàng")
+                                    {
+                                        <li><a class="dropdown-item py-2" href="@Url.Action("Profile", "NhanVien")"><i class="fas fa-user me-2 text-primary"></i>Hồ Sơ</a></li>
                                     }
-                                    <li><a class="dropdown-item py-2" href="@profileUrl"><i class="fas fa-user me-2 text-primary"></i>Hồ Sơ</a></li>
+                                    else
+                                    {
+                                        <li><a class="dropdown-item py-2" href="@Url.Action("Index", "HoSo")"><i class="fas fa-user me-2 text-primary"></i>Hồ Sơ</a></li>
+                                    }
                                     <li><a class="dropdown-item py-2" href="@Url.Action("Index", "LichSuDatSan")"><i class="fas fa-history me-2 text-info"></i>Lịch Sử</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item py-2 text-danger" href="@Url.Action("DangXuat", "TaiKhoan")"><i class="fas fa-sign-out-alt me-2"></i>Đăng Xuất</a></li>
                                 </ul>
                             </li>
                         }
-                        else
-                        {
-                            <!-- Not logged in -->
-                            <li class="nav-item">
-                                <div class="dropdown">
-                                    <a class="d-flex align-items-center text-decoration-none bg-white rounded-pill px-1 ps-3 py-1 shadow-sm" href="#" role="button" data-bs-toggle="dropdown">
-                                        <span class="fw-bold text-dark me-2 small">Tài Khoản</span>
-                                        <div class="rounded-circle d-flex align-items-center justify-content-center" 
-                                             style="width: 30px; height: 30px; background: var(--color-dark);">
-                                            <i class="fas fa-user text-white small"></i>
-                                        </div>
-                                    </a>
-                                    <ul class="dropdown-menu dropdown-menu-end mt-2 shadow-lg border-0 rounded-3">
-                                        <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#loginModal"><i class="fas fa-sign-in-alt me-2 text-success"></i>Đăng Nhập</a></li>
-                                        <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#registerModal"><i class="fas fa-user-plus me-2 text-primary"></i>Đăng Ký</a></li>
-                                    </ul>
-                                </div>
-                            </li>
-                        }
-                    </ul>
+                            else
+                            {
+                                <li class="nav-item">
+                                    <div class="dropdown">
+                                        <a class="d-flex align-items-center text-decoration-none px-3 py-2" href="#" role="button" data-bs-toggle="dropdown" 
+                                           style="color: white;">
+                                            <span class="fw-bold me-2 small">Tài Khoản</span>
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center" 
+                                                 style="width: 32px; height: 32px; background: var(--color-lime);">
+                                                <i class="fas fa-user" style="color: var(--color-dark);"></i>
+                                            </div>
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-end mt-2 shadow-lg border-0 rounded-3">
+                                            <li><a class="dropdown-item py-2" data-bs-toggle="modal" data-bs-target="#loginModal"><i class="fas fa-sign-in-alt me-2 text-success"></i>Đăng Nhập</a></li>
+                                            <li><a class="dropdown-item py-2" data-bs-toggle="modal" data-bs-target="#registerModal"><i class="fas fa-user-plus me-2 text-primary"></i>Đăng Ký</a></li>
+                                        </ul>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    </div>
                 </div>
             </div>
         </nav>

@@ -174,21 +174,19 @@
                     </h5>
                     <form id="formXinNghiPhep">
                         <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Ngày Nghỉ <span class="text-danger">*</span></label>
-                                <input type="date" name="NgayNghi" class="form-control py-2" required min="@DateTime.Now.ToString("yyyy-MM-dd")">
-                            </div>
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <label class="form-label fw-bold">Ca Trực <span class="text-danger">*</span></label>
-                                <select name="CaNghi" class="form-select py-2" required>
-                                    <option value="">-- Chọn ca trực --</option>
+                                <select name="CaNghi" id="selectCaNghi" class="form-select py-2" required>
+                                    <option value="">-- Chọn ca trực của bạn --</option>
                                 </select>
+                                <small class="text-muted">Chỉ hiển thị các ca trực của bạn trong thời gian sắp tới</small>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <label class="form-label fw-bold">Người Thay Thế</label>
-                                <select name="NguoiThayThe" class="form-select py-2">
+                                <select name="NguoiThayThe" id="selectNguoiThayThe" class="form-select py-2">
                                     <option value="">-- Chọn người thay thế (tùy chọn) --</option>
                                 </select>
+                                <small class="text-muted">Danh sách nhân viên không bị trùng lịch trong ca trực này</small>
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label fw-bold">Lý Do <span class="text-danger">*</span></label>
@@ -247,12 +245,23 @@
             loadAvailableShifts();
             loadLeaveHistory();
             loadShiftsForLeave();
-            loadStaffForReplacement();
 
             // Handle leave request form
             $('#formXinNghiPhep').on('submit', function(e) {
                 e.preventDefault();
                 submitLeaveRequest();
+            });
+
+            // Load available staff when shift is selected
+            $('#selectCaNghi').on('change', function() {
+                const maCaTruc = $(this).val();
+                console.log('Ca truc selected:', maCaTruc);
+                if (maCaTruc) {
+                    console.log('Calling loadStaffForReplacement with maCaTruc:', maCaTruc);
+                    loadStaffForReplacement(maCaTruc);
+                } else {
+                    $('#selectNguoiThayThe').html('<option value="">-- Chọn người thay thế (tùy chọn) --</option>');
+                }
             });
         });
 
@@ -357,33 +366,58 @@
         }
 
         function loadShiftsForLeave() {
+            console.log('Loading shifts for leave request...');
             fetch('@Url.Action("GetMyUpcomingShifts", "LichLamViec")')
                 .then(r => r.json())
                 .then(d => {
+                    console.log('Shifts loaded:', d);
                     if (d.success && d.data) {
-                        let html = '<option value="">-- Chọn ca trực --</option>';
+                        let html = '<option value="">-- Chọn ca trực của bạn --</option>';
                         d.data.forEach(item => {
                             html += `<option value="${item.maCaTruc}">${item.ngayTruc} - ${item.gioTruc} (${item.tenCoSo})</option>`;
                         });
                         $('select[name="CaNghi"]').html(html);
+                        console.log('Loaded', d.data.length, 'shifts into dropdown');
+                    } else {
+                        console.error('Failed to load shifts:', d.message);
                     }
                 })
                 .catch(err => console.error('Error loading shifts:', err));
         }
 
-        function loadStaffForReplacement() {
-            fetch('@Url.Action("GetStaffForReplacement", "LichLamViec")')
-                .then(r => r.json())
+        function loadStaffForReplacement(maCaTruc) {
+            const url = maCaTruc 
+                ? `@Url.Action("GetStaffForReplacement", "LichLamViec")?maCaTruc=${maCaTruc}`
+                : '@Url.Action("GetStaffForReplacement", "LichLamViec")';
+            
+            console.log('Loading staff for replacement, URL:', url);
+            
+            fetch(url)
+                .then(r => {
+                    console.log('Response status:', r.status);
+                    return r.json();
+                })
                 .then(d => {
+                    console.log('Staff data received:', d);
                     if (d.success && d.data) {
                         let html = '<option value="">-- Chọn người thay thế (tùy chọn) --</option>';
                         d.data.forEach(item => {
                             html += `<option value="${item.maNV}">${item.hoTen} - ${item.chucVu}</option>`;
                         });
                         $('select[name="NguoiThayThe"]').html(html);
+                        console.log('Updated dropdown with', d.data.length, 'staff members');
+                        
+                        if (d.data.length === 0) {
+                            $('select[name="NguoiThayThe"]').html('<option value="">-- Không có nhân viên rảnh --</option>');
+                        }
+                    } else {
+                        console.error('Failed to load staff:', d.message);
                     }
                 })
-                .catch(err => console.error('Error loading staff:', err));
+                .catch(err => {
+                    console.error('Error loading staff:', err);
+                    $('select[name="NguoiThayThe"]').html('<option value="">-- Lỗi tải danh sách --</option>');
+                });
         }
 
         function registerShift(maCaTruc) {
@@ -413,11 +447,12 @@
         function submitLeaveRequest() {
             var formData = new FormData($('#formXinNghiPhep')[0]);
             var data = {
-                NgayNghi: formData.get('NgayNghi'),
                 CaNghi: formData.get('CaNghi'),
                 NguoiThayThe: formData.get('NguoiThayThe'),
                 LyDo: formData.get('LyDo')
             };
+
+            console.log('Submitting leave request:', data);
 
             fetch('@Url.Action("SubmitLeaveRequest", "LichLamViec")', {
                 method: 'POST',

@@ -129,18 +129,19 @@
             </div>
         }
 
-        @* Management Functions - ONLY Quản lý *@
+        @* Management Dashboard - ONLY Quản lý *@
         @if (vaiTro?.Equals("Quản lý", StringComparison.OrdinalIgnoreCase) == true)
         {
             <div class="col-lg-3 col-md-6">
-                <a href="@Url.Action("Index", "QuanLyNhanSu")" class="text-decoration-none">
-                    <div class="card border-0 shadow-sm h-100 hover-card" style="transition: all 0.3s ease;">
+                <a href="@Url.Action("Index", "Management")" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm h-100 hover-card" style="transition: all 0.3s ease; border-left: 5px solid #6f42c1;">
                         <div class="card-body text-center p-4">
-                            <div class="feature-icon mb-3" style="font-size: 3rem; color: #ff6b6b;">
-                                <i class="fas fa-users"></i>
+                            <div class="feature-icon mb-3" style="font-size: 3rem; color: #6f42c1;">
+                                <i class="fas fa-crown"></i>
                             </div>
-                            <h5 class="card-title">Quản Lý Nhân Sự</h5>
-                            <p class="text-muted small">Quản lý thông tin nhân viên</p>
+                            <h5 class="card-title" style="color: #6f42c1;">Dashboard Quản Lý</h5>
+                            <p class="text-muted small">Truy cập đầy đủ chức năng quản lý</p>
+                            <span class="badge bg-primary mt-2">PREMIUM</span>
                         </div>
                     </div>
                 </a>

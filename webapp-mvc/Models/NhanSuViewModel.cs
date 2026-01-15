@@ -29,12 +29,22 @@ namespace webapp_mvc.Models
 
     public class NhanVienItem
     {
-        public string MaNV { get; set; }
-        public string HoTen { get; set; }
-        public string ChucVu { get; set; }
-        public string TenCoSo { get; set; }
-        public string SDT { get; set; }
+        public string MaNV { get; set; } = string.Empty;
+        public string HoTen { get; set; } = string.Empty;
+        public string ChucVu { get; set; } = string.Empty;
+        public string TenCoSo { get; set; } = string.Empty;
+        public string SDT { get; set; } = string.Empty;
+        public string CCCD { get; set; } = string.Empty;
+        public string? Email { get; set; }
+        public DateTime? NgaySinh { get; set; }
+        public string? DiaChi { get; set; }
+        public string MaCS { get; set; } = string.Empty;
         public decimal LuongCoBan { get; set; }
-        public string TenDangNhap { get; set; }
+        public decimal Luong { get; set; }
+        public string TenDangNhap { get; set; } = string.Empty;
+        public string MatKhau { get; set; } = string.Empty;
+        public string VaiTro { get; set; } = string.Empty;
+        public string TrangThai { get; set; } = "Đang làm";
+        public int SoCaTruc { get; set; }
     }
 }

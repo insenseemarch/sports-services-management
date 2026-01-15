@@ -53,44 +53,58 @@
                         <ul class="navbar-nav mx-auto gap-2">
                             @{
                                 var currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
+                                var currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
                                 var isReceptionist = vaiTro?.Equals("Lễ tân", StringComparison.OrdinalIgnoreCase) == true;
+                                var isManager = vaiTro?.Equals("Quản lý", StringComparison.OrdinalIgnoreCase) == true;
+                                var isStaff = !string.IsNullOrEmpty(vaiTro) && vaiTro != "Khách hàng";
                                 
-                                string IsActive(string controller) 
+                                string IsActive(string controller, string action = null) 
                                 {
                                     if (controller == "DatSan" && currentController == "DatSanThanhToan")
                                         return "text-lime fw-bold";
                                     
-                                    return string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase) ? "text-lime fw-bold" : "text-white";
+                                    bool controllerMatch = string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase);
+                                    bool actionMatch = action == null || string.Equals(currentAction, action, StringComparison.OrdinalIgnoreCase);
+                                    
+                                    return (controllerMatch && actionMatch) ? "text-lime fw-bold" : "text-white";
                                 }
                             }
                             
+                            @* Trang chủ cho tất cả *@
                             <li class="nav-item">
-                                <a class="nav-link fw-semibold px-3 @IsActive("Home") hover-lime" asp-area="" asp-controller="Home" asp-action="Index">Trang Chủ</a>
+                                <a class="nav-link fw-semibold px-3 @IsActive("Home") hover-lime" asp-area="" asp-controller="Home" asp-action="Index">
+                                    Trang Chủ
+                                </a>
                             </li>
                             
-                            @if (!isReceptionist)
+                            @* Menu cho Quản lý *@
+                            @if (isManager)
+                            {
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("LichLamViec") hover-lime" asp-controller="LichLamViec" asp-action="Index">Lịch Làm Việc</a></li>
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("Management", "NhanSu") hover-lime" asp-controller="Management" asp-action="NhanSu">Nhân sự</a></li>
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("Management", "PhanCongCaTruc") hover-lime" asp-controller="Management" asp-action="PhanCongCaTruc">Phân Công</a></li>
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("Management", "PheDuyetNghiPhep") hover-lime" asp-controller="Management" asp-action="PheDuyetNghiPhep">Phê Duyệt</a></li>
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("Management", "BaoCaoLoiSan") hover-lime" asp-controller="Management" asp-action="BaoCaoLoiSan">Báo Cáo</a></li>
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("Management", "ThongKe") hover-lime" asp-controller="Management" asp-action="ThongKe">Thống Kê</a></li>
+                            }
+                            @* Menu cho Lễ tân *@
+                            else if (isReceptionist)
+                            {
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("DatSanTrucTiep") hover-lime" asp-controller="DatSanTrucTiep" asp-action="Index">Đặt Sân TT</a></li>
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("LichLamViec") hover-lime" asp-controller="LichLamViec" asp-action="Index">Lịch Làm Việc</a></li>
+                            }
+                            @* Menu cho nhân viên khác *@
+                            else if (isStaff)
+                            {
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("LichLamViec") hover-lime" asp-controller="LichLamViec" asp-action="Index">Lịch Làm Việc</a></li>
+                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("BaoCaoLoi") hover-lime" asp-controller="BaoCaoLoi" asp-action="Index">Báo Cáo Lỗi</a></li>
+                            }
+                            @* Menu cho khách hàng *@
+                            else
                             {
                                 <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("DatSan") hover-lime" asp-controller="DatSan" asp-action="Index">Đặt Sân</a></li>
                                 <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("DichVu") hover-lime" asp-controller="DichVu" asp-action="Index">Dịch Vụ</a></li>
                                 <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("LichSuDatSan") hover-lime protected-link" asp-controller="LichSuDatSan" asp-action="Index">Lịch Sử</a></li>
-                            }
-                            else
-                            {
-                                <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("DatSanTrucTiep") hover-lime" asp-controller="DatSanTrucTiep" asp-action="Index">Đặt Sân Trực Tiếp</a></li>
-                            }
-
-                            @if (!string.IsNullOrEmpty(vaiTro) && vaiTro != "Khách hàng") 
-                            {
-                                if (isReceptionist)
-                                {
-                                    <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("LichLamViec") hover-lime" asp-controller="LichLamViec" asp-action="Index">Lịch Làm Việc</a></li>
-                                }
-                                else
-                                {
-                                    <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("NhanSu") hover-lime" asp-controller="NhanSu" asp-action="Index">Nhân Sự</a></li>
-                                    <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("ThanhToan") hover-lime" asp-controller="ThanhToan" asp-action="Index">Thanh Toán</a></li>
-                                    <li class="nav-item"><a class="nav-link fw-semibold px-3 @IsActive("LichSuDatSan") hover-lime" asp-controller="LichSuDatSan" asp-action="Index">DS Đặt Sân</a></li>
-                                }
                             }
                         </ul>
                     </div>

@@ -1,0 +1,446 @@
+@{
+    ViewData["Title"] = "Bảng Điều Khiển Quản Lý";
+}
+
+<style>
+    .management-dashboard {
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .stat-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: none;
+        background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+        overflow: hidden;
+        position: relative;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: var(--accent-color);
+        transform: scaleY(0);
+        transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.12) !important;
+    }
+
+    .stat-card:hover::before {
+        transform: scaleY(1);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        transition: all 0.3s ease;
+        background: var(--bg-light);
+    }
+
+    .stat-card:hover .stat-icon {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    .feature-card {
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        border: none;
+        background: white;
+        position: relative;
+        overflow: hidden;
+        text-decoration: none;
+        display: block;
+        height: 100%;
+    }
+
+    .feature-card::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: var(--card-color);
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .feature-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 16px 32px rgba(0,0,0,0.15) !important;
+    }
+
+    .feature-card:hover::after {
+        transform: scaleX(1);
+    }
+
+    .feature-icon-wrapper {
+        width: 80px;
+        height: 80px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        background: var(--bg-light);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+
+    .feature-card:hover .feature-icon-wrapper {
+        transform: scale(1.1) rotate(-5deg);
+        background: var(--card-color);
+    }
+
+    .feature-icon {
+        font-size: 36px;
+        color: var(--card-color);
+        transition: color 0.3s ease;
+    }
+
+    .feature-card:hover .feature-icon {
+        color: white;
+    }
+
+    .card-title-main {
+        color: var(--card-color);
+        transition: color 0.3s ease;
+    }
+
+    .feature-card:hover .card-title-main {
+        color: var(--card-color);
+    }
+
+    .badge-notification {
+        animation: pulse 2s infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.1);
+            opacity: 0.8;
+        }
+    }
+
+    /* Color schemes for different cards */
+    .card-primary { --card-color: #0f9b0f; --bg-light: #e8f5e9; }
+    .card-info { --card-color: #17a2b8; --bg-light: #e0f7fa; }
+    .card-warning { --card-color: #ffc107; --bg-light: #fff9e6; }
+    .card-danger { --card-color: #dc3545; --bg-light: #ffe6e6; }
+    .card-purple { --card-color: #6f42c1; --bg-light: #f3e5f5; }
+    .card-orange { --card-color: #fd7e14; --bg-light: #fff3e0; }
+
+    .stat-primary { --accent-color: #0f9b0f; }
+    .stat-info { --accent-color: #17a2b8; }
+    .stat-warning { --accent-color: #ffc107; }
+    .stat-danger { --accent-color: #dc3545; }
+
+    .welcome-header {
+        background: linear-gradient(135deg, #0f9b0f 0%, #0c7a0c 100%);
+        color: white;
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 24px rgba(15, 155, 15, 0.3);
+        animation: slideInDown 0.6s ease-out;
+    }
+
+    @@keyframes slideInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2A2D25;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 3px solid #0f9b0f;
+        display: inline-block;
+    }
+
+    /* Stagger animation for cards */
+    .feature-card:nth-child(1) { animation: fadeInUp 0.6s ease-out 0.1s both; }
+    .feature-card:nth-child(2) { animation: fadeInUp 0.6s ease-out 0.2s both; }
+    .feature-card:nth-child(3) { animation: fadeInUp 0.6s ease-out 0.3s both; }
+    .feature-card:nth-child(4) { animation: fadeInUp 0.6s ease-out 0.4s both; }
+    .feature-card:nth-child(5) { animation: fadeInUp 0.6s ease-out 0.5s both; }
+    .feature-card:nth-child(6) { animation: fadeInUp 0.6s ease-out 0.6s both; }
+</style>
+
+<div class="container-fluid py-4 management-dashboard">
+    <!-- Welcome Header -->
+    <div class="welcome-header">
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                <h2 class="mb-2">
+                    <i class="fas fa-user-shield me-2"></i>
+                    Xin chào, <strong>@ViewBag.HoTen</strong>
+                </h2>
+                <p class="mb-0 opacity-90">
+                    <i class="fas fa-crown me-2"></i>
+                    Quản lý cơ sở - Dashboard điều hành toàn diện
+                </p>
+            </div>
+            <div class="text-end">
+                <div class="fs-5">
+                    <i class="far fa-calendar-alt me-2"></i>
+                    @DateTime.Now.ToString("dd/MM/yyyy")
+                </div>
+                <div class="fs-6 opacity-75">
+                    <i class="far fa-clock me-2"></i>
+                    @DateTime.Now.ToString("HH:mm")
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-3 col-md-6">
+            <div class="card stat-card stat-primary shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon" style="background: #e8f5e9; color: #0f9b0f;">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="ms-3 flex-grow-1">
+                            <p class="text-muted mb-1 small">Tổng Nhân Viên</p>
+                            <h3 class="mb-0 fw-bold">@ViewBag.TotalNhanVien</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="card stat-card stat-warning shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon" style="background: #fff9e6; color: #ffc107;">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="ms-3 flex-grow-1">
+                            <p class="text-muted mb-1 small">Đơn Chờ Duyệt</p>
+                            <h3 class="mb-0 fw-bold">
+                                @ViewBag.PendingLeaves
+                                @if (ViewBag.PendingLeaves > 0)
+                                {
+                                    <span class="badge bg-warning badge-notification ms-2" style="font-size: 0.7rem;">Mới</span>
+                                }
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="card stat-card stat-danger shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon" style="background: #ffe6e6; color: #dc3545;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="ms-3 flex-grow-1">
+                            <p class="text-muted mb-1 small">Lỗi Chờ Xử Lý</p>
+                            <h3 class="mb-0 fw-bold">
+                                @ViewBag.PendingErrors
+                                @if (ViewBag.PendingErrors > 0)
+                                {
+                                    <span class="badge bg-danger badge-notification ms-2" style="font-size: 0.7rem;">!</span>
+                                }
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="card stat-card stat-info shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon" style="background: #e0f7fa; color: #17a2b8;">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="ms-3 flex-grow-1">
+                            <p class="text-muted mb-1 small">Ca Trực Hôm Nay</p>
+                            <h3 class="mb-0 fw-bold">@ViewBag.TodayShifts</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Management Functions -->
+    <div class="mb-4">
+        <h3 class="section-title">
+            <i class="fas fa-tasks me-2"></i>
+            Chức Năng Quản Lý
+        </h3>
+    </div>
+
+    <div class="row g-4">
+        <!-- Quản Lý Nhân Sự -->
+        <div class="col-lg-4 col-md-6">
+            <a href="@Url.Action("NhanSu", "Management")" class="feature-card card-primary card shadow-sm">
+                <div class="card-body p-4 text-center">
+                    <div class="feature-icon-wrapper">
+                        <i class="feature-icon fas fa-users-cog"></i>
+                    </div>
+                    <h5 class="card-title-main fw-bold mb-2">Quản Lý Nhân Sự</h5>
+                    <p class="text-muted small mb-0">
+                        Quản lý danh sách, thêm/sửa/xóa nhân viên, phân quyền và quản lý lương
+                    </p>
+                </div>
+            </a>
+        </div>
+
+        <!-- Phân Công Ca Trực -->
+        <div class="col-lg-4 col-md-6">
+            <a href="@Url.Action("PhanCongCaTruc", "Management")" class="feature-card card-info card shadow-sm">
+                <div class="card-body p-4 text-center">
+                    <div class="feature-icon-wrapper">
+                        <i class="feature-icon fas fa-calendar-alt"></i>
+                    </div>
+                    <h5 class="card-title-main fw-bold mb-2">Phân Công Ca Trực</h5>
+                    <p class="text-muted small mb-0">
+                        Tạo ca trực mới, phân công nhân viên, xem lịch theo tuần/tháng
+                    </p>
+                </div>
+            </a>
+        </div>
+
+        <!-- Phê Duyệt Nghỉ Phép -->
+        <div class="col-lg-4 col-md-6">
+            <a href="@Url.Action("PheDuyetNghiPhep", "Management")" class="feature-card card-warning card shadow-sm">
+                <div class="card-body p-4 text-center">
+                    <div class="feature-icon-wrapper">
+                        <i class="feature-icon fas fa-user-check"></i>
+                    </div>
+                    <h5 class="card-title-main fw-bold mb-2">
+                        Phê Duyệt Nghỉ Phép
+                        @if (ViewBag.PendingLeaves > 0)
+                        {
+                            <span class="badge bg-warning text-dark ms-2">@ViewBag.PendingLeaves</span>
+                        }
+                    </h5>
+                    <p class="text-muted small mb-0">
+                        Duyệt/từ chối đơn nghỉ phép, tìm người thay thế
+                    </p>
+                </div>
+            </a>
+        </div>
+
+        <!-- Báo Cáo Lỗi Sân -->
+        <div class="col-lg-4 col-md-6">
+            <a href="@Url.Action("Index", "BaoCaoLoi")" class="feature-card card-danger card shadow-sm">
+                <div class="card-body p-4 text-center">
+                    <div class="feature-icon-wrapper">
+                        <i class="feature-icon fas fa-exclamation-circle"></i>
+                    </div>
+                    <h5 class="card-title-main fw-bold mb-2">
+                        Báo Cáo Lỗi Sân
+                        @if (ViewBag.PendingErrors > 0)
+                        {
+                            <span class="badge bg-danger ms-2">@ViewBag.PendingErrors</span>
+                        }
+                    </h5>
+                    <p class="text-muted small mb-0">
+                        Xem báo cáo lỗi, chuyển kỹ thuật xử lý, theo dõi tiến độ
+                    </p>
+                </div>
+            </a>
+        </div>
+
+        <!-- Báo Cáo Thống Kê -->
+        <div class="col-lg-4 col-md-6">
+            <a href="@Url.Action("BaoCaoThongKe", "Management")" class="feature-card card-purple card shadow-sm">
+                <div class="card-body p-4 text-center">
+                    <div class="feature-icon-wrapper">
+                        <i class="feature-icon fas fa-chart-line"></i>
+                    </div>
+                    <h5 class="card-title-main fw-bold mb-2">Báo Cáo Thống Kê</h5>
+                    <p class="text-muted small mb-0">
+                        Doanh thu, sử dụng sân, dịch vụ, hiệu suất nhân sự
+                    </p>
+                </div>
+            </a>
+        </div>
+
+        <!-- Hồ Sơ Cá Nhân -->
+        <div class="col-lg-4 col-md-6">
+            <a href="@Url.Action("Index", "HoSoNhanVien")" class="feature-card card-orange card shadow-sm">
+                <div class="card-body p-4 text-center">
+                    <div class="feature-icon-wrapper">
+                        <i class="feature-icon fas fa-user-circle"></i>
+                    </div>
+                    <h5 class="card-title-main fw-bold mb-2">Hồ Sơ Cá Nhân</h5>
+                    <p class="text-muted small mb-0">
+                        Xem thông tin cá nhân, đổi mật khẩu, xem lương
+                    </p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Access Links -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-3">
+                        <i class="fas fa-link me-2 text-primary"></i>
+                        Truy Cập Nhanh
+                    </h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="@Url.Action("Index", "LichLamViec")" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-calendar me-1"></i> Lịch Làm Việc
+                        </a>
+                        <a href="@Url.Action("Index", "DatSanTrucTiep")" class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-ticket-alt me-1"></i> Đặt Sân Trực Tiếp
+                        </a>
+                        <a href="@Url.Action("Index", "HomeStaff")" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-home me-1"></i> Trang Chủ Nhân Viên
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

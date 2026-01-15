@@ -257,36 +257,99 @@ namespace webapp_mvc.Controllers
 
         // GET: /LichLamViec/GetStaffForReplacement
         [HttpGet]
-        public IActionResult GetStaffForReplacement()
+        public IActionResult GetStaffForReplacement(long? maCaTruc)
         {
             try
             {
                 var maNV = HttpContext.Session.GetString("MaUser");
                 var maCS = HttpContext.Session.GetString("MaCS");
                 
+                _logger.LogInformation("GetStaffForReplacement called with maCaTruc={MaCaTruc}, maNV={MaNV}, maCS={MaCS}", maCaTruc, maNV, maCS);
+                
                 if (string.IsNullOrEmpty(maNV))
                 {
                     return Json(new { success = false, message = "Chưa đăng nhập!" });
                 }
 
+                // If maCS not in session, get it from NHANVIEN table
                 if (string.IsNullOrEmpty(maCS))
                 {
-                    return Json(new { success = false, message = "Không xác định được cơ sở!" });
+                    var csQuery = "SELECT MaCS FROM NHANVIEN WHERE MaNV = @MaNV";
+                    var csResult = _db.ExecuteQuery(csQuery, new SqlParameter("@MaNV", maNV));
+                    if (csResult.Rows.Count > 0)
+                    {
+                        maCS = csResult.Rows[0]["MaCS"].ToString();
+                        _logger.LogInformation("Retrieved MaCS from NHANVIEN: {MaCS}", maCS);
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = "Không tìm thấy thông tin cơ sở của nhân viên!" });
+                    }
                 }
 
-                // Get staff from same branch with same role
-                var query = @"
-                    SELECT MaNV, HoTen, ChucVu
-                    FROM NHANVIEN
-                    WHERE MaCS = @MaCS
-                    AND MaNV != @MaNV
-                    AND ChucVu IN (N'Lễ tân', N'Nhân viên kỹ thuật', N'Nhân viên vệ sinh')
-                    ORDER BY HoTen
-                ";
+                string query;
+                SqlParameter[] parameters;
 
-                var result = _db.ExecuteQuery(query, 
-                    new SqlParameter("@MaCS", maCS),
-                    new SqlParameter("@MaNV", maNV));
+                if (maCaTruc.HasValue)
+                {
+                    // Get staff not busy during the selected shift
+                    query = @"
+                        SELECT DISTINCT NV.MaNV, NV.HoTen, NV.ChucVu
+                        FROM NHANVIEN NV
+                        WHERE NV.MaCS = @MaCS
+                        AND NV.MaNV != @MaNV
+                        AND NV.ChucVu IN (N'Lễ tân', N'Nhân viên kỹ thuật', N'Nhân viên vệ sinh')
+                        AND NV.MaNV NOT IN (
+                            -- Exclude staff already assigned to overlapping shifts
+                            SELECT TGC.MaNV
+                            FROM THAMGIACATRUC TGC
+                            INNER JOIN CATRUC CT ON TGC.MaCaTruc = CT.MaCaTruc
+                            INNER JOIN CATRUC CT_Selected ON CT_Selected.MaCaTruc = @MaCaTruc
+                            WHERE CT.NgayTruc = CT_Selected.NgayTruc
+                            AND (
+                                (CT.GioBatDau <= CT_Selected.GioBatDau AND CT.GioKetThuc > CT_Selected.GioBatDau)
+                                OR (CT.GioBatDau < CT_Selected.GioKetThuc AND CT.GioKetThuc >= CT_Selected.GioKetThuc)
+                                OR (CT.GioBatDau >= CT_Selected.GioBatDau AND CT.GioKetThuc <= CT_Selected.GioKetThuc)
+                            )
+                        )
+                        AND NV.MaNV NOT IN (
+                            -- Exclude staff with approved leave during this shift
+                            SELECT DNP.MaNV
+                            FROM DONNGHIPHEP DNP
+                            INNER JOIN CATRUC CT_Selected ON CT_Selected.MaCaTruc = @MaCaTruc
+                            WHERE DNP.TrangThai = N'Đã duyệt'
+                            AND CT_Selected.NgayTruc = DNP.NgayNghi
+                        )
+                        ORDER BY NV.HoTen
+                    ";
+                    
+                    parameters = new SqlParameter[] {
+                        new SqlParameter("@MaCS", maCS),
+                        new SqlParameter("@MaNV", maNV),
+                        new SqlParameter("@MaCaTruc", maCaTruc.Value)
+                    };
+                }
+                else
+                {
+                    // No shift selected, return all staff
+                    query = @"
+                        SELECT MaNV, HoTen, ChucVu
+                        FROM NHANVIEN
+                        WHERE MaCS = @MaCS
+                        AND MaNV != @MaNV
+                        AND ChucVu IN (N'Lễ tân', N'Nhân viên kỹ thuật', N'Nhân viên vệ sinh')
+                        ORDER BY HoTen
+                    ";
+                    
+                    parameters = new SqlParameter[] {
+                        new SqlParameter("@MaCS", maCS),
+                        new SqlParameter("@MaNV", maNV)
+                    };
+                }
+
+                var result = _db.ExecuteQuery(query, parameters);
+                
+                _logger.LogInformation("GetStaffForReplacement: Query returned {Count} staff members", result.Rows.Count);
                 
                 var staff = new List<dynamic>();
                 foreach (DataRow row in result.Rows)
@@ -299,6 +362,7 @@ namespace webapp_mvc.Controllers
                     });
                 }
 
+                _logger.LogInformation("GetStaffForReplacement: Returning {Count} staff members", staff.Count);
                 return Json(new { success = true, data = staff });
             }
             catch (Exception ex)
@@ -320,19 +384,23 @@ namespace webapp_mvc.Controllers
                     return Json(new { success = false, message = "Chưa đăng nhập!" });
                 }
 
-                // Validate shift belongs to staff
+                // Validate shift belongs to staff and get NgayTruc
                 var validateQuery = @"
-                    SELECT COUNT(*) FROM THAMGIACATRUC 
-                    WHERE MaCaTruc = @CaNghi AND MaNV = @MaNV
+                    SELECT CT.NgayTruc
+                    FROM THAMGIACATRUC TGCT
+                    INNER JOIN CATRUC CT ON TGCT.MaCaTruc = CT.MaCaTruc
+                    WHERE TGCT.MaCaTruc = @CaNghi AND TGCT.MaNV = @MaNV
                 ";
-                var isValid = _db.ExecuteScalar<int>(validateQuery,
+                var result = _db.ExecuteQuery(validateQuery,
                     new SqlParameter("@CaNghi", request.CaNghi),
                     new SqlParameter("@MaNV", maNV));
 
-                if (isValid == 0)
+                if (result.Rows.Count == 0)
                 {
                     return Json(new { success = false, message = "Ca trực không hợp lệ hoặc bạn không tham gia ca này!" });
                 }
+
+                var ngayTruc = Convert.ToDateTime(result.Rows[0]["NgayTruc"]);
 
                 // Insert leave request
                 var insertQuery = @"
@@ -342,12 +410,12 @@ namespace webapp_mvc.Controllers
 
                 _db.ExecuteNonQuery(insertQuery,
                     new SqlParameter("@MaNV", maNV),
-                    new SqlParameter("@NgayNghi", DateTime.Parse(request.NgayNghi)),
+                    new SqlParameter("@NgayNghi", ngayTruc),
                     new SqlParameter("@CaNghi", request.CaNghi),
                     new SqlParameter("@LyDo", request.LyDo),
                     new SqlParameter("@NguoiThayThe", string.IsNullOrEmpty(request.NguoiThayThe) ? DBNull.Value : request.NguoiThayThe));
 
-                _logger.LogInformation("SubmitLeaveRequest: Staff {MaNV} requested leave for shift {CaNghi}", maNV, request.CaNghi);
+                _logger.LogInformation("SubmitLeaveRequest: Staff {MaNV} requested leave for shift {CaNghi} on {NgayTruc}", maNV, request.CaNghi, ngayTruc);
                 return Json(new { success = true, message = "Gửi đơn nghỉ phép thành công!" });
             }
             catch (Exception ex)
@@ -421,7 +489,6 @@ namespace webapp_mvc.Controllers
 
     public class LeaveRequest
     {
-        public string NgayNghi { get; set; } = string.Empty;
         public long CaNghi { get; set; }
         public string LyDo { get; set; } = string.Empty;
         public string? NguoiThayThe { get; set; }

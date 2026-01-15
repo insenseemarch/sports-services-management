@@ -1,0 +1,1164 @@
+@{
+    ViewData["Title"] = "Báo Cáo Lỗi Sân";
+}
+
+<style>
+    .report-container {
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .hero-banner {
+        position: relative;
+        width: 100%;
+        height: 400px;
+        background: url('https://fpt123.net/uploads/images/san-co-nhan-tao/thi-cong-san-bong-co-nhan-tao-7.jpg') center/cover no-repeat;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+
+    .hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(29, 78, 36, 0.85) 0%, rgba(76, 175, 80, 0.75) 50%, rgba(163, 207, 6, 0.65) 100%);
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        padding: 0 1rem;
+    }
+
+    .hero-content h1 {
+        font-size: 3.5rem;
+        font-weight: bold;
+        color: white;
+        text-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        margin-bottom: 1rem;
+        animation: slideInDown 0.8s ease-out;
+    }
+
+    .hero-content p {
+        font-size: 1.25rem;
+        color: rgba(255, 255, 255, 0.9);
+        text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        animation: slideInUp 0.8s ease-out;
+    }
+
+    @@keyframes slideInDown {
+        from { opacity: 0; transform: translateY(-30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @@keyframes slideInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .filter-tabs {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+        padding: 0;
+    }
+
+    .filter-tab {
+        background: white;
+        border-radius: 15px;
+        padding: 1.25rem;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 3px solid #e0e0e0;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .filter-tab::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(76, 175, 80, 0.1), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .filter-tab:hover::before {
+        left: 100%;
+    }
+
+    .filter-tab:hover {
+        border-color: #4caf50;
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0 8px 24px rgba(76, 175, 80, 0.2);
+    }
+
+    .filter-tab.active {
+        background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+        color: white;
+        border-color: #4caf50;
+        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        transform: translateY(-2px);
+    }
+
+    .filter-tab .count {
+        font-size: 2.5rem;
+        font-weight: 800;
+        display: block;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .filter-tab.active .count {
+        color: #cce830;
+    }
+
+    .search-filters {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        animation: slideInUp 0.5s ease-out;
+    }
+
+    .search-filters .row {
+        align-items: end;
+    }
+
+    .filter-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .form-select, .form-control {
+        border-radius: 10px;
+        border: 2px solid #e0e0e0;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-select:focus, .form-control:focus {
+        border-color: #4caf50;
+        box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+    }
+
+    .btn-search {
+        background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+        color: white;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        width: 100%;
+    }
+
+    .btn-search:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        background: linear-gradient(135deg, #5cb85f 0%, #388e3c 100%);
+    }
+
+    .btn-reset {
+        background: #e0e0e0;
+        color: #666;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    .btn-reset:hover {
+        background: #d0d0d0;
+        transform: translateY(-2px);
+    }
+
+    .report-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        margin-bottom: 1.5rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+        animation: slideInUp 0.4s ease-out;
+        background: white;
+        border-left: 5px solid #4caf50;
+    }
+
+    @@keyframes slideInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .report-card:hover {
+        box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+        transform: translateY(-6px);
+    }
+
+    .btn-create-float {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        background: linear-gradient(135deg, #cce830 0%, #a8c920 100%);
+        color: #2e7d32;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 20px rgba(204, 232, 48, 0.4);
+        z-index: 1000;
+        animation: pulse 2s infinite;
+    }
+
+    .btn-create-float:hover {
+        transform: translateY(-4px) scale(1.05);
+        box-shadow: 0 8px 30px rgba(204, 232, 48, 0.6);
+        background: linear-gradient(135deg, #d4f036 0%, #b5d928 100%);
+        color: #1b5e20;
+    }
+
+    @@keyframes pulse {
+        0%, 100% { box-shadow: 0 6px 20px rgba(204, 232, 48, 0.4); }
+        50% { box-shadow: 0 6px 30px rgba(204, 232, 48, 0.7); }
+    }
+
+    .report-card-header {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-bottom: 2px solid #e0e0e0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .court-info-header {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .court-name {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #2e7d32;
+        margin-bottom: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .court-type {
+        color: #666;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .status-badge-header {
+        padding: 0.75rem 1.5rem;
+        border-radius: 25px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        animation: pulse 2s infinite;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .report-card-body {
+        padding: 1.5rem;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        display: inline-block;
+        animation: pulse 2s infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.8; }
+    }
+
+    .status-pending {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        color: #856404;
+    }
+
+    .status-processing {
+        background: linear-gradient(135deg, #cce5ff 0%, #a2d2ff 100%);
+        color: #004085;
+    }
+
+    .status-completed {
+        background: linear-gradient(135deg, #d4edda 0%, #b5f2c4 100%);
+        color: #155724;
+    }
+
+    .btn-create {
+        background: linear-gradient(135deg, #cce830 0%, #a8c920 100%);
+        color: #2e7d32;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 25px;
+        font-weight: 700;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(204, 232, 48, 0.3);
+    }
+
+    .btn-create:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(204, 232, 48, 0.5);
+        background: linear-gradient(135deg, #d4f036 0%, #b5d928 100%);
+        color: #1b5e20;
+    }
+
+    .btn-assign {
+        background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-assign:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        color: white;
+    }
+
+    .btn-complete {
+        background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-complete:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+        color: white;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+        padding: 0.75rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .info-item:hover {
+        background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f2 100%);
+        transform: translateX(4px);
+    }
+
+    .info-item i {
+        margin-right: 1rem;
+        color: #4caf50;
+        font-size: 1.35rem;
+        min-width: 24px;
+    }
+
+    .modal-content {
+        border: none;
+        border-radius: 20px;
+        overflow: hidden;
+        animation: modalSlideIn 0.3s ease-out;
+    }
+
+    @@keyframes modalSlideIn {
+        from { opacity: 0; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+        color: white;
+        border: none;
+        padding: 1.5rem;
+    }
+
+    .form-control:focus {
+        border-color: #4caf50;
+        box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+    }
+
+    .court-info {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+    }
+
+    .court-name {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .court-type {
+        color: #666;
+        font-size: 0.875rem;
+    }
+
+    .description-box {
+        background: #fff;
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+        margin-top: 0.5rem;
+        max-height: 150px;
+        overflow-y: auto;
+    }
+
+    .cost-display {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #4caf50;
+    }
+
+    .no-reports {
+        text-align: center;
+        padding: 3rem;
+        color: #999;
+    }
+
+    .no-reports i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.3;
+    }
+
+    .empty-state {
+        animation: fadeInScale 0.5s ease-out;
+    }
+
+    @@keyframes fadeInScale {
+        from { opacity: 0; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    .loading-spinner {
+        text-align: center;
+        padding: 3rem;
+    }
+
+    .spinner-border {
+        color: #4caf50;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+        border: none;
+        padding: 0.5rem 1.5rem;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        background: linear-gradient(135deg, #5cb85f 0%, #388e3c 100%);
+    }
+
+    .btn-secondary {
+        background: #e0e0e0;
+        color: #666;
+        border: none;
+        padding: 0.5rem 1.5rem;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+        background: #d0d0d0;
+        transform: translateY(-2px);
+    }
+</style>
+
+<div class="report-container">
+    <!-- Hero Banner -->
+    <div class="hero-banner">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1>
+                <i class="fas fa-tools me-3"></i>BÁO CÁO LỖI SÂN
+            </h1>
+            <p class="lead">Quản lý và theo dõi các báo cáo sự cố sân</p>
+        </div>
+    </div>
+
+    <!-- Floating Create Button -->
+    <button class="btn-create-float" data-bs-toggle="modal" data-bs-target="#createReportModal">
+        <i class="fas fa-plus me-2"></i>Tạo Báo Cáo Mới
+    </button>
+
+    <div class="container">
+        <!-- Search Filters -->
+        <div class="search-filters">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="filter-label">
+                        <i class="fas fa-calendar-alt me-2"></i>Từ ngày
+                    </label>
+                    <input type="date" class="form-control" id="filterFromDate">
+                </div>
+                <div class="col-md-3">
+                    <label class="filter-label">
+                        <i class="fas fa-calendar-alt me-2"></i>Đến ngày
+                    </label>
+                    <input type="date" class="form-control" id="filterToDate">
+                </div>
+                <div class="col-md-3">
+                    <label class="filter-label">
+                        <i class="fas fa-building me-2"></i>Cơ sở
+                    </label>
+                    <select class="form-select" id="filterCoSo">
+                        <option value="">Tất cả cơ sở</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="filter-label d-block">&nbsp;</label>
+                    <button class="btn btn-search mb-2" onclick="applyFilters()">
+                        <i class="fas fa-search me-2"></i>Tìm kiếm
+                    </button>
+                    <button class="btn btn-reset" onclick="resetFilters()">
+                        <i class="fas fa-redo me-2"></i>Đặt lại
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="filter-tabs">
+            <div class="filter-tab active" onclick="filterReports('all')">
+            <span class="count" id="count-all">0</span>
+            <div class="fw-bold">Tất Cả</div>
+        </div>
+        <div class="filter-tab" onclick="filterReports('pending')">
+            <span class="count text-warning" id="count-pending">0</span>
+            <div class="fw-bold">Chờ Xử Lý</div>
+        </div>
+        <div class="filter-tab" onclick="filterReports('processing')">
+            <span class="count text-info" id="count-processing">0</span>
+            <div class="fw-bold">Đang Xử Lý</div>
+        </div>
+        <div class="filter-tab" onclick="filterReports('completed')">
+            <span class="count text-success" id="count-completed">0</span>
+            <div class="fw-bold">Hoàn Thành</div>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3 text-muted">Đang tải dữ liệu...</p>
+    </div>
+
+    <!-- Reports List -->
+    <div id="reportsList"></div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="empty-state no-reports" style="display: none;">
+        <i class="fas fa-clipboard-list"></i>
+        <h4>Chưa có báo cáo nào</h4>
+        <p>Nhấn nút "Tạo Báo Cáo Mới" để thêm báo cáo lỗi sân</p>
+    </div>
+    </div>
+</div>
+
+<!-- Create Report Modal -->
+<div class="modal fade" id="createReportModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus-circle me-2"></i>Tạo Báo Cáo Lỗi Mới
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createReportForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Chọn Sân <span class="text-danger">*</span></label>
+                        <select class="form-select" id="selectCourt" required>
+                            <option value="">-- Chọn sân --</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Mô Tả Sự Cố <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="issueDescription" rows="5" 
+                                  placeholder="Mô tả chi tiết về sự cố, hư hỏng..." required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-create" onclick="createReport()">
+                    <i class="fas fa-save me-2"></i>Tạo Báo Cáo
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assign Staff Modal -->
+<div class="modal fade" id="assignStaffModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-cog me-2"></i>Phân Công Kỹ Thuật
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="assignReportId">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Chọn Nhân Viên Kỹ Thuật <span class="text-danger">*</span></label>
+                    <select class="form-select" id="selectStaff" required>
+                        <option value="">-- Chọn nhân viên --</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Ngày Hoàn Thành Dự Kiến</label>
+                    <input type="date" class="form-control" id="expectedDate">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Chi Phí Dự Kiến (VNĐ)</label>
+                    <input type="number" class="form-control" id="estimatedCost" min="0" value="0">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-assign" onclick="assignStaff()">
+                    <i class="fas fa-check me-2"></i>Phân Công
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Complete Report Modal -->
+<div class="modal fade" id="completeReportModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-check-circle me-2"></i>Hoàn Thành Báo Cáo
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="completeReportId">
+                <p class="mb-3">Xác nhận hoàn thành báo cáo này?</p>
+                
+                <!-- Display existing report info -->
+                <div class="alert alert-info mb-3">
+                    <h6 class="alert-heading mb-2"><i class="fas fa-info-circle me-2"></i>Thông Tin Báo Cáo</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Nhân viên:</strong> <span id="displayStaffName">-</span></p>
+                            <p class="mb-0"><strong>Ngày dự kiến:</strong> <span id="displayExpectedDate">-</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Ngày báo cáo:</strong> <span id="displayReportDate">-</span></p>
+                            <p class="mb-0"><strong>Chi phí dự kiến:</strong> <span id="displayExpectedCost">-</span></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Chi Phí Thực Tế (VNĐ) <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control" id="actualCost" min="0" value="0" placeholder="Nhập chi phí thực tế">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-complete" onclick="completeReport()">
+                    <i class="fas fa-check me-2"></i>Hoàn Thành
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    let allReports = [];
+    let currentFilter = 'all';
+    let facilities = [];
+
+    $(document).ready(function() {
+        loadFacilities();
+        loadReports();
+        loadCourts();
+        loadStaff();
+
+        // Set min date to today for expected date
+        const today = new Date().toISOString().split('T')[0];
+        $('#expectedDate').attr('min', today);
+        $('#filterFromDate, #filterToDate').attr('max', new Date(Date.now() + 365*24*60*60*1000).toISOString().split('T')[0]);
+    });
+
+    function loadFacilities() {
+        $.ajax({
+            url: '/Management/GetDanhSachSan',
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    facilities = [...new Set(response.data.map(c => c.tenCoSo))];
+                    const select = $('#filterCoSo');
+                    select.empty();
+                    select.append('<option value="">Tất cả cơ sở</option>');
+                    facilities.forEach(facility => {
+                        select.append(`<option value="${facility}">${facility}</option>`);
+                    });
+                }
+            }
+        });
+    }
+
+    function applyFilters() {
+        const fromDate = $('#filterFromDate').val();
+        const toDate = $('#filterToDate').val();
+        const coSo = $('#filterCoSo').val();
+
+        let filtered = allReports;
+
+        if (fromDate) {
+            filtered = filtered.filter(r => {
+                const reportDate = new Date(r.ngayBatDau.split('/').reverse().join('-'));
+                return reportDate >= new Date(fromDate);
+            });
+        }
+
+        if (toDate) {
+            filtered = filtered.filter(r => {
+                const reportDate = new Date(r.ngayBatDau.split('/').reverse().join('-'));
+                return reportDate <= new Date(toDate);
+            });
+        }
+
+        if (coSo) {
+            filtered = filtered.filter(r => r.tenCoSo === coSo);
+        }
+
+        // Apply status filter
+        if (currentFilter !== 'all') {
+            const statusMap = {
+                'pending': 'Chờ xử lý',
+                'processing': 'Đang xử lý',
+                'completed': 'Hoàn thành'
+            };
+            filtered = filtered.filter(r => r.trangThai === statusMap[currentFilter]);
+        }
+
+        displayFilteredReports(filtered);
+    }
+
+    function resetFilters() {
+        $('#filterFromDate').val('');
+        $('#filterToDate').val('');
+        $('#filterCoSo').val('');
+        displayReports();
+    }
+
+    function displayFilteredReports(filtered) {
+        if (filtered.length === 0) {
+            $('#emptyState').show();
+            $('#reportsList').hide();
+            return;
+        }
+
+        $('#emptyState').hide();
+        $('#reportsList').show();
+
+        let html = '';
+        filtered.forEach((report, index) => {
+            html += generateReportCard(report, index);
+        });
+
+        $('#reportsList').html(html);
+    }
+
+    function loadReports() {
+        $('#loadingSpinner').show();
+        $('#reportsList').empty();
+        $('#emptyState').hide();
+
+        $.ajax({
+            url: '/Management/GetBaoCaoLoi',
+            type: 'GET',
+            success: function(response) {
+                $('#loadingSpinner').hide();
+                if (response.success) {
+                    allReports = response.data;
+                    updateCounts();
+                    displayReports();
+                } else {
+                    showError('Lỗi tải dữ liệu: ' + response.message);
+                }
+            },
+            error: function() {
+                $('#loadingSpinner').hide();
+                showError('Không thể kết nối đến server');
+            }
+        });
+    }
+
+    function updateCounts() {
+        $('#count-all').text(allReports.length);
+        $('#count-pending').text(allReports.filter(r => r.trangThai === 'Chờ xử lý').length);
+        $('#count-processing').text(allReports.filter(r => r.trangThai === 'Đang xử lý').length);
+        $('#count-completed').text(allReports.filter(r => r.trangThai === 'Hoàn thành').length);
+    }
+
+    function displayReports() {
+        let filtered = allReports;
+        if (currentFilter !== 'all') {
+            const statusMap = {
+                'pending': 'Chờ xử lý',
+                'processing': 'Đang xử lý',
+                'completed': 'Hoàn thành'
+            };
+            filtered = allReports.filter(r => r.trangThai === statusMap[currentFilter]);
+        }
+
+        if (filtered.length === 0) {
+            $('#emptyState').show();
+            $('#reportsList').hide();
+            return;
+        }
+
+        $('#emptyState').hide();
+        $('#reportsList').show();
+
+        let html = '';
+        filtered.forEach((report, index) => {
+            html += generateReportCard(report, index);
+        });
+
+        $('#reportsList').html(html);
+    }
+
+    function generateReportCard(report, index) {
+        const statusClass = report.trangThai === 'Chờ xử lý' ? 'status-pending' : 
+                           report.trangThai === 'Đang xử lý' ? 'status-processing' : 'status-completed';
+        
+        const statusIcon = report.trangThai === 'Chờ xử lý' ? 'fa-clock' : 
+                          report.trangThai === 'Đang xử lý' ? 'fa-cog fa-spin' : 'fa-check-circle';
+        
+        return `
+            <div class="report-card" style="animation-delay: ${index * 0.05}s">
+                <div class="report-card-header">
+                    <div class="court-info-header">
+                        <div class="court-name">
+                            <i class="fas fa-futbol"></i>
+                            ${report.tenSan}
+                        </div>
+                        <div class="court-type">
+                            <i class="fas fa-map-marker-alt"></i>
+                            ${report.tenLoaiSan} - ${report.tenCoSo}
+                        </div>
+                    </div>
+                    <span class="status-badge-header ${statusClass}">
+                        <i class="fas ${statusIcon}"></i>
+                        ${report.trangThai}
+                    </span>
+                </div>
+                <div class="report-card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="info-item">
+                                <i class="fas fa-calendar-alt"></i>
+                                <div>
+                                    <small class="text-muted">Ngày báo cáo</small>
+                                    <div class="fw-bold">${report.ngayBatDau}</div>
+                                </div>
+                            </div>
+                            ${report.ngayKetThucDuKien ? `
+                            <div class="info-item">
+                                <i class="fas fa-calendar-day"></i>
+                                <div>
+                                    <small class="text-muted">Dự kiến hoàn thành</small>
+                                    <div class="fw-bold">${report.ngayKetThucDuKien}</div>
+                                </div>
+                            </div>
+                            ` : ''}
+                            ${report.ngayKetThucThucTe ? `
+                            <div class="info-item">
+                                <i class="fas fa-calendar-check"></i>
+                                <div>
+                                    <small class="text-muted">Hoàn thành thực tế</small>
+                                    <div class="fw-bold">${report.ngayKetThucThucTe}</div>
+                                </div>
+                            </div>
+                            ` : ''}
+                            ${report.tenNhanVien ? `
+                            <div class="info-item">
+                                <i class="fas fa-user-cog"></i>
+                                <div>
+                                    <small class="text-muted">Nhân viên phụ trách</small>
+                                    <div class="fw-bold">${report.tenNhanVien}</div>
+                                </div>
+                            </div>
+                            ` : ''}
+                            <div class="mt-3">
+                                <strong><i class="fas fa-exclamation-triangle me-2 text-warning"></i>Mô tả sự cố:</strong>
+                                <div class="description-box">${report.moTaSuCo}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center mb-3 p-3" style="background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f2 100%); border-radius: 12px;">
+                                <small class="text-muted d-block mb-2"><i class="fas fa-money-bill-wave me-2"></i>Chi phí</small>
+                                <div class="cost-display">${formatMoney(report.chiPhi)}</div>
+                            </div>
+                            <div class="d-grid gap-2">
+                                ${report.trangThai === 'Chờ xử lý' ? `
+                                    <button class="btn btn-assign" onclick="openAssignModal('${report.maPhieu}')">
+                                        <i class="fas fa-user-plus me-2"></i>Phân Công
+                                    </button>
+                                ` : report.trangThai === 'Đang xử lý' ? `
+                                    <button class="btn btn-complete" onclick="openCompleteModal('${report.maPhieu}')">
+                                        <i class="fas fa-check-circle me-2"></i>Hoàn Thành
+                                    </button>
+                                ` : `
+                                    <div class="alert alert-success mb-0">
+                                        <i class="fas fa-check-circle me-2"></i>Đã hoàn thành
+                                    </div>
+                                `}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function filterReports(filter) {
+        currentFilter = filter;
+        $('.filter-tab').removeClass('active');
+        $(`.filter-tab:contains('${filter === 'all' ? 'Tất Cả' : 
+                                     filter === 'pending' ? 'Chờ Xử Lý' : 
+                                     filter === 'processing' ? 'Đang Xử Lý' : 'Hoàn Thành'}')`).first().addClass('active');
+        displayReports();
+    }
+
+    function loadCourts() {
+        $.ajax({
+            url: '/Management/GetDanhSachSan',
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    const select = $('#selectCourt');
+                    select.empty();
+                    select.append('<option value="">-- Chọn sân --</option>');
+                    response.data.forEach(court => {
+                        select.append(`<option value="${court.maSan}">${court.display}</option>`);
+                    });
+                }
+            }
+        });
+    }
+
+    function loadStaff() {
+        $.ajax({
+            url: '/Management/GetDanhSachNhanVienKyThuat',
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    const select = $('#selectStaff');
+                    select.empty();
+                    select.append('<option value="">-- Chọn nhân viên --</option>');
+                    response.data.forEach(staff => {
+                        select.append(`<option value="${staff.maNV}">${staff.hoTen} - ${staff.chucVu}</option>`);
+                    });
+                }
+            }
+        });
+    }
+
+    function createReport() {
+        const maSan = $('#selectCourt').val();
+        const moTa = $('#issueDescription').val();
+
+        if (!maSan || !moTa) {
+            showError('Vui lòng điền đầy đủ thông tin');
+            return;
+        }
+
+        $.ajax({
+            url: '/Management/TaoBaoCaoLoi',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                maSan: maSan,
+                moTaSuCo: moTa
+            }),
+            success: function(response) {
+                if (response.success) {
+                    showSuccess(response.message);
+                    $('#createReportModal').modal('hide');
+                    $('#createReportForm')[0].reset();
+                    loadReports();
+                } else {
+                    showError(response.message);
+                }
+            },
+            error: function() {
+                showError('Không thể tạo báo cáo');
+            }
+        });
+    }
+
+    function openAssignModal(maPhieu) {
+        $('#assignReportId').val(maPhieu);
+        $('#selectStaff').val('');
+        $('#expectedDate').val('');
+        $('#estimatedCost').val('0');
+        $('#assignStaffModal').modal('show');
+    }
+
+    function assignStaff() {
+        const maPhieu = $('#assignReportId').val();
+        const maNV = $('#selectStaff').val();
+        const ngayKetThuc = $('#expectedDate').val();
+        const chiPhi = $('#estimatedCost').val();
+
+        if (!maNV) {
+            showError('Vui lòng chọn nhân viên');
+            return;
+        }
+
+        $.ajax({
+            url: '/Management/CapNhatTrangThai',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                maPhieu: maPhieu,
+                trangThai: 'Đang xử lý',
+                ngayKetThucDuKien: ngayKetThuc,
+                chiPhi: parseFloat(chiPhi) || 0,
+                maNV: maNV
+            }),
+            success: function(response) {
+                if (response.success) {
+                    showSuccess(response.message);
+                    $('#assignStaffModal').modal('hide');
+                    loadReports();
+                } else {
+                    showError(response.message);
+                }
+            },
+            error: function() {
+                showError('Không thể phân công nhân viên');
+            }
+        });
+    }
+
+    function openCompleteModal(maPhieu) {
+        // Find report data
+        const report = allReports.find(r => r.maPhieu === maPhieu);
+        
+        $('#completeReportId').val(maPhieu);
+        $('#actualCost').val('0');
+        
+        // Display report information
+        if (report) {
+            $('#displayStaffName').text(report.nhanVienPhuTrach || 'Chưa phân công');
+            $('#displayExpectedDate').text(report.ngayKetThucDuKien || 'Chưa xác định');
+            $('#displayReportDate').text(report.ngayBaoCao || '-');
+            $('#displayExpectedCost').text(report.chiPhi ? formatMoney(report.chiPhi) : '0 đ');
+        } else {
+            $('#displayStaffName').text('-');
+            $('#displayExpectedDate').text('-');
+            $('#displayReportDate').text('-');
+            $('#displayExpectedCost').text('0 đ');
+        }
+        
+        $('#completeReportModal').modal('show');
+    }
+
+    function completeReport() {
+        const maPhieu = $('#completeReportId').val();
+        const chiPhi = $('#actualCost').val();
+
+        $.ajax({
+            url: '/Management/HoanThanhBaoCao',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                maPhieu: maPhieu,
+                chiPhi: parseFloat(chiPhi) || 0
+            }),
+            success: function(response) {
+                if (response.success) {
+                    showSuccess(response.message);
+                    $('#completeReportModal').modal('hide');
+                    loadReports();
+                } else {
+                    showError(response.message);
+                }
+            },
+            error: function() {
+                showError('Không thể hoàn thành báo cáo');
+            }
+        });
+    }
+
+    function formatMoney(amount) {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+    }
+
+    function showSuccess(message) {
+        // Simple alert for now, you can replace with toast notification
+        alert(message);
+    }
+
+    function showError(message) {
+        alert('Lỗi: ' + message);
+    }
+</script>
+}

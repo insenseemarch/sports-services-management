@@ -2132,6 +2132,76 @@ namespace webapp_mvc.Controllers
                 return Json(new { success = false, message = "Lỗi: " + ex.Message });
             }
         }
+
+        // GET: /Management/SalaryDemo
+        public IActionResult SalaryDemo()
+        {
+            var vaiTro = HttpContext.Session.GetString("VaiTro");
+            if (!vaiTro?.Equals("Quản lý", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                return RedirectToAction("Index", "HomeStaff");
+            }
+            return View();
+        }
+
+        // POST: /Management/UpdateSalaryDemo
+        [HttpPost]
+        public JsonResult UpdateSalaryDemo(string maNV, decimal luongMoi, string mode)
+        {
+            // Mode: "unsafe" (Default DL), "deadlock" (Fixed DB -> Deadlock), "realfix" (Fixed DB -> No Deadlock)
+            bool useFixedDb = (mode == "deadlock" || mode == "realfix");
+            
+            string connectionString = useFixedDb 
+                ? _configuration.GetConnectionString("FixedConnection") 
+                : _configuration.GetConnectionString("DefaultConnection");
+
+            string spName = "sp_UpdateSalary_Unsafe";
+            if (mode == "deadlock") spName = "sp_UpdateSalary_Safe"; // Intentionally named 'Safe' but causes Deadlock in Repeatable Read
+            if (mode == "realfix") spName = "sp_UpdateSalary_RealFix";
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = new SqlCommand(spName, conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@MaNV", maNV);
+                        cmd.Parameters.AddWithValue("@LuongMoi", luongMoi);
+                        
+                        // Execute (might wait 10s or Deadlock)
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+                
+                string modeDesc = mode switch {
+                    "unsafe" => "DEFAULT DB (Lost Update)",
+                    "deadlock" => "FIXED DB (Deadlock Expected)",
+                    "realfix" => "FIXED DB (Real Solution - UPDLOCK)",
+                    _ => "Unknown"
+                };
+
+                return Json(new { success = true, message = $"[{modeDesc}] Cập nhật lương thành công! (Mức lương: {luongMoi:N0} đ)" });
+            }
+            catch (SqlException ex)
+            {
+                // Error 1205 = Deadlock Victim
+                if (ex.Number == 1205)
+                {
+                    _logger.LogWarning("Deadlock detected in UpdateSalaryDemo");
+                    return Json(new { success = false, message = "DEADLOCK DETECTED! Transaction was chosen as victim and rolled back." });
+                }
+                
+                _logger.LogError(ex, "Error updating salary");
+                return Json(new { success = false, message = "Lỗi SQL: " + ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "General error updating salary");
+                return Json(new { success = false, message = "Lỗi hệ thống: " + ex.Message });
+            }
+        }
     }
 
     // Request models

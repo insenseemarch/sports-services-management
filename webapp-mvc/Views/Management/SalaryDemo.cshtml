@@ -1,0 +1,151 @@
+@{
+    ViewData["Title"] = "Demo Deadlock - Cập Nhật Lương";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid py-4" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh;">
+    
+    <!-- Header -->
+    <div class="d-flex align-items-center mb-4 fade-in-down">
+        <div class="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center shadow" style="width: 60px; height: 60px;">
+            <i class="fas fa-biohazard fa-2x"></i>
+        </div>
+        <div class="ms-3">
+            <h2 class="fw-bold mb-0 text-dark">DEMO DEADLOCK</h2>
+            <p class="text-secondary mb-0">Hệ thống xử lý tranh chấp cập nhật lương</p>
+        </div>
+    </div>
+
+    <!-- Database Selector Info -->
+    <div class="alert border-0 shadow-sm rounded-4 mb-4 fade-in-up" role="alert" 
+         style="background: linear-gradient(135deg, #1a2a6c 0%, #b21f1f 100%); border-left: 6px solid #fdbb2d !important;">
+        <div class="d-flex align-items-center">
+            <div class="me-4 text-white mt-1">
+                <i class="fas fa-random fa-3x"></i>
+            </div>
+            <div class="flex-grow-1 text-white">
+                <h5 class="alert-heading fw-bold mb-2">Hướng Dẫn Demo</h5>
+                <p class="opacity-90 mb-2">
+                    Mở <strong>2 tab (hoặc 2 trình duyệt)</strong> cùng lúc. Chọn cùng một chế độ DB và nhập lương khác nhau. Bấm <strong>CẬP NHẬT</strong> gần như đồng thời.
+                </p>
+                <div class="d-flex gap-3 mt-3">
+                    <div class="badge bg-white text-danger fs-6 p-2">
+                        <i class="fas fa-times-circle me-1"></i> Default DB: Lost Update (Thành công đè lên nhau)
+                    </div>
+                    <div class="badge bg-success text-white fs-6 p-2">
+                        <i class="fas fa-shield-alt me-1"></i> Fixed DB: Deadlock (1 bên lỗi, 1 bên thành công)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header border-0 py-3 text-center" style="background: #e9ecef;">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-user-edit me-2"></i>Cập Nhật Lương Nhân Viên</h5>
+                </div>
+                <div class="card-body p-4 bg-white">
+                    
+                    <!-- DB Selector -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-secondary text-uppercase small">Chọn Chế Độ Database</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="dbMode" id="dbUnsafe" value="false" checked>
+                            <label class="btn btn-outline-danger fw-bold py-2" for="dbUnsafe">
+                                <i class="fas fa-unlock me-2"></i>Default (Unsafe)
+                            </label>
+                            
+                            <input type="radio" class="btn-check" name="dbMode" id="dbSafe" value="true">
+                            <label class="btn btn-outline-success fw-bold py-2" for="dbSafe">
+                                <i class="fas fa-lock me-2"></i>Fixed (Safe - RR)
+                            </label>
+                        </div>
+                    </div>
+
+                    <form id="salaryForm">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Mã Nhân Viên</label>
+                            <input type="text" class="form-control bg-light fw-bold" value="NVKT002" readonly style="letter-spacing: 1px;">
+                            <div class="form-text">Demo hardcoded với nhân viên NVKT002</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Lương Mới (VNĐ)</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-white border-end-0"><i class="fas fa-money-bill-wave text-success"></i></span>
+                                <input type="number" id="txtLuong" class="form-control border-start-0 fw-bold text-primary" placeholder="Nhập số tiền..." required>
+                                <span class="input-group-text">VNĐ</span>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" id="btnUpdate" class="btn btn-primary btn-lg fw-bold rounded-3 shadow-sm" style="transition: all 0.2s;">
+                                <span class="normal-text"><i class="fas fa-save me-2"></i>CẬP NHẬT LƯƠNG</span>
+                                <span class="loading-text d-none"><i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý (Chờ 10s)...</span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Result Area -->
+                    <div id="resultArea" class="mt-4 d-none">
+                        <div class="alert rounded-3 shadow-sm">
+                            <h5 class="alert-heading fw-bold" id="resultTitle"></h5>
+                            <hr>
+                            <p class="mb-0" id="resultMessage"></p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#salaryForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                var luong = $('#txtLuong').val();
+                var useFixed = $('#dbSafe').is(':checked');
+                
+                // UI State
+                $('#btnUpdate').prop('disabled', true);
+                $('.normal-text').addClass('d-none');
+                $('.loading-text').removeClass('d-none');
+                $('#resultArea').addClass('d-none');
+
+                $.post('@Url.Action("UpdateSalaryDemo", "Management")', {
+                    maNV: 'NVKT002',
+                    luongMoi: luong,
+                    useFixedDb: useFixed
+                }, function(res) {
+                    $('#resultArea').removeClass('d-none');
+                    var alert = $('#resultArea .alert');
+                    
+                    if (res.success) {
+                        alert.removeClass('alert-danger').addClass('alert-success');
+                        $('#resultTitle').html('<i class="fas fa-check-circle me-2"></i>CẬP NHẬT THÀNH CÔNG');
+                        $('#resultMessage').text(res.message);
+                    } else {
+                        alert.removeClass('alert-success').addClass('alert-danger');
+                        $('#resultTitle').html('<i class="fas fa-biohazard me-2"></i>LỖI (DEADLOCK)');
+                        $('#resultMessage').html('<strong>' + res.message + '</strong>');
+                    }
+                }).fail(function(xhr) {
+                     $('#resultArea').removeClass('d-none');
+                     $('#resultArea .alert').removeClass('alert-success').addClass('alert-danger');
+                     $('#resultTitle').text('Lỗi Hệ Thống');
+                     $('#resultMessage').text('Có lỗi xảy ra khi gọi server.');
+                }).always(function() {
+                    $('#btnUpdate').prop('disabled', false);
+                    $('.normal-text').removeClass('d-none');
+                    $('.loading-text').addClass('d-none');
+                });
+            });
+        });
+    </script>
+}

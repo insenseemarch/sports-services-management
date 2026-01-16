@@ -8,10 +8,12 @@ namespace webapp_mvc.Controllers
     public class BaoTriController : Controller
     {
         private readonly DatabaseHelper _db;
+        private readonly IConfiguration _configuration;
 
-        public BaoTriController(DatabaseHelper db)
+        public BaoTriController(DatabaseHelper db, IConfiguration configuration)
         {
             _db = db;
+            _configuration = configuration;
         }
 
         public IActionResult Index()
@@ -137,6 +139,60 @@ namespace webapp_mvc.Controllers
             {
                 TempData["Error"] = "Lỗi cập nhật: " + ex.Message;
                 return RedirectToAction("CapNhat", new { maPhieu = maPhieu });
+            }
+        }
+        // POST: /BaoTri/UpdateMaintenanceDemo
+        [HttpPost]
+        public JsonResult UpdateMaintenanceDemo(string maSan, string tinhTrangSan, string demoMode)
+        {
+            Console.WriteLine($"[DEMO] Starting Demo: MaSan={maSan}, TinhTrang={tinhTrangSan}, Mode={demoMode}");
+            
+            // demoMode: "unsafe" (Default DB), "safe" (Fixed DB)
+            bool useFixedDb = (demoMode == "safe");
+            
+            // Get Connection String
+            string connectionString = useFixedDb 
+                ? _configuration.GetConnectionString("FixedConnection") 
+                : _configuration.GetConnectionString("DefaultConnection");
+
+            Console.WriteLine($"[DEMO] ConnectionString: {connectionString}");
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+                    Console.WriteLine("[DEMO] Connection Opened.");
+
+                    // Call the Long Transaction Procedure
+                    using (SqlCommand cmd = new SqlCommand("sp_MaintainCourt_Delay", conn))
+                    {
+                        cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@MaSan", maSan);
+                        cmd.Parameters.AddWithValue("@TinhTrang", tinhTrangSan);
+                        
+                        cmd.CommandTimeout = 60; // Increase timeout just in case
+
+                        Console.WriteLine("[DEMO] Executing sp_MaintainCourt_Delay (Wait 15s)...");
+                        
+                        // Execute (Will wait 15s and then Rollback)
+                        cmd.ExecuteNonQuery();
+                        
+                        Console.WriteLine("[DEMO] Execution Finished (Rolled Back).");
+                    }
+                }
+                
+                string msg = useFixedDb 
+                    ? "[FIXED DB] Demo finished. Transaction Rolled Back." 
+                    : "[DEFAULT DB] Demo finished. Transaction Rolled Back.";
+
+                return Json(new { success = true, message = msg });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[DEMO] ERROR: {ex.Message}");
+                Console.WriteLine($"[DEMO] StackTrace: {ex.StackTrace}");
+                return Json(new { success = false, message = "Lỗi Demo: " + ex.Message });
             }
         }
     }

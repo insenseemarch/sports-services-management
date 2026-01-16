@@ -1,0 +1,1 @@
+SELECT Top 5 MaNV, HoTen, LuongCoBan FROM NHANVIEN;

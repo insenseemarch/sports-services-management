@@ -1,0 +1,971 @@
+@model List<webapp_mvc.Models.NhanVienItem>
+@{
+    ViewData["Title"] = "Quản Lý Nhân Sự";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    :root {
+        --color-primary: #d9f02b;
+        --color-lime: #d9f02b;
+        --color-dark: #1a1a1a;
+        --color-light: #f8f9fa;
+    }
+
+    .tab-custom {
+        border: none;
+        border-bottom: 3px solid transparent;
+        color: #6c757d;
+        font-weight: 600;
+        padding: 12px 24px;
+        transition: all 0.3s ease;
+    }
+    .tab-custom:hover {
+        border-bottom-color: #a3cf06;
+        color: #2d3e50;
+    }
+    .tab-custom.active {
+        border-bottom-color: #a3cf06;
+        color: #2d3e50;
+        background: transparent;
+    }
+
+    .action-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .search-box {
+        flex: 1;
+        max-width: 400px;
+        position: relative;
+    }
+
+    .search-box input {
+        width: 100%;
+        padding: 0.75rem 2.5rem 0.75rem 1rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .search-box input:focus {
+        border-color: var(--color-primary);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(15, 155, 15, 0.1);
+    }
+
+    .search-box i {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #999;
+    }
+
+    .btn-add {
+        background: var(--color-primary);
+        color: #111;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 10px rgba(217, 240, 43, 0.18);
+    }
+
+    .btn-add:hover {
+        filter: brightness(0.95);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(217, 240, 43, 0.22);
+        color: white;
+    }
+
+    .employees-table {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    .table {
+        margin: 0;
+    }
+
+    .table thead {
+        background: var(--color-primary);
+        color: white;
+    }
+
+    .table thead th {
+        border: none;
+        padding: 1rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .table tbody tr:hover {
+        background: #f8fff8;
+        transform: scale(1.01);
+        box-shadow: 0 2px 8px rgba(15, 155, 15, 0.1);
+    }
+
+    .table tbody td {
+        padding: 1rem;
+        vertical-align: middle;
+        font-size: 0.95rem;
+    }
+
+    .badge-role {
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        display: inline-block;
+    }
+
+    .badge-quanly {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+        color: white;
+    }
+
+    .badge-letran {
+        background: linear-gradient(135deg, #4ecdc4, #44a08d);
+        color: white;
+    }
+
+    .badge-nvkythuat {
+        background: linear-gradient(135deg, #95e1d3, #6bcf7f);
+        color: white;
+    }
+
+    .badge-status {
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .status-active {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-inactive {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .btn-action {
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: none;
+        transition: all 0.3s ease;
+        margin: 0 0.25rem;
+    }
+
+    .btn-edit {
+        background: var(--color-primary);
+        color: #111;
+    }
+
+    .btn-edit:hover {
+        filter: brightness(0.95);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    }
+
+    .btn-delete {
+        background: var(--color-primary);
+        color: #111;
+    }
+
+    .btn-delete:hover {
+        filter: brightness(0.95);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    }
+
+    /* Icons inside lime buttons should also be dark */
+    .btn-add i, .btn-edit i, .btn-delete i, .btn-add .fas, .btn-edit .fas, .btn-delete .fas {
+        color: #111;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #999;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    @@keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    .filter-bar {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        padding: 0.5rem 1rem;
+        border: 2px solid #e0e0e0;
+        background: white;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 600;
+    }
+
+    .filter-btn.active {
+        border-color: #8cbd00;
+        background: #8cbd00;
+        color: white;
+    }
+
+    .filter-btn:hover {
+        border-color: #8cbd00;
+    }
+</style>
+
+<div class="container py-4">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+<!-- Hero Banner Section -->
+<div class="position-relative d-flex align-items-center justify-content-center mb-4" 
+     style="height: 400px; background: url('https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=1920&auto=format&fit=crop') center/cover no-repeat; padding-top: 85px; z-index: 1; margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%); width: 100vw;">
+    <!-- Green Gradient Overlay -->
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(135deg, rgba(140, 189, 0, 0.85) 0%, rgba(122, 170, 0, 0.75) 50%, rgba(163, 207, 6, 0.65) 100%);"></div>
+    
+    <div class="text-center position-relative px-3" style="z-index: 2;">
+        <h1 class="display-3 fw-bold text-white mb-3" style="text-shadow: 0 4px 12px rgba(0,0,0,0.4);">
+            <i class="fas fa-users me-3"></i>QUẢN LÝ NHÂN SỰ
+        </h1>
+        <p class="lead text-light fs-5 opacity-90" style="text-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+            Quản lý thông tin nhân viên và phân quyền hệ thống
+        </p>
+    </div>
+</div>
+
+<div class="container py-4">
+
+    <div class="action-bar">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Tìm kiếm theo tên, SĐT...">
+            <i class="fas fa-search"></i>
+        </div>
+        <button type="button" class="btn btn-add" data-bs-toggle="modal" data-bs-target="#themNhanVienModal">
+            <i class="fas fa-plus-circle"></i>
+            Thêm Nhân Viên
+        </button>
+    </div>
+
+    @{
+        var total = Model?.Count ?? 0;
+        var countDangLam = Model?.Count(e => !string.IsNullOrEmpty(e.TenCoSo)) ?? 0; // has workplace
+        var countDaNghi = Model?.Count(e => string.IsNullOrEmpty(e.TenCoSo)) ?? 0; // resigned (no workplace)
+        var countQuanLy = Model?.Count(e => e.VaiTro == "Quản lý") ?? 0;
+        var countLeTan = Model?.Count(e => e.VaiTro == "Lễ tân") ?? 0;
+        var countKyThuat = Model?.Count(e => e.VaiTro == "Kỹ thuật" || e.VaiTro == "Nhân viên kỹ thuật") ?? 0;
+        var countThuNgan = Model?.Count(e => e.VaiTro == "Thu ngân") ?? 0;
+        var countHLV = Model?.Count(e => e.VaiTro == "HLV") ?? 0;
+    }
+
+    <div class="filter-bar">
+        <button class="filter-btn active" data-filter="all">Tất cả (@total)</button>
+        <button class="filter-btn" data-filter="Đang làm">Đang làm (@countDangLam)</button>
+        <button class="filter-btn" data-filter="Đã nghỉ việc">Đã nghỉ việc (@countDaNghi)</button>
+        <button class="filter-btn" data-filter="quanly">Quản lý (@countQuanLy)</button>
+        <button class="filter-btn" data-filter="letan">Lễ tân (@countLeTan)</button>
+        <button class="filter-btn" data-filter="kythuat">Kỹ thuật (@countKyThuat)</button>
+        <button class="filter-btn" data-filter="thungan">Thu ngân (@countThuNgan)</button>
+        <button class="filter-btn" data-filter="hlv">HLV (@countHLV)</button>
+    </div>
+
+    <div class="employees-table">
+        @if (Model != null && Model.Any())
+        {
+            <table class="table table-hover" id="employeesTable">
+                <thead>
+                    <tr>
+                        <th>Mã NV</th>
+                        <th>Họ Tên</th>
+                        <th>Vai Trò</th>
+                        <th>SĐT</th>
+                        <th>Cơ Sở</th>
+                        <th>Lương</th>
+                        <th>Trạng Thái</th>
+                        <th style="text-align: center;">Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody id="employeeTableBody">
+                    @foreach (var emp in Model)
+                    {
+                        var isResigned = string.IsNullOrEmpty(emp.TenCoSo);
+                        var rowClass = isResigned ? "table-secondary text-muted" : "";
+                        var rowStyle = isResigned ? "opacity: 0.6;" : "";
+                        var roleNorm = emp.VaiTro == "Quản lý" ? "quanly" : emp.VaiTro == "Lễ tân" ? "letan" : (emp.VaiTro == "Kỹ thuật" || emp.VaiTro == "Nhân viên kỹ thuật") ? "kythuat" : emp.VaiTro == "Thu ngân" ? "thungan" : emp.VaiTro == "HLV" ? "hlv" : "other";
+                        var statusAttr = isResigned ? "Đã nghỉ việc" : emp.TrangThai;
+
+                        <tr class="employee-row @rowClass" 
+                            data-manv="@emp.MaNV"
+                            data-status="@statusAttr" 
+                            data-role="@emp.VaiTro"
+                            data-role-normalized="@roleNorm"
+                            data-search="@emp.HoTen @emp.SDT @emp.MaNV"
+                            style="@rowStyle">
+                            <td><strong>@emp.MaNV</strong></td>
+                            <td>@emp.HoTen</td>
+                            <td>
+                                @{
+                                    var badgeClass = emp.VaiTro switch {
+                                        "Quản lý" => "badge-quanly",
+                                        "Lễ tân" => "badge-letran",
+                                        "Kỹ thuật" => "badge-nvkythuat",
+                                        "Nhân viên kỹ thuật" => "badge-nvkythuat",
+                                        "Thu ngân" => "badge-quanly",
+                                        "HLV" => "badge-quanly",
+                                        _ => "badge-letran"
+                                    };
+                                }
+                                <span class="badge-role @badgeClass">@emp.VaiTro</span>
+                            </td>
+                            <td>@emp.SDT</td>
+                            <td>
+                                @if (isResigned)
+                                {
+                                    <span class="text-muted fst-italic">Không còn làm</span>
+                                }
+                                else
+                                {
+                                    @emp.TenCoSo
+                                }
+                            </td>
+                            <td>
+                                @if (isResigned)
+                                {
+                                    <span class="text-muted fst-italic">--</span>
+                                }
+                                else
+                                {
+                                    <text>@emp.Luong.ToString("N0") VNĐ</text>
+                                }
+                            </td>
+                            <td>
+                                @if (isResigned)
+                                {
+                                    <span class="badge bg-secondary">Đã nghỉ việc</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-status @(emp.TrangThai == "Đang làm" ? "status-active" : "status-inactive")">
+                                        @emp.TrangThai
+                                    </span>
+                                }
+                            </td>
+                            <td style="text-align: center;">
+                                <button type="button" class="btn-action btn-edit" 
+                                        onclick="editEmployee('@emp.MaNV')"
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#editEmployeeModal">
+                                    <i class="fas fa-edit"></i> Sửa
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="fas fa-users-slash"></i>
+                <h4>Chưa có nhân viên nào</h4>
+                <p>Nhấn nút "Thêm Nhân Viên" để bắt đầu</p>
+            </div>
+        }
+    </div>
+
+</div>
+
+<!-- Modal Thêm Nhân Viên -->
+<div class="modal fade" id="themNhanVienModal" tabindex="-1" aria-labelledby="themNhanVienModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content" style="border-radius: 15px; border: none; box-shadow: 0 8px 30px rgba(0,0,0,0.2);">
+            <div class="modal-header" style="background: #8cbd00; color: white; border-radius: 15px 15px 0 0;">
+                <h5 class="modal-title fw-bold" id="themNhanVienModalLabel">
+                    <i class="fas fa-user-plus me-2"></i>Thêm Nhân Viên Mới
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="themNhanVienForm">
+                    <!-- Thông tin cơ bản -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3 pb-2 border-bottom" style="color: #8cbd00; border-color: #8cbd00 !important;">
+                            <i class="fas fa-id-card me-2"></i>Thông Tin Cơ Bản
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Họ Tên <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="hoTen" required placeholder="Nguyễn Văn A">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Số Điện Thoại <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" name="sdt" required placeholder="0901234567" pattern="[0-9]{10}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">CCCD <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="cccd" required placeholder="001234567890" pattern="[0-9]{12}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Ngày Sinh</label>
+                                <input type="date" class="form-control" name="ngaySinh" max="@DateTime.Now.AddYears(-18).ToString("yyyy-MM-dd")">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Địa Chỉ</label>
+                                <input type="text" class="form-control" name="diaChi" placeholder="123 Đường ABC, Quận XYZ">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Thông tin công việc -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3 pb-2 border-bottom" style="color: #8cbd00; border-color: #8cbd00 !important;">
+                            <i class="fas fa-briefcase me-2"></i>Thông Tin Công Việc
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Chức Vụ <span class="text-danger">*</span></label>
+                                <select class="form-select" name="chucVu" required>
+                                    <option value="">-- Chọn chức vụ --</option>
+                                    <option value="Quản lý">Quản lý</option>
+                                    <option value="Lễ tân">Lễ tân</option>
+                                    <option value="Kỹ thuật">Kỹ thuật</option>
+                                    <option value="Thu ngân">Thu ngân</option>
+                                    <option value="HLV">HLV</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Cơ Sở <span class="text-danger">*</span></label>
+                                <select class="form-select" name="maCS" id="themNV_maCS" required>
+                                    <option value="">-- Chọn cơ sở --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold">Lương Cơ Bản <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" name="luongCoBan" required placeholder="5000000" min="0" step="100000">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Thông tin tài khoản -->
+                    <div class="mb-3">
+                        <h6 class="fw-bold mb-3 pb-2 border-bottom" style="color: #8cbd00; border-color: #8cbd00 !important;">
+                            <i class="fas fa-lock me-2"></i>Thông Tin Tài Khoản
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Tên Đăng Nhập <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="tenDangNhap" required placeholder="username" pattern="[a-zA-Z0-9_]{4,20}">
+                                <small class="text-muted">4-20 ký tự, chỉ chữ cái, số và gạch dưới</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Mật Khẩu <span class="text-danger">*</span></label>
+                                <input type="password" class="form-control" name="matKhau" required placeholder="••••••••" minlength="6">
+                                <small class="text-muted">Tối thiểu 6 ký tự</small>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Hủy
+                </button>
+                <button type="button" class="btn" style="background: #8cbd00; color: white;" onclick="submitThemNhanVien()">
+                    <i class="fas fa-save me-1"></i>Thêm Nhân Viên
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Sửa Nhân Viên -->
+<div class="modal fade" id="editEmployeeModal" tabindex="-1" aria-labelledby="editEmployeeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content" style="border-radius: 15px; border: none; box-shadow: 0 8px 30px rgba(0,0,0,0.2);">
+            <div class="modal-header" style="background: #8cbd00; color: white; border-radius: 15px 15px 0 0;">
+                <h5 class="modal-title fw-bold" id="editEmployeeModalLabel">
+                    <i class="fas fa-edit me-2"></i>Sửa Thông Tin Nhân Viên
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="editEmployeeForm">
+                    <input type="hidden" name="maNV" id="edit_maNV">
+                    
+                    <!-- Thông tin cơ bản -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3 pb-2 border-bottom" style="color: #8cbd00; border-color: #8cbd00 !important;">
+                            <i class="fas fa-id-card me-2"></i>Thông Tin Cơ Bản
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Họ Tên <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="hoTen" id="edit_hoTen" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Số Điện Thoại <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" name="sdt" id="edit_sdt" required pattern="[0-9]{10}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">CCCD <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="cccd" id="edit_cccd" required pattern="[0-9]{12}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Ngày Sinh</label>
+                                <input type="date" class="form-control" name="ngaySinh" id="edit_ngaySinh">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Địa Chỉ</label>
+                                <input type="text" class="form-control" name="diaChi" id="edit_diaChi">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Thông tin công việc -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3 pb-2 border-bottom" style="color: #8cbd00; border-color: #8cbd00 !important;">
+                            <i class="fas fa-briefcase me-2"></i>Thông Tin Công Việc
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Chức Vụ <span class="text-danger">*</span></label>
+                                <select class="form-select" name="chucVu" id="edit_chucVu" required>
+                                    <option value="">-- Chọn chức vụ --</option>
+                                    <option value="Quản lý">Quản lý</option>
+                                    <option value="Lễ tân">Lễ tân</option>
+                                    <option value="Kỹ thuật">Kỹ thuật</option>
+                                    <option value="Thu ngân">Thu ngân</option>
+                                    <option value="HLV">HLV</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Cơ Sở <span class="text-danger">*</span></label>
+                                <select class="form-select" name="maCS" id="edit_maCS" required>
+                                    <option value="">-- Chọn cơ sở --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold">Lương Cơ Bản <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" name="luongCoBan" id="edit_luongCoBan" required min="0" step="100000">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Thông tin tài khoản -->
+                    <div class="mb-3">
+                        <h6 class="fw-bold mb-3 pb-2 border-bottom" style="color: #8cbd00; border-color: #8cbd00 !important;">
+                            <i class="fas fa-lock me-2"></i>Thông Tin Tài Khoản
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Tên Đăng Nhập <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="tenDangNhap" id="edit_tenDangNhap" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Mật Khẩu Mới (để trống nếu không đổi)</label>
+                                <input type="password" class="form-control" name="matKhau" id="edit_matKhau" placeholder="••••••••" minlength="6">
+                                <small class="text-muted">Để trống nếu không muốn thay đổi mật khẩu</small>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer d-flex justify-content-between">
+                <button type="button" class="btn btn-danger" onclick="deleteEmployee()">
+                    <i class="fas fa-trash-alt me-1"></i>Xóa Nhân Viên
+                </button>
+                <div>
+                    <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Hủy
+                    </button>
+                    <button type="button" class="btn" style="background: #8cbd00; color: white;" onclick="submitSuaNhanVien()">
+                        <i class="fas fa-save me-1"></i>Cập Nhật
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Toast notification system
+    function showToast(message, type = 'success') {
+        const toastContainer = document.getElementById('toastContainer') || createToastContainer();
+        const toastId = 'toast_' + Date.now();
+        
+        const bgColor = type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#ffc107';
+        const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+        
+        const toastHtml = `
+            <div id="${toastId}" class="toast align-items-center text-white border-0 mb-2" role="alert" style="background: ${bgColor}; min-width: 300px;">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="fas ${icon} me-2"></i>${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        `;
+        
+        toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+        const toastElement = document.getElementById(toastId);
+        const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
+        toast.show();
+        
+        toastElement.addEventListener('hidden.bs.toast', () => {
+            toastElement.remove();
+        });
+    }
+    
+    function createToastContainer() {
+        const container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.className = 'toast-container position-fixed top-0 end-0 p-3';
+        container.style.zIndex = '9999';
+        document.body.appendChild(container);
+        return container;
+    }
+    
+    // Global variable to store current editing employee ID
+    let currentEditMaNV = null;
+    
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('.employee-row');
+        
+        rows.forEach(row => {
+            const searchData = row.getAttribute('data-search').toLowerCase();
+            if (searchData.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+
+    // Filter functionality
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Update active state
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+
+            const filter = this.getAttribute('data-filter');
+            const rows = document.querySelectorAll('.employee-row');
+
+            rows.forEach(row => {
+                if (filter === 'all') {
+                    row.style.display = '';
+                } else if (filter === 'Đang làm' || filter === 'Đã nghỉ việc') {
+                    row.style.display = row.getAttribute('data-status') === filter ? '' : 'none';
+                } else {
+                    // Role filters use normalized keys
+                    row.style.display = row.getAttribute('data-role-normalized') === filter ? '' : 'none';
+                }
+            });
+        });
+    });
+
+    // Delete employee
+    function deleteEmployee() {
+        if (!currentEditMaNV) {
+            showToast('Không tìm thấy thông tin nhân viên', 'error');
+            return;
+        }
+        
+        const hoTen = document.getElementById('edit_hoTen').value;
+        
+        if (confirm(`Bạn có chắc chắn muốn xóa nhân viên "${hoTen}"?\n\nLưu ý: Nếu nhân viên này có dữ liệu liên quan, hệ thống sẽ chuyển sang trạng thái "Nghỉ việc" thay vì xóa hoàn toàn.`)) {
+            const formData = new FormData();
+            formData.append('maNV', currentEditMaNV);
+            
+            fetch('@Url.Action("XoaNhanVien", "NhanSu")', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editEmployeeModal'));
+                    modal.hide();
+
+                    // Always update UI to show "Đã nghỉ việc" regardless of whether record was fully deleted in DB.
+                    const row = document.querySelector(`tr[data-manv="${currentEditMaNV}"]`);
+                    if (row) {
+                        row.classList.add('table-secondary', 'text-muted');
+                        row.style.opacity = '0.6';
+                        row.setAttribute('data-status', 'Đã nghỉ việc');
+
+                        // Update status column (column index 6)
+                        const statusCell = row.cells[6];
+                        if (statusCell) statusCell.innerHTML = '<span class="badge bg-secondary">Đã nghỉ việc</span>';
+
+                        // Update workplace column to show empty (column index 4)
+                        const coSoCell = row.cells[4];
+                        if (coSoCell) coSoCell.innerHTML = '<span class="text-muted fst-italic">Không còn làm</span>';
+
+                        // Update salary column to show empty (column index 5)
+                        const luongCell = row.cells[5];
+                        if (luongCell) luongCell.innerHTML = '<span class="text-muted fst-italic">--</span>';
+                    }
+
+                    currentEditMaNV = null;
+                } else {
+                    showToast('Lỗi: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showToast('Lỗi kết nối: ' + error, 'error');
+            });
+        }
+    }
+
+    // Load danh sách cơ sở
+    function loadCoSoList() {
+        return fetch('@Url.Action("GetCoSoList", "Management")')
+            .then(response => response.json())
+            .then(data => {
+                const selectThemCS = document.getElementById('themNV_maCS');
+                const selectSuaCS = document.getElementById('edit_maCS');
+                
+                if (!selectThemCS || !selectSuaCS) {
+                    console.error('Không tìm thấy select elements');
+                    return;
+                }
+                
+                // Clear existing options except first
+                selectThemCS.innerHTML = '<option value="">-- Chọn cơ sở --</option>';
+                selectSuaCS.innerHTML = '<option value="">-- Chọn cơ sở --</option>';
+                
+                data.forEach(cs => {
+                    const optionThem = document.createElement('option');
+                    optionThem.value = cs.maCS;
+                    optionThem.textContent = cs.tenCS;
+                    selectThemCS.appendChild(optionThem);
+                    
+                    const optionSua = document.createElement('option');
+                    optionSua.value = cs.maCS;
+                    optionSua.textContent = cs.tenCS;
+                    selectSuaCS.appendChild(optionSua);
+                });
+                
+                console.log('Đã load', data.length, 'cơ sở');
+            })
+            .catch(error => {
+                console.error('Error loading co so:', error);
+                throw error;
+            });
+    }
+
+    // Thêm nhân viên
+    function submitThemNhanVien() {
+        const form = document.getElementById('themNhanVienForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const formData = new FormData(form);
+        
+        fetch('@Url.Action("ThemNhanVien", "Management")', {
+            method: 'POST',
+            body: formData  // Send FormData directly, not JSON
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                showToast('Thêm nhân viên thành công!', 'success');
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('themNhanVienModal'));
+                modal.hide();
+                
+                // Reload after short delay
+                setTimeout(() => location.reload(), 500);
+            } else {
+                showToast('Lỗi: ' + result.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Lỗi kết nối: ' + error, 'error');
+        });
+    }
+
+    // Load dữ liệu nhân viên để sửa
+    function editEmployee(maNV) {
+        currentEditMaNV = maNV;
+        // Data sẽ được load sau khi modal shown và cơ sở đã load xong
+    }
+
+    // Hàm load thực sự data nhân viên
+    function loadEmployeeData(maNV) {
+        console.log('Loading employee data for:', maNV);
+        fetch(`@Url.Action("GetEmployeeData", "Management")?id=${maNV}`)
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Received employee data:', data);
+                
+                if (!data.success) {
+                    showToast('Lỗi: ' + (data.message || 'Không tải được dữ liệu'), 'error');
+                    return;
+                }
+                
+                // Fill form fields
+                document.getElementById('edit_maNV').value = data.maNV || '';
+                document.getElementById('edit_hoTen').value = data.hoTen || '';
+                document.getElementById('edit_sdt').value = data.sdt || '';
+                document.getElementById('edit_cccd').value = data.cccd || '';
+                document.getElementById('edit_ngaySinh').value = data.ngaySinh || '';
+                document.getElementById('edit_diaChi').value = data.diaChi || '';
+                document.getElementById('edit_chucVu').value = data.chucVu || '';
+                document.getElementById('edit_maCS').value = data.maCS || '';
+                document.getElementById('edit_luongCoBan').value = data.luongCoBan || '';
+                document.getElementById('edit_tenDangNhap').value = data.tenDangNhap || '';
+                
+                console.log('Form đã được điền xong');
+                console.log('ChucVu:', data.chucVu, 'MaCS:', data.maCS);
+            })
+            .catch(error => {
+                console.error('Error loading employee:', error);
+                showToast('Lỗi tải dữ liệu: ' + error, 'error');
+            });
+    }
+
+    // Sửa nhân viên
+    function submitSuaNhanVien() {
+        const form = document.getElementById('editEmployeeForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const formData = new FormData(form);
+
+        fetch('@Url.Action("SuaNhanVien", "Management")', {
+            method: 'POST',
+            body: formData  // Send FormData directly, not JSON
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                showToast('Cập nhật thành công!', 'success');
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editEmployeeModal'));
+                modal.hide();
+                
+                // Reload after short delay
+                setTimeout(() => location.reload(), 500);
+            } else {
+                showToast('Lỗi: ' + result.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Lỗi kết nối: ' + error, 'error');
+        });
+    }
+
+    // Load cơ sở khi trang load và khi modal được mở
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load cơ sở lần đầu
+        loadCoSoList();
+
+        // Khi modal Thêm được mở
+        const themModal = document.getElementById('themNhanVienModal');
+        if (themModal) {
+            themModal.addEventListener('shown.bs.modal', function() {
+                loadCoSoList();
+            });
+        }
+
+        // Khi modal Sửa được mở
+        const suaModal = document.getElementById('editEmployeeModal');
+        if (suaModal) {
+            suaModal.addEventListener('shown.bs.modal', function() {
+                // Load cơ sở trước, sau đó load data nhân viên
+                loadCoSoList().then(() => {
+                    if (currentEditMaNV) {
+                        loadEmployeeData(currentEditMaNV);
+                    }
+                });
+            });
+        }
+    });
+</script>

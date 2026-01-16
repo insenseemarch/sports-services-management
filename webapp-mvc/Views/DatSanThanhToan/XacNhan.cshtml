@@ -1,0 +1,84 @@
+@{
+    ViewData["Title"] = "Xác nhận đặt sân";
+    var loaiThanhToan = ViewBag.LoaiThanhToan as string;
+    var isPaid = loaiThanhToan == "online";
+}
+
+<div class="position-relative w-100 d-flex align-items-center justify-content-center mb-5" 
+     style="height: 300px; background: linear-gradient(135deg, #20bf55 0%, #01baef 100%); padding-top: 85px;">
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: rgba(0,0,0,0.1);"></div>
+    
+    <div class="text-center position-relative" style="z-index: 2;">
+        <h1 class="display-3 fw-bold text-white mb-3">
+            <i class="fas fa-check-circle me-3"></i>XÁC NHẬN
+        </h1>
+        <p class="lead text-light fs-5">Thông tin chi tiết đơn đặt sân của bạn</p>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-lg text-center" style="border-radius: 20px;">
+                <div class="card-body p-5">
+                    @if (isPaid)
+                    {
+                        <div class="p-4 mb-4" style="background: #e8f5e9; border-radius: 15px;">
+                            <div class="mb-3">
+                                <i class="fas fa-check-circle fa-5x text-success"></i>
+                            </div>
+                            <h2 class="fw-bold mb-3">Thanh toán thành công!</h2>
+                            <p class="text-muted mb-0">
+                                Cảm ơn bạn đã thanh toán. Đơn đặt sân của bạn đã được xác nhận.
+                            </p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="p-4 mb-4" style="background: #fef9e7; border-radius: 15px;">
+                            <div class="mb-3">
+                                <i class="fas fa-clock fa-5x text-warning"></i>
+                            </div>
+                            <h2 class="fw-bold mb-3">Đặt chỗ thành công!</h2>
+                            <div class="alert alert-warning mb-0">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Lưu ý:</strong> Vui lòng thanh toán tại quầy trong vòng <strong>30 phút</strong>, 
+                                nếu không hệ thống sẽ tự động hủy đơn.
+                            </div>
+                        </div>
+                    }
+
+                    <div class="p-3 bg-light rounded mb-4">
+                        <h5 class="fw-bold mb-3">Thông tin đặt sân</h5>
+                        <div class="text-start">
+                            <p class="mb-2">
+                                <strong>Mã đơn:</strong> #@ViewBag.MaDatSan
+                            </p>
+                            <p class="mb-2">
+                                <strong>Cơ sở:</strong> @ViewBag.TenCoSo
+                            </p>
+                            <p class="mb-2">
+                                <strong>Sân:</strong> @ViewBag.TenSan
+                            </p>
+                            <p class="mb-2">
+                                <strong>Ngày:</strong> @(((DateTime)ViewBag.NgayDat).ToString("dd/MM/yyyy"))
+                            </p>
+                            <p class="mb-0">
+                                <strong>Giờ:</strong> @(((TimeSpan)ViewBag.GioBatDau).ToString(@"hh\:mm"))
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 pt-3" style="border-top: 2px solid #dee2e6;">
+                        <a asp-action="Index" asp-controller="LichSuDatSan" class="btn btn-lg text-white" style="background: linear-gradient(135deg, #0f9b0f 0%, #00b09b 100%);">
+                            <i class="fas fa-history me-2"></i>Xem lịch sử đặt sân
+                        </a>
+                        <a asp-action="Index" asp-controller="Home" class="btn btn-lg" style="border: 2px solid var(--color-lime); color: var(--color-dark); background: white;">
+                            <i class="fas fa-home me-2"></i>Về trang chủ
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

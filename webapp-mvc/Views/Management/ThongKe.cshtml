@@ -1,0 +1,1006 @@
+@{
+    ViewData["Title"] = "Thống Kê & Báo Cáo";
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<style>
+    .stats-container {
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @@keyframes slideInDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @@keyframes slideInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @@keyframes scaleIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    .hero-banner {
+        position: relative;
+        width: 100%;
+        height: 400px;
+        background: url('https://statics.cdn.200lab.io/2022/04/businesswoman-using-tablet-analysis-graph-company-finance-strategy-statistics-success-concept-planning-future-office-room.jpg') center/cover no-repeat;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+
+    .hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(29, 78, 36, 0.85) 0%, rgba(76, 175, 80, 0.75) 50%, rgba(163, 207, 6, 0.65) 100%);
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        padding: 0 1rem;
+    }
+
+    .hero-content h1 {
+        font-size: 3.5rem;
+        font-weight: bold;
+        color: white;
+        text-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        margin-bottom: 1rem;
+        animation: slideInDown 0.8s ease-out;
+    }
+
+    .hero-content p {
+        font-size: 1.25rem;
+        color: rgba(255, 255, 255, 0.9);
+        text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        animation: slideInUp 0.8s ease-out;
+    }
+
+    .filter-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        animation: slideInUp 0.4s ease-out;
+    }
+
+    .filter-card h5 {
+        color: #2e7d32;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .chart-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        transition: all 0.3s ease;
+        animation: scaleIn 0.5s ease-out;
+    }
+
+    .chart-card:hover {
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        transform: translateY(-4px);
+    }
+
+    .chart-card h4 {
+        color: #2e7d32;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 3px solid #cce830;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .chart-wrapper {
+        position: relative;
+        height: 400px;
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    .btn-green {
+        background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+        border: none;
+        color: white;
+        padding: 0.6rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+    }
+
+    .btn-green:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+        background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #4caf50;
+        box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+    }
+
+    .stat-summary {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid #4caf50;
+        animation: slideInUp 0.4s ease-out;
+    }
+
+    .stat-summary h3 {
+        color: #2e7d32;
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 0;
+    }
+
+    .stat-summary p {
+        color: #666;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 2rem;
+        color: #666;
+    }
+
+    .loading i {
+        font-size: 2rem;
+        color: #4caf50;
+        animation: spin 1s linear infinite;
+    }
+
+    @@keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+</style>
+
+<div class="container-fluid stats-container">
+    <!-- Hero Banner -->
+    <div class="hero-banner">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1>
+                <i class="fas fa-chart-line me-3"></i>THỐNG KÊ HỆ THỐNG
+            </h1>
+            <p class="lead">Phân tích dữ liệu và báo cáo tổng quan hệ thống</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Filters -->
+        <div class="filter-card">
+            <h5><i class="fas fa-filter"></i> Bộ Lọc</h5>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label"><i class="fas fa-building me-2"></i>Cơ sở</label>
+                    <select id="filterCoSo" class="form-select">
+                        <option value="">Tất cả cơ sở</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label"><i class="fas fa-calendar-alt me-2"></i>Từ ngày</label>
+                    <input type="date" id="filterTuNgay" class="form-control" value="2026-01-01">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label"><i class="fas fa-calendar-alt me-2"></i>Đến ngày</label>
+                    <input type="date" id="filterDenNgay" class="form-control" value="2026-12-31">
+                </div>
+            </div>
+            <div class="mt-3">
+                <button onclick="applyFilters()" class="btn btn-green">
+                    <i class="fas fa-sync-alt"></i> Cập nhật biểu đồ
+                </button>
+            </div>
+        </div>
+
+        <!-- Revenue Section -->
+        <div class="row">
+            <div class="col-12">
+                <h3 style="color: #2e7d32; font-weight: 600; margin-bottom: 1.5rem;">
+                    <i class="fas fa-coins"></i> Doanh Thu
+                </h3>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <h4><i class="fas fa-building"></i> Doanh Thu Theo Cơ Sở</h4>
+                    <div class="chart-wrapper">
+                        <canvas id="chartDoanhThuCoSo"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <h4><i class="fas fa-futbol"></i> Doanh Thu Theo Loại Sân</h4>
+                    <div class="chart-wrapper">
+                        <canvas id="chartDoanhThuLoaiSan"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="chart-card">
+                    <h4><i class="fas fa-calendar-alt"></i> Doanh Thu Theo Thời Gian</h4>
+                    <div class="mb-3">
+                        <button class="btn btn-sm btn-green me-2" id="btnThang" onclick="changeTimePeriod('thang')">Theo Tháng</button>
+                        <button class="btn btn-sm btn-outline-success me-2" id="btnQuy" onclick="changeTimePeriod('quy')">Theo Quý</button>
+                        <button class="btn btn-sm btn-outline-success" id="btnNam" onclick="changeTimePeriod('nam')">Theo Năm</button>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chartDoanhThuThoiGian"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Court Utilization -->
+        <div class="row">
+            <div class="col-12">
+                <h3 style="color: #2e7d32; font-weight: 600; margin: 2rem 0 1.5rem;">
+                    <i class="fas fa-chart-pie"></i> Tỷ Lệ Sử Dụng Sân
+                </h3>
+            </div>
+            <div class="col-12">
+                <div class="chart-card">
+                    <h4><i class="fas fa-percent"></i> Tỷ Lệ Sử Dụng Theo Sân</h4>
+                    <div class="chart-wrapper" style="height: 500px;">
+                        <canvas id="chartTyLeSuDung"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Statistics -->
+        <div class="row">
+            <div class="col-12">
+                <h3 style="color: #2e7d32; font-weight: 600; margin: 2rem 0 1.5rem;">
+                    <i class="fas fa-calendar-check"></i> Thống Kê Đặt Sân
+                </h3>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <h4><i class="fas fa-laptop"></i> Hình Thức Đặt Sân</h4>
+                    <div class="chart-wrapper">
+                        <canvas id="chartHinhThucDat"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <h4><i class="fas fa-ban"></i> Tình Hình Hủy Sân</h4>
+                    <div id="cancelStats" class="p-3">
+                        <div class="stat-summary">
+                            <h3 id="statSoLuongHuy">-</h3>
+                            <p>Số lượng hủy</p>
+                        </div>
+                        <div class="stat-summary">
+                            <h3 id="statTienMat">-</h3>
+                            <p>Tiền mất do hủy</p>
+                        </div>
+                        <div class="stat-summary">
+                            <h3 id="statNoShow">-</h3>
+                            <p>Tỷ lệ No-show</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Service Statistics -->
+        <div class="row">
+            <div class="col-12">
+                <h3 style="color: #2e7d32; font-weight: 600; margin: 2rem 0 1.5rem;">
+                    <i class="fas fa-concierge-bell"></i> Thống Kê Dịch Vụ
+                </h3>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <h4><i class="fas fa-fire"></i> Dịch Vụ Phổ Biến Nhất</h4>
+                    <div class="chart-wrapper">
+                        <canvas id="chartDichVuPhoBien"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <h4><i class="fas fa-dollar-sign"></i> Doanh Thu Từ Dịch Vụ</h4>
+                    <div class="chart-wrapper">
+                        <canvas id="chartDoanhThuDichVu"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Staff Statistics -->
+        <div class="row">
+            <div class="col-12">
+                <h3 style="color: #2e7d32; font-weight: 600; margin: 2rem 0 1.5rem;">
+                    <i class="fas fa-users"></i> Thống Kê Nhân Sự
+                </h3>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <h4><i class="fas fa-clock"></i> Tổng Giờ Làm Việc</h4>
+                    <div class="mb-3">
+                        <button class="btn btn-sm btn-green me-2" onclick="changeStaffPeriod('thang')">Theo Tháng</button>
+                        <button class="btn btn-sm btn-outline-success me-2" onclick="changeStaffPeriod('quy')">Theo Quý</button>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chartGioLamViec"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <h4><i class="fas fa-star"></i> Hiệu Suất Nhân Viên</h4>
+                    <div class="chart-wrapper">
+                        <canvas id="chartHieuSuat"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let charts = {};
+    let currentTimePeriod = 'thang';
+    let currentStaffPeriod = 'thang';
+
+    // Load facilities
+    async function loadFacilities() {
+        try {
+            const res = await fetch('@Url.Action("GetDanhSachCoSo", "Management")');
+            const result = await res.json();
+            
+            if (!result.success) throw new Error(result.message || 'Failed to load facilities');
+            
+            const select = document.getElementById('filterCoSo');
+            result.data.forEach(cs => {
+                const option = document.createElement('option');
+                option.value = cs.maCS;
+                option.textContent = cs.tenCS;
+                select.appendChild(option);
+            });
+        } catch (err) {
+            console.error('Error loading facilities:', err);
+        }
+    }
+
+    // Apply filters
+    function applyFilters() {
+        loadAllCharts();
+    }
+
+    // Change time period for revenue chart
+    function changeTimePeriod(kieu) {
+        currentTimePeriod = kieu;
+        
+        // Update button styles
+        const buttons = document.querySelectorAll('[onclick^="changeTimePeriod"]');
+        buttons.forEach(btn => {
+            if (btn.textContent.toLowerCase().includes(kieu)) {
+                btn.className = 'btn btn-sm btn-green me-2';
+            } else {
+                btn.className = 'btn btn-sm btn-outline-success me-2';
+            }
+        });
+        
+        loadRevenueByTime();
+    }
+
+    // Change period for staff chart
+    function changeStaffPeriod(kieu) {
+        currentStaffPeriod = kieu;
+        
+        // Update button styles
+        const buttons = document.querySelectorAll('[onclick^="changeStaffPeriod"]');
+        buttons.forEach(btn => {
+            if (btn.textContent.toLowerCase().includes(kieu)) {
+                btn.className = 'btn btn-sm btn-green me-2';
+            } else {
+                btn.className = 'btn btn-sm btn-outline-success me-2';
+            }
+        });
+        
+        loadStaffWorkingHours();
+    }
+
+    // Load revenue by facility
+    async function loadRevenueByFacility() {
+        try {
+            const tuNgay = document.getElementById('filterTuNgay').value;
+            const denNgay = document.getElementById('filterDenNgay').value;
+            
+            const res = await fetch(`@Url.Action("GetDoanhThuTheoCoso", "Management")?tuNgay=${tuNgay}&denNgay=${denNgay}`);
+            const result = await res.json();
+            
+            if (!result.success) throw new Error(result.message);
+            
+            const labels = result.data.map(d => d.tenCS);
+            const data = result.data.map(d => d.doanhThu);
+            
+            if (charts.doanhThuCoSo) charts.doanhThuCoSo.destroy();
+            
+            const ctx = document.getElementById('chartDoanhThuCoSo').getContext('2d');
+            charts.doanhThuCoSo = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Doanh thu (VNĐ)',
+                        data: data,
+                        backgroundColor: 'rgba(76, 175, 80, 0.8)',
+                        borderColor: 'rgba(76, 175, 80, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeInOutQuart'
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `${context.parsed.y.toLocaleString('vi-VN')} VNĐ`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (value) => (value / 1000000).toFixed(1) + 'M'
+                            }
+                        }
+                    }
+                }
+            });
+        } catch (err) {
+            console.error('Error loading revenue by facility:', err);
+        }
+    }
+
+    // Load revenue by court type
+    async function loadRevenueByCourtType() {
+        try {
+            const maCS = document.getElementById('filterCoSo').value;
+            const tuNgay = document.getElementById('filterTuNgay').value;
+            const denNgay = document.getElementById('filterDenNgay').value;
+            
+            const params = new URLSearchParams({ tuNgay, denNgay });
+            if (maCS) params.append('maCS', maCS);
+            
+            const res = await fetch(`@Url.Action("GetDoanhThuTheoLoaiSan", "Management")?${params}`);
+            const result = await res.json();
+            
+            if (!result.success) throw new Error(result.message);
+            
+            const labels = result.data.map(d => d.tenLS);
+            const data = result.data.map(d => d.doanhThu);
+            
+            if (charts.doanhThuLoaiSan) charts.doanhThuLoaiSan.destroy();
+            
+            const ctx = document.getElementById('chartDoanhThuLoaiSan').getContext('2d');
+            charts.doanhThuLoaiSan = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            'rgba(76, 175, 80, 0.8)',
+                            'rgba(46, 125, 50, 0.8)',
+                            'rgba(204, 232, 48, 0.8)',
+                            'rgba(139, 195, 74, 0.8)'
+                        ],
+                        borderWidth: 3,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 1200,
+                        easing: 'easeInOutQuart'
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `${context.label}: ${context.parsed.toLocaleString('vi-VN')} VNĐ`
+                            }
+                        }
+                    }
+                }
+            });
+        } catch (err) {
+            console.error('Error loading revenue by court type:', err);
+        }
+    }
+
+    // Load revenue by time
+    async function loadRevenueByTime() {
+        try {
+            const nam = new Date().getFullYear();
+            
+            const res = await fetch(`@Url.Action("GetDoanhThuTheoThoiGian", "Management")?kieu=${currentTimePeriod}&nam=${nam}`);
+            const result = await res.json();
+            
+            if (!result.success) throw new Error(result.message);
+            
+            const labels = result.data.map(d => {
+                if (currentTimePeriod === 'thang') return `Tháng ${d.kyHan}`;
+                if (currentTimePeriod === 'quy') return `Quý ${d.kyHan}`;
+                return `Năm ${d.kyHan}`;
+            });
+            const data = result.data.map(d => d.doanhThu);
+            
+            if (charts.doanhThuThoiGian) charts.doanhThuThoiGian.destroy();
+            
+            const ctx = document.getElementById('chartDoanhThuThoiGian').getContext('2d');
+            charts.doanhThuThoiGian = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Doanh thu (VNĐ)',
+                        data: data,
+                        borderColor: 'rgba(76, 175, 80, 1)',
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: 'rgba(76, 175, 80, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeInOutQuart'
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `${context.parsed.y.toLocaleString('vi-VN')} VNĐ`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (value) => (value / 1000000).toFixed(1) + 'M'
+                            }
+                        }
+                    }
+                }
+            });
+        } catch (err) {
+            console.error('Error loading revenue by time:', err);
+        }
+    }
+
+    // Load court utilization
+    async function loadCourtUtilization() {
+        try {
+            const maCS = document.getElementById('filterCoSo').value;
+            const params = maCS ? `?maCS=${maCS}` : '';
+            
+            const res = await fetch(`@Url.Action("GetTyLeSuDungSan", "Management")${params}`);
+            const result = await res.json();
+            
+            if (!result.success) throw new Error(result.message);
+            
+            const labels = result.data.map(d => d.tenSan);
+            const data = result.data.map(d => d.tyLeSuDung);
+            
+            if (charts.tyLeSuDung) charts.tyLeSuDung.destroy();
+            
+            const ctx = document.getElementById('chartTyLeSuDung').getContext('2d');
+            charts.tyLeSuDung = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Tỷ lệ sử dụng (%)',
+                        data: data,
+                        backgroundColor: data.map(v => 
+                            v >= 75 ? 'rgba(76, 175, 80, 0.8)' : 
+                            v >= 50 ? 'rgba(255, 193, 7, 0.8)' : 
+                            'rgba(244, 67, 54, 0.8)'
+                        ),
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 1200,
+                        easing: 'easeInOutQuart'
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `${context.parsed.x.toFixed(2)}%`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: (value) => value + '%'
+                            }
+                        }
+                    }
+                }
+            });
+        } catch (err) {
+            console.error('Error loading court utilization:', err);
+        }
+    }
+
+    // Load booking statistics
+    async function loadBookingStats() {
+        try {
+            const tuNgay = document.getElementById('filterTuNgay').value;
+            const denNgay = document.getElementById('filterDenNgay').value;
+            
+            const res = await fetch(`@Url.Action("GetThongKeDatSan", "Management")?tuNgay=${tuNgay}&denNgay=${denNgay}`);
+            const result = await res.json();
+            
+            if (!result.success) throw new Error(result.message);
+            
+            const labels = result.data.map(d => d.hinhThuc);
+            const data = result.data.map(d => d.soLuong);
+            
+            if (charts.hinhThucDat) charts.hinhThucDat.destroy();
+            
+            const ctx = document.getElementById('chartHinhThucDat').getContext('2d');
+            charts.hinhThucDat = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            'rgba(76, 175, 80, 0.8)',
+                            'rgba(46, 125, 50, 0.8)'
+                        ],
+                        borderWidth: 3,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeInOutQuart'
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        } catch (err) {
+            console.error('Error loading booking stats:', err);
+        }
+    }
+
+    // Load cancellation statistics
+    async function loadCancellationStats() {
+        try {
+            const tuNgay = document.getElementById('filterTuNgay').value;
+            const denNgay = document.getElementById('filterDenNgay').value;
+            
+            const res = await fetch(`@Url.Action("GetThongKeHuySan", "Management")?tuNgay=${tuNgay}&denNgay=${denNgay}`);
+            const result = await res.json();
+            
+            if (!result.success || !result.data) throw new Error(result.message || 'No data available');
+            
+            document.getElementById('statSoLuongHuy').textContent = (result.data.soLuongHuy || 0).toLocaleString('vi-VN');
+            document.getElementById('statTienMat').textContent = (result.data.tienMat || 0).toLocaleString('vi-VN') + ' VNĐ';
+            document.getElementById('statNoShow').textContent = (result.data.soNoShow || 0) + ' lượt';
+        } catch (err) {
+            console.error('Error loading cancellation stats:', err);
+        }
+    }
+
+    // Load service statistics
+    async function loadServiceStats() {
+        try {
+            const maCS = document.getElementById('filterCoSo').value;
+            const params = maCS ? `?maCS=${maCS}` : '';
+            
+            const res = await fetch(`@Url.Action("GetThongKeDichVu", "Management")${params}`);
+            const result = await res.json();
+            
+            if (!result.success) throw new Error(result.message);
+            
+            const labels = result.data.map(d => d.tenDV);
+            const usageData = result.data.map(d => d.soLanSuDung);
+            const revenueData = result.data.map(d => d.doanhThu);
+            
+            // Most used services
+            if (charts.dichVuPhoBien) charts.dichVuPhoBien.destroy();
+            
+            const ctx1 = document.getElementById('chartDichVuPhoBien').getContext('2d');
+            charts.dichVuPhoBien = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Số lần sử dụng',
+                        data: usageData,
+                        backgroundColor: 'rgba(76, 175, 80, 0.8)',
+                        borderColor: 'rgba(76, 175, 80, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeInOutQuart'
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            // Revenue from services
+            if (charts.doanhThuDichVu) charts.doanhThuDichVu.destroy();
+            
+            const ctx2 = document.getElementById('chartDoanhThuDichVu').getContext('2d');
+            charts.doanhThuDichVu = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Doanh thu (VNĐ)',
+                        data: revenueData,
+                        backgroundColor: 'rgba(46, 125, 50, 0.8)',
+                        borderColor: 'rgba(46, 125, 50, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeInOutQuart'
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `${context.parsed.x.toLocaleString('vi-VN')} VNĐ`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                callback: (value) => (value / 1000).toFixed(0) + 'k'
+                            }
+                        }
+                    }
+                }
+            });
+        } catch (err) {
+            console.error('Error loading service stats:', err);
+        }
+    }
+
+    // Load staff working hours
+    async function loadStaffWorkingHours() {
+        try {
+            const nam = new Date().getFullYear();
+            
+            const res = await fetch(`@Url.Action("GetThongKeNhanSu", "Management")?kieu=${currentStaffPeriod}&nam=${nam}`);
+            const result = await res.json();
+            
+            if (!result.success) throw new Error(result.message);
+            
+            const labels = result.data.map(d => {
+                if (currentStaffPeriod === 'thang') return `Tháng ${d.kyHan}`;
+                return `Quý ${d.kyHan}`;
+            });
+            const data = result.data.map(d => d.tongGioLamViec);
+            
+            if (charts.gioLamViec) charts.gioLamViec.destroy();
+            
+            const ctx = document.getElementById('chartGioLamViec').getContext('2d');
+            charts.gioLamViec = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Giờ làm việc',
+                        data: data,
+                        borderColor: 'rgba(76, 175, 80, 1)',
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: 'rgba(76, 175, 80, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeInOutQuart'
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (value) => value + 'h'
+                            }
+                        }
+                    }
+                }
+            });
+        } catch (err) {
+            console.error('Error loading staff working hours:', err);
+        }
+    }
+
+    // Load staff performance
+    async function loadStaffPerformance() {
+        try {
+            const maCS = document.getElementById('filterCoSo').value;
+            const params = maCS ? `?maCS=${maCS}` : '';
+            
+            const res = await fetch(`@Url.Action("GetHieuSuatNhanVien", "Management")${params}`);
+            const result = await res.json();
+            
+            if (!result.success) throw new Error(result.message);
+            
+            const labels = result.data.map(d => d.hoTen);
+            const data = result.data.map(d => d.tongGioLamViec);
+            
+            if (charts.hieuSuat) charts.hieuSuat.destroy();
+            
+            const ctx = document.getElementById('chartHieuSuat').getContext('2d');
+            charts.hieuSuat = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Tổng giờ làm việc',
+                        data: data,
+                        backgroundColor: 'rgba(76, 175, 80, 0.8)',
+                        borderColor: 'rgba(76, 175, 80, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 1200,
+                        easing: 'easeInOutQuart'
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `${context.parsed.x} giờ`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                callback: (value) => value + 'h'
+                            }
+                        }
+                    }
+                }
+            });
+        } catch (err) {
+            console.error('Error loading staff performance:', err);
+        }
+    }
+
+    // Load all charts
+    function loadAllCharts() {
+        loadRevenueByFacility();
+        loadRevenueByCourtType();
+        loadRevenueByTime();
+        loadCourtUtilization();
+        loadBookingStats();
+        loadCancellationStats();
+        loadServiceStats();
+        loadStaffWorkingHours();
+        loadStaffPerformance();
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+        loadFacilities();
+        loadAllCharts();
+    });
+</script>
+
+</body>
+</html>

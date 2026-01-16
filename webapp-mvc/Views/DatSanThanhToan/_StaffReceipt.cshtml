@@ -1,0 +1,220 @@
+@model webapp_mvc.Models.ThanhToanKhachHangViewModel
+
+<div class="modal-header border-0 pb-0 text-white" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%);">
+    <h5 class="modal-title fw-bold text-uppercase ls-1 mx-auto">📋 PHIẾU ĐẶT SÂN</h5>
+    <button type="button" class="btn-close btn-close-white position-absolute end-0 top-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<div class="modal-body p-0">
+    <div class="card border-0 shadow-none rounded-0">
+        <div class="card-body p-4 bg-white">
+            <!-- General Info -->
+            <div class="row mb-3 border-bottom pb-3">
+                <div class="col-6">
+                    <small class="text-muted fw-bold d-block text-uppercase mb-1" style="font-size: 0.75rem;">Người lập</small>
+                    <span class="fw-bold text-dark"><i class="fas fa-user-tie me-2" style="color: #059669;"></i>@ViewBag.TenNguoiLap</span>
+                </div>
+                <div class="col-6 text-end">
+                    <small class="text-muted fw-bold d-block text-uppercase mb-1" style="font-size: 0.75rem;">Ngày lập</small>
+                    <span class="fw-bold text-dark"><i class="far fa-clock me-2" style="color: #059669;"></i>@ViewBag.NgayLap</span>
+                </div>
+            </div>
+
+            <!-- Customer Info -->
+            <div class="alert border-0 rounded-3 p-3 mb-3" style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);">
+                    <h6 class="fw-bold mb-2 small text-uppercase" style="color: #065f46;"><i class="fas fa-address-card me-2"></i>Thông Tin Khách Hàng</h6>
+                    <div class="d-flex justify-content-between small" style="color: #064e3b;">
+                        <span>Họ tên: <strong class="ms-1">@ViewBag.TenKhachHang</strong></span>
+                        <span>SĐT: <strong class="ms-1">@ViewBag.SDTKhachHang</strong></span>
+                    </div>
+            </div>
+
+            <!-- Court Details -->
+            <div class="mb-3">
+                <h6 class="fw-bold text-uppercase small ls-1 mb-2" style="color: #065f46;">Chi tiết đặt sân</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-borderless rounded-3 overflow-hidden mb-0 small" style="background: #f0fdf4;">
+                        <thead style="background: #d1fae5; color: #065f46;">
+                            <tr>
+                                <th class="ps-3">Sân / Cơ sở</th>
+                                <th class="text-center">Thời gian</th>
+                                <th class="text-center">Số lượng</th>
+                                <th class="text-end pe-3">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="ps-3 align-middle">
+                                    <div class="fw-bold text-dark">@Model.TenSan</div>
+                                    <small class="text-muted">@Model.TenCoSo</small>
+                                </td>
+                                <td class="text-center align-middle">
+                                    <div class="fw-bold">@Model.NgayDat.ToString("dd/MM/yyyy")</div>
+                                    <small class="text-muted">@Model.GioBatDau.ToString(@"hh\:mm") - @Model.GioKetThuc.ToString(@"hh\:mm")</small>
+                                </td>
+                                <td class="text-center align-middle">
+                                    @Model.SoLuongSan.ToString("0.##") @Model.DonViTinh
+                                </td>
+                                <td class="text-end pe-3 align-middle fw-bold text-dark">
+                                    @Model.TienSan.ToString("N0") ₫
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Services Details -->
+            @if (Model.DanhSachDichVu != null && Model.DanhSachDichVu.Count > 0)
+            {
+                <div class="mb-3">
+                    <h6 class="fw-bold text-uppercase small ls-1 mb-2" style="color: #065f46;">Dịch vụ đi kèm</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-borderless small">
+                            <thead class="text-muted border-bottom">
+                                <tr>
+                                    <th>Tên dịch vụ</th>
+                                    <th class="text-center">Số lượng</th>
+                                    <th class="text-end">Tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.DanhSachDichVu)
+                                {
+                                    <tr>
+                                        <td class="py-1">@item.TenDV</td>
+                                        <td class="text-center py-1">x @item.SoLuong</td>
+                                        <td class="text-end py-1 fw-semibold">@item.ThanhTien.ToString("N0") ₫</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+
+            <div class="border-top border-2 border-dashed my-3"></div>
+
+            <!-- Totals -->
+            <div class="row text-end">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between mb-1 small">
+                        <span class="text-muted">Tổng tiền sân:</span>
+                        <span class="fw-bold">@Model.TienSan.ToString("N0") ₫</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1 small">
+                        <span class="text-muted">Tổng dịch vụ:</span>
+                        <span class="fw-bold">@Model.TienDichVu.ToString("N0") ₫</span>
+                    </div>
+                    <div class="d-flex justify-content-between mt-2 pt-2 border-top">
+                        <span class="fw-bold text-dark text-uppercase">Phải Thanh Toán:</span>
+                        <span class="fs-4 fw-bolder" style="color: #059669;">@Model.ThanhTien.ToString("N0") ₫</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="modal-footer bg-light justify-content-center border-0 p-4">
+    <div class="d-flex justify-content-center gap-3 w-100">
+        <button type="button" class="btn px-5 py-3 fw-bold rounded-pill shadow-sm flex-fill" 
+                style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; border: none; max-width: 400px;"
+                onclick="finalizeStaffBooking('send_cashier')">
+            <i class="fas fa-share-square me-2"></i>CHUYỂN SANG NV THU NGÂN
+        </button>
+        <button type="button" class="btn px-5 py-3 fw-bold rounded-pill flex-fill" 
+                data-bs-dismiss="modal"
+                style="background: transparent; border: 2px solid #059669; color: #059669; max-width: 400px;">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại trang đặt sân
+        </button>
+    </div>
+</div>
+
+<script>
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? 'linear-gradient(135deg, #059669 0%, #10b981 100%)' : 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)'};
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            z-index: 99999;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s ease-out;
+            max-width: 400px;
+        `;
+        
+        const icon = type === 'success' ? '✓' : '✕';
+        toast.innerHTML = `
+            <span style="font-size: 24px; background: rgba(255,255,255,0.2); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">${icon}</span>
+            <span>${message}</span>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease-in';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+    
+    function finalizeStaffBooking(type) {
+        if (!window.currentBookingId) {
+             showToast("Lỗi: Không tìm thấy mã đặt sân!", 'error');
+             return;
+        }
+
+        // Disable buttons
+        $('.modal-footer button').prop('disabled', true);
+        
+        $.post('@Url.Action("StaffAction", "DatSanThanhToan")', { 
+            maDatSan: window.currentBookingId, 
+            actionType: type 
+        }, function(response) {
+            if (response.success) {
+                // Đóng modal
+                $('#staffReceiptModal').modal('hide');
+                
+                // Hiển thị toast thành công
+                showToast(response.message, 'success');
+                
+                // Chuyển về trang danh sách phiếu của nhân viên sau 1.5s
+                setTimeout(() => {
+                    window.location.href = response.redirectUrl ? response.redirectUrl : '/NhanVien';
+                }, 1500);
+            } else {
+                showToast("Lỗi: " + response.message, 'error');
+                $('.modal-footer button').prop('disabled', false);
+            }
+        }).fail(function() {
+            showToast("Lỗi kết nối máy chủ! Vui lòng thử lại.", 'error');
+            $('.modal-footer button').prop('disabled', false);
+        });
+    }
+    
+    // Add animation styles
+    if (!document.getElementById('toast-animations')) {
+        const style = document.createElement('style');
+        style.id = 'toast-animations';
+        style.textContent = `
+            @@keyframes slideIn {
+                from { transform: translateX(400px); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @@keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(400px); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+</script>

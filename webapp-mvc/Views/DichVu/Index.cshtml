@@ -1,0 +1,609 @@
+@model webapp_mvc.Models.DichVuViewModel
+@{
+    ViewData["Title"] = "Chọn Dịch Vụ";
+}
+
+<!-- Hero Banner (Full Width) -->
+<div class="position-relative w-100 d-flex align-items-center justify-content-center mb-5" 
+     style="height: 500px; background: url('@Url.Content("~/images/hero_bg.jpg")') center/cover no-repeat; padding-top: 85px; z-index: 1;">
+    <!-- Dark Overlay -->
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(to right, rgba(0,0,0,0.7), rgba(0,0,0,0.4));"></div>
+    
+    <div class="text-center position-relative fade-in-up px-3" style="z-index: 2;">
+        <h1 class="display-3 fw-bold text-white mb-3" style="text-shadow: 0 4px 10px rgba(0,0,0,0.5); letter-spacing: 1px; text-transform: uppercase;">
+            DỊCH VỤ <span style="color: var(--color-lime);">TIỆN ÍCH</span>
+        </h1>
+        <p class="lead text-light fs-5 opacity-90 mb-4 mx-auto" style="max-width: 800px;">
+            Chọn thêm nước uống, dụng cụ hoặc thuê huấn luyện viên.<br class="d-none d-md-block">
+            Nâng tầm trải nghiệm thể thao của bạn tại ViệtSport.
+        </p>
+         <!-- Info Ticket (Floating) -->
+        @if (!string.IsNullOrEmpty(Model.ThongTinSan))
+        {
+            <div class="mt-4 fade-in-up" style="animation-delay: 0.2s;">
+               <div class="d-inline-block bg-white text-dark py-2 px-4 fw-bold rounded-pill shadow-lg border border-2 border-lime">
+                   <i class="fas fa-ticket-alt me-2 text-warning"></i> @Model.ThongTinSan
+                   @if (ViewBag.TienSanTamTinh != null)
+                   {
+                        <span class="d-none d-md-inline text-muted mx-2">|</span> <br class="d-md-none" />
+                        <span class="text-success"><i class="fas fa-coins me-1"></i>Giá sân: @ViewBag.TienSanTamTinh đ</span>
+                   }
+               </div>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="container py-4">
+
+    @if (ViewBag.Message != null)
+    {
+        <div class="alert alert-danger border-0 shadow-sm rounded-4 mb-4" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i> @ViewBag.Message
+        </div>
+    }
+
+    <!-- Filter Bar (DatSan Style Clone) -->
+    <div class="card border-0 mb-5 fade-in-up" 
+         style="background: #ffffff; border-radius: 20px; border: 5px solid #a3cf06; box-shadow: 0 0 20px rgba(163, 207, 6, 0.2);">
+        <div class="card-body p-3 px-md-4">
+            <form method="get" asp-action="Index" class="row g-2 align-items-end">
+                <input type="hidden" name="maDatSan" value="@Model.MaDatSan" />
+                
+                <!-- Facility (Read-only) -->
+                <div class="col-md-3">
+                    <label class="form-label text-dark fw-bold ms-1 small" style="font-size: 0.8rem;"><i class="fas fa-map-marker-alt me-1 text-warning"></i>CƠ SỞ</label>
+                    <input type="text" class="form-control form-control-sm py-2 fw-bold shadow-sm border-2 bg-light" 
+                           value="@(ViewBag.TenCoSo ?? "Đang tải...")" readonly style="cursor: not-allowed;">
+                    <input type="hidden" name="filterMaCS" value="@ViewBag.CurrentMaCS" />
+                </div>
+                
+                <!-- Date -->
+                <div class="col-md-2">
+                    <label class="form-label text-dark fw-bold ms-1 small" style="font-size: 0.8rem;"><i class="fas fa-calendar me-1 text-primary"></i>NGÀY</label>
+                    <input type="date" name="ngayDat" value="@Model.NgayDat.ToString("yyyy-MM-dd")" class="form-control form-control-sm py-2 fw-bold shadow-sm border-2" @(Model.MaDatSan > 0 ? "readonly" : "")>
+                </div>
+                
+                <!-- Time Range -->
+                <div class="col-md-5">
+                     <label class="form-label text-dark fw-bold ms-1 small" style="font-size: 0.8rem;"><i class="fas fa-clock me-1 text-info"></i>KHUNG GIỜ</label>
+                     <div class="input-group input-group-sm">
+                        <input type="time" name="gioBatDau" value="@Model.GioBatDau.ToString(@"hh\:mm")" class="form-control py-2 fw-bold shadow-sm border-end-0 border-2" @(Model.MaDatSan > 0 ? "readonly" : "")>
+                        <span class="input-group-text bg-white border-top border-bottom border-2 text-secondary px-1">➜</span>
+                        <input type="time" name="gioKetThuc" value="@Model.GioKetThuc.ToString(@"hh\:mm")" class="form-control py-2 fw-bold shadow-sm border-start-0 border-2" @(Model.MaDatSan > 0 ? "readonly" : "")>
+                     </div>
+                </div>
+                
+                <!-- Button -->
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-sm w-100 py-2 fw-bold shadow-sm hover-scale" 
+                            style="background: var(--color-lime); color: var(--color-dark); border-radius: 8px; border: none; font-size: 0.9rem; margin-top: 1.8rem;">
+                        <i class="fas fa-filter me-1"></i> LỌC
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <form method="post" asp-action="Index" id="serviceBookingForm">
+        <input type="hidden" asp-for="MaDatSan" />
+        <input type="hidden" name="FilterMaCS" value="@ViewBag.CurrentMaCS" />
+        <input type="hidden" asp-for="NgayDat" />
+        <input type="hidden" asp-for="GioBatDau" />
+        <input type="hidden" asp-for="GioKetThuc" />
+        
+        <div class="row g-4 justify-content-center" id="service-grid">
+            @for (int i = 0; i < Model.DanhSachDichVu.Count; i++)
+            {
+                var item = Model.DanhSachDichVu[i];
+                
+                // Determine Category for Image Mapping & Logic Control (10 Service Types)
+                var category = "other";
+                var loaiLower = item.LoaiDV?.ToLower() ?? "";
+                var imgSrc = item.HinhAnh?.Trim();
+
+                // Map to 10 service types from database
+                if (loaiLower.Contains("huấn luyện") || loaiLower.Contains("hlv")) category = "HuanLuyen";
+                else if (loaiLower.Contains("đồ uống") || loaiLower.Contains("nước")) category = "DoUong";
+                else if (loaiLower.Contains("dụng cụ") || loaiLower.Contains("thể thao")) category = "DungCu";
+                else if (loaiLower.Contains("phòng") || loaiLower.Contains("vip")) category = "Phong";
+                else if (loaiLower.Contains("tủ") || loaiLower.Contains("locker")) category = "Tu";
+                else if (loaiLower.Contains("ăn nhẹ") || loaiLower.Contains("ăn") || loaiLower.Contains("food")) category = "AnNhe";
+                else if (loaiLower.Contains("bảo hộ") || loaiLower.Contains("thiết bị")) category = "BaoHo";
+                else if (loaiLower.Contains("massage")) category = "Massage";
+                else if (loaiLower.Contains("giặt") || loaiLower.Contains("laundry")) category = "GiatDo";
+                else if (loaiLower.Contains("xe") || loaiLower.Contains("cho thuê")) category = "XeCo";
+
+                // Fallback Image Logic (Using high-quality images)
+                if (string.IsNullOrEmpty(imgSrc))
+                {
+                    if (category == "HuanLuyen") imgSrc = "https://mbhfit.vn/wp-content/uploads/2019/05/huan-luyen-vien-the-hinh.jpg";
+                    else if (category == "DoUong") imgSrc = "https://cafefcdn.com/2017/photo-0-1503570267589.jpg";
+                    else if (category == "DungCu") imgSrc = "https://beskare.vn/wp-content/uploads/2025/01/a1-2.jpg";
+                    else if (category == "Phong") imgSrc = "https://images.pexels.com/photos/1457842/pexels-photo-1457842.jpeg?auto=compress&cs=tinysrgb&w=800";
+                    else if (category == "Tu") imgSrc = "https://images.pexels.com/photos/3945683/pexels-photo-3945683.jpeg?auto=compress&cs=tinysrgb&w=800";
+                    else if (category == "AnNhe") imgSrc = "https://images.pexels.com/photos/1410235/pexels-photo-1410235.jpeg?auto=compress&cs=tinysrgb&w=800";
+                    else if (category == "BaoHo") imgSrc = "https://pixnio.com/free-images/2019/09/23/2019-09-23-13-35-04-1200x800.jpg";
+                    else if (category == "Massage") imgSrc = "https://images.pexels.com/photos/3807517/pexels-photo-3807517.jpeg?auto=compress&cs=tinysrgb&w=800";
+                    else if (category == "GiatDo") imgSrc = "https://images.pexels.com/photos/5632399/pexels-photo-5632399.jpeg?auto=compress&cs=tinysrgb&w=800";
+                    else if (category == "XeCo") imgSrc = "https://images.pexels.com/photos/3802512/pexels-photo-3802512.jpeg?auto=compress&cs=tinysrgb&w=800";
+                    else imgSrc = "https://images.pexels.com/photos/1552668/pexels-photo-1552668.jpeg?auto=compress&cs=tinysrgb&w=800";
+                }
+
+                <div class="col-md-6 col-lg-4 col-xl-3 service-item fade-in-up stagger-@((i % 8) + 1)" data-category="@item.LoaiDV">
+                    <div class="card service-card h-100 border-0 shadow-sm hover-elevate position-relative overflow-hidden" 
+                         style="border-radius: 20px; background: rgba(255,255,255,0.95);">
+                         
+                        <input type="hidden" asp-for="DanhSachDichVu[i].MaDV" />
+                        <input type="hidden" asp-for="DanhSachDichVu[i].TenDV" /> 
+                        <input type="hidden" asp-for="DanhSachDichVu[i].LoaiDV" />
+
+                        <!-- Badge Price (Top Right) -->
+                        <div class="position-absolute top-0 end-0 m-3 px-3 py-1 rounded-pill fw-bold shadow-sm" 
+                             style="background: var(--color-lime); color: var(--color-dark); z-index: 2; transition: all 0.3s ease;">
+                            @Model.DanhSachDichVu[i].DonGia.ToString("N0") đ @(string.IsNullOrEmpty(Model.DanhSachDichVu[i].DVT) ? "" : "/ " + Model.DanhSachDichVu[i].DVT)
+                        </div>
+
+                        <!-- Image Area -->
+                        <div class="bg-light d-flex align-items-center justify-content-center position-relative overflow-hidden" style="height: 180px;">
+                            <img src="@imgSrc" alt="@item.TenDV" class="w-100 h-100 object-fit-cover transition-transform hover-zoom" referrerpolicy="no-referrer" loading="lazy" style="transition: transform 0.4s ease;">
+                        </div>
+
+                        <div class="card-body p-4 d-flex flex-column">
+                            <div class="mb-2 d-flex flex-row align-items-center flex-wrap gap-1" style="min-height: 24px;"> <!-- Min-height to stabilize -->
+                                @if (!string.IsNullOrEmpty(item.TenCS))
+                                {
+                                    <span class="badge bg-light text-secondary border" style="font-size: 0.75rem;">@item.TenCS</span>
+                                }
+                                <span class="badge bg-light text-secondary border" style="font-size: 0.75rem;">@item.LoaiDV</span>
+                                @if (item.ChuyenMon != null) 
+                                {
+                                    <span class="badge border text-truncate mw-100" style="background: rgba(206, 255, 0, 0.15); color: var(--color-dark); border-color: var(--color-lime) !important; font-size: 0.75rem; max-width: 140px;">
+                                        @item.ChuyenMon
+                                    </span>
+                                }
+                            </div>
+                            
+                            <h4 class="card-title fw-bold mb-3 text-dark text-truncate" title="@item.TenDV">
+                                @item.TenDV
+                            </h4>
+                            
+                            <!-- Control Area -->
+                            <div class="mt-4">
+                                @if (category == "HuanLuyen" || category == "Phong" || category == "Tu")
+                                {
+                                    <input type="hidden" asp-for="DanhSachDichVu[i].SoLuong" id="qty-@i" value="0" />
+                                    <!-- Button style Green like Đặt Sân Ngay -->
+                                    <button type="button" class="btn w-100 py-2 fw-bold rounded-3 shadow-sm btn-hlv-toggle btn-service-action transition-all" 
+                                            style="background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); color: white; border: none;"
+                                            id="btn-hlv-@i" onclick="toggleHLV(@i)">
+                                        @if (category == "HuanLuyen") { <text>Chọn HLV</text> }
+                                        else if (category == "Phong") { <text>Chọn Phòng VIP</text> }
+                                        else if (category == "Tu") { <text>Chọn Tủ Đồ</text> }
+                                    </button>
+                                }
+                                else
+                                {
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div class="d-flex flex-column">
+                                            <span class="text-secondary fw-bold small">Số lượng:</span>
+                                            <span class="text-muted fst-italic" style="font-size: 0.7rem;">(Có sẵn: @item.SoLuongTon)</span>
+                                        </div>
+                                        <div class="input-group input-group-sm w-50 border rounded-pill overflow-hidden shadow-sm" style="transition: all 0.3s ease;">
+                                            <button type="button" class="btn btn-light bg-white border-end px-2 btn-service-action" onclick="adjustQty(@i, -1)">
+                                                <i class="fas fa-minus text-secondary"></i>
+                                            </button>
+                                            <input type="number" asp-for="DanhSachDichVu[i].SoLuong" id="qty-@i" 
+                                                   class="form-control text-center border-0 fw-bold bg-white p-0 text-dark" value="0" min="0" max="@item.SoLuongTon" readonly />
+                                            <button type="button" class="btn btn-light bg-white border-start px-2 btn-service-action" onclick="adjustQty(@i, 1)">
+                                                <i class="fas fa-plus text-secondary"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        
+                        <!-- Selected Indicator Overlay -->
+                        <div class="position-absolute top-0 start-0 w-100 h-100 d-none flex-column align-items-center justify-content-center selected-overlay"
+                             id="overlay-@i"
+                             style="background: rgba(206, 232, 48, 0.95); z-index: 10;">
+                             <div class="text-center">
+                                 <i class="fas fa-check-circle fa-4x text-dark mb-3"></i>
+                                 <h4 class="text-dark fw-bold">Đã chọn</h4>
+                                 <p class="text-dark fw-bold h3 mb-0" id="overlay-qty-@i">x1</p>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (Model.DanhSachDichVu.Count == 0)
+        {
+            <div class="text-center py-5">
+                <p class="text-muted">Không có dịch vụ nào trong hệ thống.</p>
+            </div>
+        }
+
+        <div class="d-flex justify-content-center mt-5 mb-5 pb-5 gap-3">
+            <a asp-action="Index" asp-controller="Home" class="btn btn-outline-secondary px-5 py-3 rounded-pill fw-bold shadow-sm hover-scale">
+                <i class="fas fa-arrow-left me-2"></i> Quay lại
+            </a>
+            <button type="submit" class="btn btn-primary px-5 py-3 rounded-pill fw-bold shadow-lg hover-scale"
+                    id="btn-finish-booking"
+                    style="background: var(--color-lime); color: var(--color-dark); border: none; min-width: 200px;">
+                Hoàn Tất & Xem Phiếu <i class="fas fa-check-circle ms-2"></i>
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Modal Container for Staff Receipt -->
+<div class="modal fade" id="staffReceiptModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden" id="staffReceiptContent">
+            <!-- Content will be loaded via AJAX -->
+            <div class="p-5 text-center">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-3 text-muted">Đang tạo phiếu đặt sân...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include jQuery (required for AJAX) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    function submitServices(event) {
+        // Prevent default form submission
+        if (event) event.preventDefault();
+        
+        console.log('[DEBUG] submitServices called');
+        
+        // Check if jQuery is loaded
+        if (typeof $ === 'undefined') {
+            console.error('jQuery is not loaded!');
+            alert('Lỗi: jQuery chưa được tải. Vui lòng refresh trang.');
+            return false;
+        }
+        
+        // Fix: Select form by ID directly
+        const form = document.getElementById('serviceBookingForm'); 
+        if (!form) {
+             console.error("Form not found (ID: serviceBookingForm)"); 
+             alert('Lỗi: Không tìm thấy form!');
+             return false;
+        }
+
+        console.log('[DEBUG] Form found, preparing AJAX request');
+        
+        const formData = new FormData(form);
+        const btn = document.getElementById('btn-finish-booking');
+        
+        // Show loading state
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Đang xử lý...';
+        btn.disabled = true;
+
+        // AJAX Submit
+        $.ajax({
+            url: form.action,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                console.log('[DEBUG] AJAX request sent to:', form.action);
+            },
+            success: function (response) {
+                console.log('[DEBUG] AJAX response:', response);
+                if (response.success) {
+                    // Logic phân quyền từ Server
+                    if (response.redirectUrl) {
+                        // Khách hàng: Chuyển sang trang thanh toán
+                        console.log('[DEBUG] Redirecting to:', response.redirectUrl);
+                        window.location.href = response.redirectUrl;
+                    } else {
+                        // Nhân viên: Hiện Popup Phiếu
+                        console.log('[DEBUG] Loading modal for booking:', response.maDatSan);
+                        window.currentBookingId = response.maDatSan;
+                        loadReceiptModal(response.maDatSan);
+                    }
+                } else {
+                    // Nếu server trả về lỗi redirect hoặc message
+                    if (response.message) alert(response.message);
+                    else window.location.href = response.redirectUrl || '/';
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('[DEBUG] AJAX error:', status, error);
+                alert("Lỗi kết nối! Vui lòng thử lại.\n" + error);
+            },
+            complete: function () {
+                btn.innerHTML = 'Hoàn Tất & Xem Phiếu <i class="fas fa-check-circle ms-2"></i>';
+                btn.disabled = false;
+            }
+        });
+        
+        return false; // Prevent any default action
+    }
+
+    function loadReceiptModal(maDatSan) {
+        console.log('[DEBUG] loadReceiptModal called with ID:', maDatSan);
+        const modalEl = document.getElementById('staffReceiptModal');
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+
+        // Load Partial View
+        $('#staffReceiptContent').load('@Url.Action("StaffPreviewPartial", "DatSanThanhToan")?maDatSan=' + maDatSan, function(response, status, xhr) {
+            if (status == "error") {
+                console.error('[DEBUG] Modal load error:', xhr.status, xhr.statusText);
+                $('#staffReceiptContent').html('<div class="p-4 text-center text-danger">Lỗi tải phiếu: ' + xhr.status + " " + xhr.statusText + '</div>');
+            } else {
+                console.log('[DEBUG] Modal content loaded successfully');
+            }
+        });
+    }
+    
+    // Attach form submit handler when page loads (using jQuery for reliability)
+    $(function() {
+        console.log('[DEBUG] jQuery ready - Attaching form submit handler');
+        const form = document.getElementById('serviceBookingForm');
+        if (form) {
+            $(form).on('submit', function(e) {
+                console.log('[DEBUG] Form submit event triggered');
+                e.preventDefault(); // Prevent default form submission
+                e.stopPropagation(); // Stop event from bubbling
+                submitServices(e);
+                return false;
+            });
+            console.log('[DEBUG] Form submit handler attached successfully');
+        } else {
+            console.error('[DEBUG] Form not found during jQuery ready');
+            // Try again after a short delay
+            setTimeout(function() {
+                const retryForm = document.getElementById('serviceBookingForm');
+                if (retryForm) {
+                    console.log('[DEBUG] Form found on retry');
+                    $(retryForm).on('submit', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        submitServices(e);
+                        return false;
+                    });
+                } else {
+                    console.error('[DEBUG] Form still not found after retry');
+                }
+            }, 500);
+        }
+    });
+</script>
+
+<style>
+    /* ====== SMOOTH ANIMATIONS ====== */
+    .fade-in-up {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    }
+    
+    .fade-in-up.active {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    .scale-in {
+        opacity: 0;
+        transform: scale(0.95);
+        transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+    
+    .scale-in.active {
+        opacity: 1;
+        transform: scale(1);
+    }
+    
+    /* Stagger Animation Delays */
+    .stagger-1 { transition-delay: 0.1s; }
+    .stagger-2 { transition-delay: 0.2s; }
+    .stagger-3 { transition-delay: 0.3s; }
+    .stagger-4 { transition-delay: 0.4s; }
+    .stagger-5 { transition-delay: 0.5s; }
+    .stagger-6 { transition-delay: 0.6s; }
+    .stagger-7 { transition-delay: 0.7s; }
+    .stagger-8 { transition-delay: 0.8s; }
+    
+    /* Card Animations */
+    .service-card {
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .service-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
+    }
+    
+    .service-card img {
+        transition: transform 0.4s ease;
+    }
+    
+    .service-card:hover img {
+        transform: scale(1.08);
+    }
+    
+    /* Button Hover */
+    .btn-service-action {
+        transition: all 0.3s ease;
+    }
+    
+    .btn-service-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.2) !important;
+    }
+    
+    .text-lime { color: var(--color-lime) !important; text-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    .border-lime { border-color: var(--color-lime) !important; }
+    .bg-lime { background-color: var(--color-lime) !important; }
+    .background-blur-dark { background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); }
+    
+    /* Remove input number arrows */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+        -webkit-appearance: none; 
+        margin: 0; 
+    }
+</style>
+
+@section Scripts {
+    <script>
+        function adjustQty(index, delta) {
+            if (!window.isLoggedIn) {
+                $('#welcomeModal').modal('show');
+                return;
+            }
+
+            var input = document.getElementById('qty-' + index);
+            // Indicator cho Product là Overlay -> KHÔNG DÙNG Overlay cho Product
+            // Chỉ dùng Border
+            var maxVal = parseInt(input.getAttribute('max')) || 9999;
+            var currentVal = parseInt(input.value) || 0;
+            var newVal = currentVal + delta;
+            
+            if (newVal < 0) newVal = 0;
+            if (newVal > maxVal) newVal = maxVal;
+            
+            input.value = newVal;
+
+            if (newVal > 0) {
+                input.closest('.card').style.border = '2px solid var(--color-lime)';
+                input.closest('.card').classList.add('shadow-lg');
+            } else {
+                input.closest('.card').style.border = 'none';
+                input.closest('.card').classList.remove('shadow-lg');
+            }
+        }
+
+        function toggleHLV(index) {
+            if (!window.isLoggedIn) {
+                $('#welcomeModal').modal('show');
+                return;
+            }
+
+            var input = document.getElementById('qty-' + index);
+            var btn = document.getElementById('btn-hlv-' + index);
+            var indicator = document.getElementById('indicator-' + index);
+            var currentVal = parseInt(input.value) || 0;
+
+            if (currentVal === 0) {
+                // Select -> Show Overlay & Change Button Color to Light Green
+                input.value = 1;
+                btn.innerHTML = '<i class="fas fa-check me-1"></i> Đã chọn';
+                
+                // Change Button Style to Light Green
+                btn.style.background = '#d1fae5'; // Light green
+                btn.style.color = '#065f46'; // Dark green text
+                btn.style.border = '2px solid #10b981';
+
+                indicator.style.display = 'flex'; 
+                indicator.classList.add('d-flex'); 
+                input.closest('.card').style.border = '2px solid #10b981';
+                input.closest('.card').classList.add('shadow-lg');
+            } else {
+                // Deselect -> Hide Overlay & Revert Button Style to Green
+                input.value = 0;
+                btn.innerHTML = 'Chọn HLV';
+                
+                // Revert Button Style (Back to Green Gradient)
+                btn.style.background = 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)';
+                btn.style.color = 'white';
+                btn.style.border = 'none';
+                
+                indicator.style.display = 'none';
+                indicator.classList.remove('d-flex');
+                input.closest('.card').style.border = 'none';
+                input.closest('.card').classList.remove('shadow-lg');
+            }
+        }
+
+        // Filter Logic (Dropdown + Sort)
+        document.addEventListener('DOMContentLoaded', function() {
+            const btnFilter = document.getElementById('btn-apply-filter');
+            const selectCategory = document.getElementById('filter-category');
+            const selectSort = document.getElementById('filter-sort');
+            const grid = document.getElementById('service-grid');
+            
+            if (btnFilter && selectCategory && selectSort && grid) {
+                const items = Array.from(document.querySelectorAll('.service-item'));
+
+                btnFilter.addEventListener('click', () => {
+                    const categoryValue = selectCategory.value;
+                    const sortValue = selectSort.value;
+
+                    // 1. Filter Display
+                    items.forEach(item => {
+                        const itemCategory = item.getAttribute('data-category');
+                        if (categoryValue === 'all' || itemCategory === categoryValue) {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+
+                    // 2. Sort Logic
+                    const sortedItems = items.sort((a, b) => {
+                        const getPrice = (el) => {
+                            const priceElement = el.querySelector('.position-absolute.top-0.end-0');
+                            if (!priceElement) return 0;
+                            const priceText = priceElement.innerText; 
+                            return parseInt(priceText.replace(/\D/g, '')) || 0;
+                        };
+
+                        const priceA = getPrice(a);
+                        const priceB = getPrice(b);
+
+                        if (sortValue === 'price-asc') return priceA - priceB;
+                        if (sortValue === 'price-desc') return priceB - priceA;
+                        return 0;
+                    });
+
+                    // Re-append sorted items to grid
+                    sortedItems.forEach(item => grid.appendChild(item));
+
+                    // Re-trigger animation
+                    items.filter(i => i.style.display !== 'none').forEach(item => {
+                         item.style.animation = 'none';
+                         item.offsetHeight; 
+                         item.style.animation = 'fadeInUp 0.5s ease forwards';
+                    });
+                });
+            }
+        });
+
+        // ========== Intersection Observer for Scroll Animations ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px'
+            };
+
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // Add active class to trigger animation
+                        if (entry.target.classList.contains('fade-in-up') || entry.target.classList.contains('scale-in')) {
+                            entry.target.classList.add('active');
+                        }
+                        // Don't unobserve - keep watching for when it leaves and comes back
+                    }
+                });
+            }, observerOptions);
+
+            // Observe all fade-in-up and scale-in elements
+            document.querySelectorAll('.fade-in-up, .scale-in').forEach(el => {
+                observer.observe(el);
+            });
+        });
+    </script>
+}

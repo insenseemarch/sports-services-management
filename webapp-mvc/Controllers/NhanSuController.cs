@@ -268,5 +268,48 @@ namespace webapp_mvc.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+        [HttpPost]
+        public IActionResult PhantomReadDemo(string demoMode)
+        {
+            // demoMode: "unsafe" (Repeatable Read) vs "safe" (Serializable)
+            string spName = (demoMode == "safe") ? "sp_PhantomRead_Demo_Safe" : "sp_PhantomRead_Demo_Unsafe";
+            
+            // Log for debug
+            Console.WriteLine($"[PHANTOM READ DEMO] Mode: {demoMode}, SP: {spName}");
+
+            try 
+            {
+                using (var conn = _db.GetConnection())
+                {
+                    conn.Open();
+                    // We need a long timeout because the SP waits 15s
+                    using (var cmd = new SqlCommand(spName, conn))
+                    {
+                        cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                        cmd.CommandTimeout = 60; 
+
+                        using (var r = cmd.ExecuteReader())
+                        {
+                            if (r.Read())
+                            {
+                                int before = Convert.ToInt32(r["CountBefore"]);
+                                int after = Convert.ToInt32(r["CountAfter"]);
+                                
+                                string msg = (before != after) 
+                                    ? $"⚠ LỖI PHANTOM READ: Đọc lần 1 = {before}, Đọc lần 2 = {after} (Xuất hiện {after - before} nhân viên ma)."
+                                    : $"✅ KẾT QUẢ NHẤT QUÁN: Đọc lần 1 = {before}, Đọc lần 2 = {after}.";
+
+                                return Json(new { success = true, before = before, after = after, message = msg });
+                            }
+                        }
+                    }
+                }
+                return Json(new { success = false, message = "Không có dữ liệu trả về từ SP." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi Demo: " + ex.Message });
+            }
+        }
     }
 }

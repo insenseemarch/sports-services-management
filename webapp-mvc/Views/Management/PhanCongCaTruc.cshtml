@@ -160,6 +160,99 @@
     </div>
 </div>
 
+    <!-- DEADLOCK DEMO SECTION -->
+    <div class="container py-4">
+        <div class="alert border-0 shadow-lg rounded-4 mb-4 position-relative overflow-hidden" 
+             style="background: linear-gradient(135deg, #662d8c 0%, #ed1e79 100%); border-left: 6px solid #ff00de !important; animation: slideDown 0.5s ease-out;">
+            
+            <div class="d-flex align-items-center position-relative" style="z-index: 2;">
+                <div class="me-4 text-warning mt-1">
+                    <i class="fas fa-biohazard fa-3x text-white"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h5 class="fw-bold mb-2 text-white">
+                        DEMO DEADLOCK: Phân Công Ca Trực
+                        <span class="badge bg-warning text-dark ms-2">LIVE DEMO</span>
+                    </h5>
+                    <p class="text-white-50 mb-3 small">
+                        Mô phỏng 2 Quản lý cùng gán <strong>NV001</strong> vào <strong>Ca 3</strong> cùng lúc.
+                        <br><i>(Mỗi bên giữ 1 Lock và chờ bên kia -> Deadlock)</i>
+                    </p>
+                    
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-5">
+                            <label class="text-white-50 small fw-bold mb-1">Chế độ Demo</label>
+                            <div class="btn-group w-100 shadow-sm" role="group">
+                                <input type="radio" class="btn-check" name="deadlockMode" id="deadlockUnsafe" value="unsafe" checked>
+                                <label class="btn btn-outline-light btn-sm py-2" for="deadlockUnsafe">
+                                    <i class="fas fa-bomb me-1"></i>Unsafe (Gây lỗi)
+                                </label>
+                                
+                                <input type="radio" class="btn-check" name="deadlockMode" id="deadlockSafe" value="safe">
+                                <label class="btn btn-outline-light btn-sm py-2" for="deadlockSafe">
+                                    <i class="fas fa-shield-alt me-1"></i>Safe (Đã Fix)
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <button onclick="runDeadlockDemo()" id="btnDeadlockDemo" 
+                                    class="btn btn-warning fw-bold text-dark w-100 shadow-sm py-2">
+                                <i class="fas fa-save me-2"></i>Lưu Phân Công
+                            </button>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="card bg-white bg-opacity-10 border-0 text-white">
+                                <div class="card-body p-2 d-flex justify-content-between align-items-center">
+                                    <div class="w-100">
+                                        <small class="d-block opacity-75">Trạng thái:</small>
+                                        <div id="deadlockStatus" class="badge bg-secondary text-wrap" style="line-height: 1.4;">Sẵn sàng</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function runDeadlockDemo() {
+            const mode = document.querySelector('input[name="deadlockMode"]:checked').value;
+            const btn = document.getElementById('btnDeadlockDemo');
+            const statusEl = document.getElementById('deadlockStatus');
+            
+            // UI Loading State
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
+            statusEl.className = 'badge bg-warning text-dark';
+            statusEl.innerText = 'Đang giữ Lock & Chờ...';
+            
+            // Call Backend
+            $.post('/Management/DeadlockDemo', { demoMode: mode })
+            .done(function(res) {
+                if(res.success) {
+                    statusEl.className = 'badge bg-success';
+                    statusEl.innerText = res.message;
+                    showToast('success', 'Giao dịch thành công!');
+                } else {
+                    statusEl.className = 'badge bg-danger text-wrap text-start p-2';
+                    statusEl.innerText = res.message;
+                    // showToast('error', res.message);
+                }
+            })
+            .fail(function(xhr) {
+                statusEl.innerText = 'Mất kết nối server';
+            })
+            .always(function() {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save me-2"></i>Lưu Phân Công';
+            });
+        }
+    </script>
+
 <div class="container py-4 calendar-container">
         <div class="row align-items-center">
             <div class="col-md-8">

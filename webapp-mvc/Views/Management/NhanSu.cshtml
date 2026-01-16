@@ -304,6 +304,117 @@
 
 <div class="container py-4">
 
+    <!-- PHANTOM READ DEMO SECTION (MOVED HERE) -->
+    <div class="alert border-0 shadow-lg rounded-4 mb-4 position-relative overflow-hidden fade-in-up" 
+         style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); border-left: 6px solid #00c6ff !important; animation: slideDown 0.5s ease-out;">
+        
+        <div class="d-flex align-items-center position-relative" style="z-index: 2;">
+            <div class="me-4 text-info mt-1">
+                <i class="fas fa-ghost fa-3x text-white"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h5 class="fw-bold mb-2 text-white">
+                    DEMO PHANTOM READ: Đếm Nhân Viên
+                    <span class="badge bg-danger ms-2">LIVE DEMO</span>
+                </h5>
+                <p class="text-white-50 mb-3 small">
+                    Mô phỏng tình huống <strong>Manager A</strong> đang đếm nhân viên, trong khi <strong>Manager B</strong> thêm nhân viên mới.
+                </p>
+                
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-5">
+                        <label class="text-white-50 small fw-bold mb-1">Chế độ Demo</label>
+                        <div class="btn-group w-100 shadow-sm" role="group">
+                            <input type="radio" class="btn-check" name="phantomMode" id="phantomUnsafe" value="unsafe" checked>
+                            <label class="btn btn-outline-light btn-sm py-2" for="phantomUnsafe">
+                                <i class="fas fa-bug me-1"></i>Unsafe (Có lỗi)
+                            </label>
+                            
+                            <input type="radio" class="btn-check" name="phantomMode" id="phantomSafe" value="safe">
+                            <label class="btn btn-outline-light btn-sm py-2" for="phantomSafe">
+                                <i class="fas fa-shield-alt me-1"></i>Safe (Đã Fix)
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <button onclick="runPhantomReadDemo()" id="btnPhantomDemo" 
+                                class="btn btn-info fw-bold text-white w-100 shadow-sm py-2">
+                            <i class="fas fa-play me-2"></i>Chạy Đếm (15s)
+                        </button>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card bg-white bg-opacity-10 border-0 text-white">
+                            <div class="card-body p-2 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <small class="d-block opacity-75">Kết quả đếm:</small>
+                                    <div id="phantomResult" class="fw-bold text-warning">-</div>
+                                </div>
+                                <div class="text-end">
+                                    <small class="d-block opacity-75">Trạng thái:</small>
+                                    <div id="phantomStatus" class="badge bg-secondary">Sẵn sàng</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function runPhantomReadDemo() {
+            const mode = document.querySelector('input[name="phantomMode"]:checked').value;
+            const btn = document.getElementById('btnPhantomDemo');
+            const resultEl = document.getElementById('phantomResult');
+            const statusEl = document.getElementById('phantomStatus');
+            
+            // UI Loading State
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang chạy...';
+            statusEl.className = 'badge bg-warning text-dark';
+            statusEl.innerText = 'Đang đếm lần 1...';
+            resultEl.innerText = 'Đang xử lý...';
+            
+            // Call Backend (NhanSuController)
+            $.post('/NhanSu/PhantomReadDemo', { demoMode: mode })
+            .done(function(res) {
+                if(res.success) {
+                    const diff = res.after - res.before;
+                    const diffHtml = diff !== 0 
+                        ? `<span class="text-danger fw-bold">(+${diff} ma)</span>` 
+                        : `<span class="text-success fw-bold">(Khớp)</span>`;
+                        
+                    resultEl.innerHTML = `Lần 1: ${res.before} ➝ Lần 2: ${res.after} ${diffHtml}`;
+                    
+                    if(diff !== 0) {
+                        statusEl.className = 'badge bg-danger';
+                        statusEl.innerText = 'Lỗi Phantom!';
+                        alert(res.message);
+                    } else {
+                        statusEl.className = 'badge bg-success';
+                        statusEl.innerText = 'An toàn';
+                        // alert(res.message);
+                    }
+                } else {
+                    statusEl.className = 'badge bg-danger';
+                    statusEl.innerText = 'Lỗi!';
+                    resultEl.innerText = 'Gặp lỗi khi chạy demo.';
+                    console.error(res.message);
+                }
+            })
+            .fail(function(xhr) {
+                statusEl.innerText = 'Mất kết nối';
+                console.error(xhr);
+            })
+            .always(function() {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-play me-2"></i>Chạy Đếm (15s)';
+            });
+        }
+    </script>
+
     <div class="action-bar">
         <div class="search-box">
             <input type="text" id="searchInput" placeholder="Tìm kiếm theo tên, SĐT...">

@@ -527,15 +527,11 @@ namespace webapp_mvc.Controllers
                     _ => "Nhân viên kỹ thuật"
                 };
 
-                // Generate MaNV
-                var maxMaNV = _db.ExecuteScalar<string>("SELECT MAX(MaNV) FROM NHANVIEN") ?? "NV00000";
-                var numPart = int.Parse(maxMaNV.Substring(2)) + 1;
-                var maNV = "NV" + numPart.ToString("D5");
+                // Generate MaNV (Time-based to avoid concurrency collision)
+                var maNV = "NV" + DateTime.Now.ToString("yyMMddHHmmss");
 
                 // Generate MaTK
-                var maxMaTK = _db.ExecuteScalar<string>("SELECT MAX(MaTK) FROM TAIKHOAN") ?? "TK00000";
-                var tkNumPart = int.Parse(maxMaTK.Substring(2)) + 1;
-                var maTK = "TK" + tkNumPart.ToString("D5");
+                var maTK = "TK" + DateTime.Now.ToString("yyMMddHHmmss");
 
                 // Insert TAIKHOAN first
                 var insertTK = @"
@@ -574,6 +570,45 @@ namespace webapp_mvc.Controllers
             {
                 _logger.LogError(ex, "Error adding employee");
                 return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult DeadlockDemo(string demoMode)
+        {
+            // demoMode: "unsafe" vs "safe"
+            string spName = (demoMode == "safe") ? "sp_DeadlockDemo_Safe" : "sp_DeadlockDemo_Unsafe";
+            
+            try 
+            {
+                using (var conn = _db.GetConnection())
+                {
+                    conn.Open();
+                    // Deadlock usually throws SqlException with Number 1205
+                    using (var cmd = new SqlCommand(spName, conn))
+                    {
+                        cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@MaCaTruc", 1); 
+                        cmd.Parameters.AddWithValue("@MaNV", "NV001");
+                        cmd.CommandTimeout = 20; // Enough for the 10s delay
+
+                        cmd.ExecuteNonQuery();
+
+                        return Json(new { success = true, message = "✅ Lưu thành công (Không bị Deadlock)" });
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                if (ex.Number == 1205) // Deadlock Victim Error Number
+                {
+                     return Json(new { success = false, message = "❌ HỆ THỐNG BÁO LỖI: DEADLOCK DETECTED! (Transaction (Process ID) was deadlocked on lock resources with another process and has been chosen as the deadlock victim.)" });
+                }
+                return Json(new { success = false, message = "Lỗi SQL: " + ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi: " + ex.Message });
             }
         }
 

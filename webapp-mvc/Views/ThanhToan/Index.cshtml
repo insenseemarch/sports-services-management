@@ -30,7 +30,7 @@
                     <th>Khách Hàng</th>
                     <th>Ngày Đặt</th>
                     <th>Sân</th>
-                    <th>Tiền Sân (Tạm)</th>
+                    <th>Tổng Hợp (San + DV)</th>
                     <th>Trạng Thái</th>
                     <th>Thao Tác</th>
                 </tr>
@@ -43,11 +43,13 @@
                         <td>@item.TenKhachHang</td>
                         <td>@item.NgayDat.ToString("dd/MM/yyyy")</td>
                         <td>@item.TenCoSo</td>
-                        <td class="text-success">@item.TienSan.ToString("N0")</td>
+                        <td class="text-success fw-bold">
+                            @item.TienSan.ToString("N0") + @item.TienDichVu.ToString("N0") = @item.TongTien.ToString("N0") đ
+                        </td>
                         <td><span class="badge bg-warning text-dark">@item.TrangThai</span></td>
                         <td>
                             <a asp-action="Confirm" asp-route-id="@item.MaDatSan" class="btn btn-sm btn-success">
-                                <i class="fas fa-money-bill-wave me-1"></i>Thanh Toán
+                                <i class="fas fa-money-bill-wave me-1"></i>Thanh Toán (Review)
                             </a>
                         </td>
                     </tr>

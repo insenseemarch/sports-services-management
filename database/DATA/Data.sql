@@ -227,43 +227,53 @@ INSERT INTO DV_COSO (MaDV, MaCS, SoLuongTon) VALUES
 GO
 
 -- 12. NẠP DATA VÀO BẢNG KHUNG GIỜ
-INSERT INTO KHUNGGIO (MaKG, MaLS, GioBatDau, GioKetThuc, NgayApDung, GiaApDung) VALUES
+INSERT INTO KHUNGGIO (MaKG, MaLS, GioBatDau, GioKetThuc, NgayApDung, GiaApDung, LoaiNgay, TenKhungGio, TrangThai) VALUES
 -- Bóng đá mini
-('KG001', 'LS001', '06:00:00', '08:00:00', '2024-01-01', 400000),
-('KG002', 'LS001', '08:00:00', '10:00:00', '2024-01-01', 500000),
-('KG003', 'LS001', '10:00:00', '14:00:00', '2024-01-01', 450000),
-('KG004', 'LS001', '14:00:00', '17:00:00', '2024-01-01', 600000),
-('KG005', 'LS001', '17:00:00', '22:00:00', '2024-01-01', 750000),
+('KG001', 'LS001', '06:00:00', '08:00:00', '2024-01-01', 400000, N'Thường', N'Sáng sớm', N'Đang áp dụng'),
+('KG002', 'LS001', '08:00:00', '10:00:00', '2024-01-01', 500000, N'Thường', N'Sáng', N'Đang áp dụng'),
+('KG003', 'LS001', '10:00:00', '14:00:00', '2024-01-01', 450000, N'Thường', N'Trưa', N'Đang áp dụng'),
+('KG004', 'LS001', '14:00:00', '17:00:00', '2024-01-01', 600000, N'Thường', N'Chiều', N'Đang áp dụng'),
+('KG005', 'LS001', '17:00:00', '22:00:00', '2024-01-01', 750000, N'Thường', N'Tối', N'Đang áp dụng'),
 -- Tennis
-('KG006', 'LS002', '06:00:00', '10:00:00', '2024-01-01', 200000),
-('KG007', 'LS002', '10:00:00', '14:00:00', '2024-01-01', 250000),
-('KG008', 'LS002', '14:00:00', '18:00:00', '2024-01-01', 300000),
-('KG009', 'LS002', '18:00:00', '22:00:00', '2024-01-01', 350000),
+('KG006', 'LS002', '06:00:00', '10:00:00', '2024-01-01', 200000, N'Thường', N'Sáng', N'Đang áp dụng'),
+('KG007', 'LS002', '10:00:00', '14:00:00', '2024-01-01', 250000, N'Thường', N'Trưa', N'Đang áp dụng'),
+('KG008', 'LS002', '14:00:00', '18:00:00', '2024-01-01', 300000, N'Thường', N'Chiều', N'Đang áp dụng'),
+('KG009', 'LS002', '18:00:00', '22:00:00', '2024-01-01', 350000, N'Thường', N'Tối', N'Đang áp dụng'),
 -- Cầu lông
-('KG010', 'LS003', '06:00:00', '09:00:00', '2024-01-01', 80000),
-('KG011', 'LS003', '09:00:00', '12:00:00', '2024-01-01', 100000),
-('KG012', 'LS003', '12:00:00', '17:00:00', '2024-01-01', 90000),
-('KG013', 'LS003', '17:00:00', '22:00:00', '2024-01-01', 150000),
+('KG010', 'LS003', '06:00:00', '09:00:00', '2024-01-01', 80000, N'Thường', N'Sáng', N'Đang áp dụng'),
+('KG011', 'LS003', '09:00:00', '12:00:00', '2024-01-01', 100000, N'Thường', N'Trưa', N'Đang áp dụng'),
+('KG012', 'LS003', '12:00:00', '17:00:00', '2024-01-01', 90000, N'Thường', N'Chiều', N'Đang áp dụng'),
+('KG013', 'LS003', '17:00:00', '22:00:00', '2024-01-01', 150000, N'Thường', N'Tối', N'Đang áp dụng'),
 -- Bóng rổ
-('KG014', 'LS004', '08:00:00', '12:00:00', '2024-01-01', 150000),
-('KG015', 'LS004', '14:00:00', '18:00:00', '2024-01-01', 180000),
-('KG016', 'LS004', '18:00:00', '22:00:00', '2024-01-01', 200000);
+('KG014', 'LS004', '08:00:00', '12:00:00', '2024-01-01', 150000, N'Thường', N'Sáng', N'Đang áp dụng'),
+('KG015', 'LS004', '14:00:00', '18:00:00', '2024-01-01', 180000, N'Thường', N'Chiều', N'Đang áp dụng'),
+('KG016', 'LS004', '18:00:00', '22:00:00', '2024-01-01', 200000, N'Thường', N'Tối', N'Đang áp dụng');
 GO
 
 -- 13. NẠP DATA VÀO BẢNG ƯU ĐÃI
-INSERT INTO UUDAI (MaUD, TenCT, TyLeGiamGia, DieuKienApDung) VALUES
-('UD001', N'Giảm giá sinh viên', 10.00, N'Xuất trình thẻ HSSV'),
-('UD002', N'Khuyến mãi đầu tuần', 8.00, N'Đặt sân từ thứ 2 đến thứ 4'),
-('UD003', N'Ưu đãi thành viên Vàng', 15.00, N'Cấp bậc từ Vàng trở lên'),
-('UD004', N'Combo 3 giờ', 12.00, N'Đặt sân từ 3 giờ trở lên'),
-('UD005', N'Happy Hour', 20.00, N'Khung giờ 14h-16h các ngày trong tuần'),
-('UD006', N'Cuối tuần vui vẻ', 5.00, N'Đặt sân vào thứ 7 hoặc Chủ nhật'),
-('UD007', N'Khách hàng mới', 10.00, N'Lần đầu tiên đặt sân tại hệ thống'),
-('UD008', N'Đặt online', 7.00, N'Đặt sân qua website hoặc app'),
-('UD009', N'Nhóm đông', 10.00, N'Đặt từ 2 sân trở lên cùng lúc'),
-('UD010', N'Sinh nhật', 15.00, N'Trong tháng sinh nhật của khách hàng'),
-('UD011', N'Khuyến mãi tháng 1', 12.00, N'Áp dụng cho tất cả đơn hàng tháng 1'),
-('UD012', N'Ưu đãi HLV', 5.00, N'Khi thuê HLV kèm theo sân');
+INSERT INTO UUDAI (MaUD, TenCT, TyLeGiamGia, DieuKienApDung, LoaiUuDai, NgayBatDau, NgayKetThuc, GiaTriToiThieu, SoGioToiThieu, TrangThai) VALUES
+('UD001', N'Giảm giá sinh viên', 10.00, N'Xuất trình thẻ HSSV', N'Đối tượng', '2024-01-01', '2026-01-01', 0, 0, N'Đang áp dụng'),
+('UD002', N'Khuyến mãi đầu tuần', 8.00, N'Đặt sân từ thứ 2 đến thứ 4', N'Thời gian', '2024-01-01', '2026-01-01', 0, 0, N'Đang áp dụng'),
+('UD003', N'Ưu đãi thành viên Vàng', 15.00, N'Cấp bậc từ Vàng trở lên', N'Thành viên', '2024-01-01', '2026-01-01', 0, 0, N'Đang áp dụng'),
+('UD004', N'Combo 3 giờ', 12.00, N'Đặt sân từ 3 giờ trở lên', N'Combo', '2024-01-01', '2026-01-01', 0, 3, N'Đang áp dụng'),
+('UD005', N'Happy Hour', 20.00, N'Khung giờ 14h-16h các ngày trong tuần', N'Thời gian', '2024-01-01', '2026-01-01', 0, 0, N'Đang áp dụng'),
+('UD006', N'Cuối tuần vui vẻ', 5.00, N'Đặt sân vào thứ 7 hoặc Chủ nhật', N'Thời gian', '2024-01-01', '2026-01-01', 0, 0, N'Đang áp dụng'),
+('UD007', N'Khách hàng mới', 10.00, N'Lần đầu tiên đặt sân tại hệ thống', N'Đối tượng', '2024-01-01', '2026-01-01', 0, 0, N'Đang áp dụng'),
+('UD008', N'Đặt online', 7.00, N'Đặt sân qua website hoặc app', N'Kênh đặt', '2024-01-01', '2026-01-01', 0, 0, N'Đang áp dụng'),
+('UD009', N'Nhóm đông', 10.00, N'Đặt từ 2 sân trở lên cùng lúc', N'Combo', '2024-01-01', '2026-01-01', 0, 0, N'Đang áp dụng'),
+('UD010', N'Sinh nhật', 15.00, N'Trong tháng sinh nhật của khách hàng', N'Sự kiện', '2024-01-01', '2026-01-01', 0, 0, N'Đang áp dụng'),
+('UD011', N'Khuyến mãi tháng 1', 12.00, N'Áp dụng cho tất cả đơn hàng tháng 1', N'Thời gian', '2025-01-01', '2025-01-31', 0, 0, N'Đang áp dụng'),
+('UD012', N'Ưu đãi HLV', 5.00, N'Khi thuê HLV kèm theo sân', N'Combo', '2024-01-01', '2026-01-01', 0, 0, N'Đang áp dụng');
+GO
+
+-- 14. NẠP DAT VÀO BẢNG THAM SỐ HỆ THỐNG
+INSERT INTO THAMSO_HETHONG (MaThamSo, TenThamSo, GiaTri, DonVi, MoTa, LoaiThamSo) VALUES 
+(N'PHAT_HUY_SAN', N'Phí phạt hủy sân sát giờ', N'20', N'%', N'Phần trăm phí phạt khi hủy sân trước giờ đặt dưới 2 tiếng', N'Số'),
+(N'THOI_GIAN_HUY_FREE', N'Thời gian hủy miễn phí', N'12', N'giờ', N'Số giờ tối thiểu hủy đơn để được hoàn tiền 100%', N'Số'),
+(N'DIEM_THUONG_DAT_SAN', N'Điểm thưởng đặt sân', N'10', N'điểm/100k', N'Tỷ lệ điểm thưởng trên giá trị hóa đơn (100k = 10 điểm)', N'Số'),
+(N'PHU_THU_NGAY_LE', N'Phụ thu ngày lễ', N'30', N'%', N'Phần trăm tăng giá vào ngày lễ', N'Số'),
+(N'GIO_MO_CUA_MAC_DINH', N'Giờ mở cửa mặc định', N'05:00', N'', N'Giờ mở cửa áp dụng cho tất cả cơ sở nếu không quy định riêng', N'Thời gian'),
+(N'GIO_DONG_CUA_MAC_DINH', N'Giờ đóng cửa mặc định', N'22:00', N'', N'Giờ đóng cửa áp dụng cho tất cả cơ sở nếu không quy định riêng', N'Thời gian');
 GO
 
 -- 15. NẠP DATA VÀO BẢNG PHIẾU ĐẶT SÂN

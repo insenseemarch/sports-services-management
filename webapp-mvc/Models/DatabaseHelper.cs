@@ -22,6 +22,8 @@ namespace webapp_mvc.Models
             using (var conn = GetConnection())
             using (var cmd = new SqlCommand(query, conn))
             {
+                cmd.CommandTimeout = 120; // Increase timeout to 2 minutes
+                
                 // Auto detect SP: If query has no spaces and no newlines, assume it's an SP name
                 if (!query.Trim().Contains(" ") && !query.Contains("\n")) 
                     cmd.CommandType = CommandType.StoredProcedure;

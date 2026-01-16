@@ -979,15 +979,178 @@ END;
         }
 
 
-        public IActionResult Privacy()
+        public IActionResult ApplyDataFix()
         {
-            return View();
+            string sqlFix = @"
+CREATE OR ALTER TRIGGER trg_HoanTraDichVuKhiHuy
+ON PHIEUDATSAN
+AFTER UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Chỉ xử lý khi trạng thái chuyển sang 'Đã hủy', 'No-Show', hoặc 'Không hợp lệ'
+    IF EXISTS (
+        SELECT 1 
+        FROM inserted i
+        JOIN deleted d ON i.MaDatSan = d.MaDatSan
+        WHERE i.TrangThai IN (N'Đã hủy', N'No-Show', N'Không hợp lệ')
+          AND d.TrangThai NOT IN (N'Đã hủy', N'No-Show', N'Không hợp lệ', N'Nháp')
+    )
+    BEGIN
+        SELECT i.MaDatSan
+        INTO #CancelledBookings
+        FROM inserted i
+        JOIN deleted d ON i.MaDatSan = d.MaDatSan
+        WHERE i.TrangThai IN (N'Đã hủy', N'No-Show', N'Không hợp lệ')
+          AND d.TrangThai NOT IN (N'Đã hủy', N'No-Show', N'Không hợp lệ', N'Nháp');
+
+        -- Cập nhật lại tồn kho trong DV_COSO
+        -- THÊM LOGIC LOẠI TRỪ HLV, VIP, TỦ ĐỒ (Dựa trên Loại DV hoặc Tên)
+        UPDATE KHO
+        SET KHO.SoLuongTon = KHO.SoLuongTon + CT.SoLuong
+        FROM DV_COSO KHO
+        JOIN CT_DICHVUDAT CT ON KHO.MaDV = CT.MaDV
+        JOIN DICHVU DV ON CT.MaDV = DV.MaDV
+        JOIN LOAIDV LDV ON DV.MaLoaiDV = LDV.MaLoaiDV
+        JOIN #CancelledBookings C ON CT.MaDatSan = C.MaDatSan
+        JOIN DATSAN DS ON C.MaDatSan = DS.MaDatSan
+        JOIN SAN S ON DS.MaSan = S.MaSan
+        WHERE KHO.MaCS = S.MaCS
+          AND LDV.TenLoai NOT LIKE N'%Huấn luyện viên%' 
+          AND LDV.TenLoai NOT LIKE N'%VIP%' 
+          AND LDV.TenLoai NOT LIKE N'%Tủ đồ%'
+          AND LDV.MaLoaiDV NOT IN ('LDV001', 'LDV004', 'LDV005');
+        
+        DROP TABLE #CancelledBookings;
+    END
+END";
+            _db.ExecuteNonQuery(sqlFix);
+            return Content("Đã cập nhật TRIGGER trg_HoanTraDichVuKhiHuy thành công! Hệ thống bây giờ sẽ dùng Trigger để hoàn kho.");
+        }
+
+        public IActionResult FixStockLogic()
+        {
+            string sqlFix = @"
+CREATE OR ALTER PROCEDURE sp_ThemDichVu
+    @MaDatSan BIGINT,
+    @MaDV VARCHAR(20),
+    @SoLuong INT,
+    @MaCSContext VARCHAR(20) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET TRAN ISOLATION LEVEL SERIALIZABLE; 
+    
+    BEGIN TRY
+        BEGIN TRAN;
+        
+        DECLARE @DonGia DECIMAL(18,2);
+        DECLARE @MaCS VARCHAR(20);
+        DECLARE @TenDV NVARCHAR(255); -- Thêm biến lấy tên
+        
+        -- Lấy giá, Mã cơ sở và Tên dịch vụ
+        SELECT @DonGia = DonGia, @MaCS = S.MaCS, @TenDV = DV.TenDV
+        FROM DICHVU DV
+        LEFT JOIN DATSAN DS ON DS.MaDatSan = @MaDatSan
+        LEFT JOIN SAN S ON DS.MaSan = S.MaSan
+        WHERE DV.MaDV = @MaDV;
+
+        IF @DonGia IS NULL
+        BEGIN
+             ROLLBACK TRAN;
+             RAISERROR(N'Dịch vụ không tồn tại!', 16, 1);
+             RETURN;
+        END
+        
+        IF @MaCS IS NULL AND @MaCSContext IS NOT NULL SET @MaCS = @MaCSContext;
+
+        -- UPDATE: LUÔN COI LÀ ĐỦ KHO (BỎ QUA CHECK KHO)
+        
+        -- Cập nhật chi tiết
+        IF EXISTS (SELECT 1 FROM CT_DICHVUDAT WHERE MaDatSan = @MaDatSan AND MaDV = @MaDV)
+        BEGIN
+            UPDATE CT_DICHVUDAT 
+            SET SoLuong = SoLuong + @SoLuong, 
+                ThanhTien = (SoLuong + @SoLuong) * @DonGia,
+                GhiChu = @TenDV -- Cập nhật luôn Ghi chú là Tên DV
+            WHERE MaDatSan = @MaDatSan AND MaDV = @MaDV;
+        END
+        ELSE
+        BEGIN
+            INSERT INTO CT_DICHVUDAT (MaDV, MaDatSan, SoLuong, ThanhTien, TrangThaiSuDung, GhiChu) 
+            VALUES (@MaDV, @MaDatSan, @SoLuong, @SoLuong * @DonGia, N'Chưa thanh toán', @TenDV);
+        END
+        
+        -- Vẫn cập nhật kho (có thể âm) để theo dõi
+        UPDATE DV_COSO SET SoLuongTon = SoLuongTon - @SoLuong WHERE MaDV = @MaDV AND MaCS = @MaCS;
+
+        COMMIT TRAN;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK TRAN;
+        DECLARE @Msg NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR(@Msg, 16, 1);
+    END CATCH
+END";
+            _db.ExecuteNonQuery(sqlFix);
+            return Content("Đã cập nhật sp_ThemDichVu! Bây giờ bạn có thể đặt dịch vụ thoải mái mà không lo 'Hết hàng'.");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        public IActionResult FixCancelStatus()
+        {
+            try
+            {
+                string sqlFix = @"
+CREATE OR ALTER PROCEDURE sp_HuySan
+    @MaDatSan BIGINT,
+    @NguoiThucHien VARCHAR(20) 
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET TRAN ISOLATION LEVEL REPEATABLE READ;
+    BEGIN TRY
+        BEGIN TRAN;
+        DECLARE @TienPhat DECIMAL(18,2) = dbo.f_TinhTienPhat(@MaDatSan, GETDATE());
+        
+        -- Nếu có tiền phạt -> Tạo hóa đơn phạt
+        IF @TienPhat > 0
+        BEGIN
+            INSERT INTO HOADON (MaPhieu, NguoiLap, NgayLap, TongTien, GiamGia, ThanhTien, HinhThucTT)
+            VALUES (@MaDatSan, @NguoiThucHien, GETDATE(), @TienPhat, 0, @TienPhat, N'Tiền phạt hủy sân');
+        END
+        
+        -- Cập nhật trạng thái phiếu
+        UPDATE PHIEUDATSAN SET TrangThai = N'Đã hủy' WHERE MaDatSan = @MaDatSan;
+        
+        -- Cập nhật trạng thái dịch vụ đi kèm -> Đã hủy (Để data đồng bộ)
+        UPDATE CT_DICHVUDAT SET TrangThaiSuDung = N'Đã hủy' WHERE MaDatSan = @MaDatSan;
+
+        -- Cập nhật tình trạng sân
+        UPDATE SAN SET TinhTrang = N'Còn Trống' 
+        FROM SAN S JOIN DATSAN D ON S.MaSan = D.MaSan WHERE D.MaDatSan = @MaDatSan;
+        
+        COMMIT TRAN;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK TRAN;
+        DECLARE @Msg NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR(@Msg, 16, 1);
+    END CATCH
+END";
+                _db.ExecuteNonQuery(sqlFix);
+                return Content("✅ Đã cập nhật sp_HuySan! Bây giờ khi hủy sân, các dịch vụ đi kèm cũng sẽ chuyển trạng thái 'Đã hủy'.");
+            }
+            catch (Exception ex)
+            {
+                return Content("❌ Lỗi: " + ex.Message);
+            }
         }
         public IActionResult FixDoiSanProcedure()
         {

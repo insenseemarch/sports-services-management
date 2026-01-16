@@ -17,6 +17,7 @@ namespace webapp_mvc.Controllers
         [HttpGet]
         public IActionResult Index(string? search)
         {
+            Console.WriteLine("DEBUG CHECK: Truy cap trang Thanh Toan (Code Moi)");
             // Check quyền: Phải là Nhân viên (Thu ngân/Quản lý)
             var vaiTro = HttpContext.Session.GetString("VaiTro");
             if (vaiTro == "Khách hàng" || string.IsNullOrEmpty(vaiTro))
@@ -28,28 +29,39 @@ namespace webapp_mvc.Controllers
             string sql = @"
                 SELECT P.MaDatSan, P.MaKH, K.HoTen, P.NgayDat, S.TenCS, 
                        P.TrangThai,
-                       dbo.f_TinhTienSan(P.MaDatSan) as TienSan
+                       dbo.f_TinhTienSan(P.MaDatSan) as TienSan,
+                       -- TINH LAI TIEN DICH VU TU GOC (SO LUONG * DON GIA)
+                       ISNULL(SUM(CT.SoLuong * DV.DonGia), 0) as TienDichVu,
+                       COUNT(CT.MaDV) as SoLuongMon
                 FROM PHIEUDATSAN P
                 JOIN KHACHHANG K ON P.MaKH = K.MaKH
                 JOIN DATSAN D ON P.MaDatSan = D.MaDatSan
                 JOIN SAN SCN ON D.MaSan = SCN.MaSan
                 JOIN COSO S ON SCN.MaCS = S.MaCS
+                LEFT JOIN CT_DICHVUDAT CT ON P.MaDatSan = CT.MaDatSan
+                LEFT JOIN DICHVU DV ON CT.MaDV = DV.MaDV -- JOIN THEM BANG DICH VU
                 WHERE P.TrangThai IN (N'Đã đặt', N'Đang sử dụng')
-                AND (@Search IS NULL OR P.MaDatSan LIKE '%' + @Search + '%' OR K.SDT LIKE '%' + @Search + '%')
+                AND (@Search IS NULL OR CAST(P.MaDatSan AS NVARCHAR) LIKE '%' + @Search + '%' OR K.SDT LIKE '%' + @Search + '%')
+                GROUP BY P.MaDatSan, P.MaKH, K.HoTen, P.NgayDat, S.TenCS, P.TrangThai
                 ORDER BY P.NgayDat DESC";
             
             var dt = _db.ExecuteQuery(sql, new SqlParameter("@Search", search ?? (object)DBNull.Value));
             foreach (System.Data.DataRow r in dt.Rows)
             {
-                list.Add(new ThanhToanItem
+                var item = new ThanhToanItem
                 {
                     MaDatSan = Convert.ToInt64(r["MaDatSan"]),
                     TenKhachHang = r["HoTen"].ToString()!,
                     NgayDat = Convert.ToDateTime(r["NgayDat"]),
                     TenCoSo = r["TenCS"].ToString()!,
                     TrangThai = r["TrangThai"].ToString()!,
-                    TienSan = Convert.ToDecimal(r["TienSan"])
-                });
+                    TienSan = Convert.ToDecimal(r["TienSan"]),
+                    TienDichVu = Convert.ToDecimal(r["TienDichVu"]),
+                    SoLuongMon = Convert.ToInt32(r["SoLuongMon"])
+                };
+                Console.WriteLine($"DEBUG ROW: ID={item.MaDatSan}, TienSan={item.TienSan}, DV={item.TienDichVu}, SLMon={item.SoLuongMon}");
+                item.TongTien = item.TienSan + item.TienDichVu;
+                list.Add(item);
             }
 
             return View(list);
@@ -129,6 +141,9 @@ namespace webapp_mvc.Controllers
         public string TenCoSo { get; set; }
         public string TrangThai { get; set; }
         public decimal TienSan { get; set; }
+        public decimal TienDichVu { get; set; } // Debug property
+        public int SoLuongMon { get; set; } // Debug property
+        public decimal TongTien { get; set; } // Total including services
     }
 
     public class HoaDonViewModel {

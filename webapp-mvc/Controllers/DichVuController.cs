@@ -392,8 +392,50 @@ namespace webapp_mvc.Controllers
                         new SqlParameter("@MaDatSan", model.MaDatSan),
                         new SqlParameter("@MaDV", item.MaDV),
                         new SqlParameter("@SoLuong", delta),
-                        new SqlParameter("@MaCSContext", string.IsNullOrEmpty(model.FilterMaCS) ? (object)DBNull.Value : model.FilterMaCS)
+                        // Fallback: Nếu không chọn CS (View All) -> Tạm lấy CS1 để tính giá/kho (Hoặc lấy từ item.TenCS nếu có logic đó)
+                        // Trong ngữ cảnh này, tôi sẽ ép kiểu về một CS mặc định nếu null để tránh lỗi SP
+                        new SqlParameter("@MaCSContext", string.IsNullOrEmpty(model.FilterMaCS) ? "CS1" : model.FilterMaCS)
                     };
+
+                    // 1. Check Trùng Lịch (HLV, Phòng VIP, Tủ Đồ - Các loại hình tính theo giờ)
+                    var loaiDV = item.LoaiDV?.ToLower() ?? "";
+                    var tenDV = item.TenDV?.ToLower() ?? "";
+                    
+                    bool isBookingResource = loaiDV.Contains("hlv") || loaiDV.Contains("huấn luyện") ||
+                                             loaiDV.Contains("phòng") || loaiDV.Contains("vip") ||
+                                             loaiDV.Contains("tủ") || loaiDV.Contains("locker") ||
+                                             tenDV.Contains("phòng") || tenDV.Contains("tủ");
+
+                    if (isBookingResource) 
+                    {
+                        string sqlCheckConflict = @"
+                            SELECT COUNT(*) 
+                            FROM CT_DICHVUDAT ct
+                            JOIN PHIEUDATSAN p ON ct.MaDatSan = p.MaDatSan
+                            WHERE ct.MaDV = @MaDV
+                            AND p.NgayDat = @NgayDat
+                            AND p.TrangThai NOT IN (N'Đã hủy', N'Nháp') -- Chỉ check đơn đã chốt
+                            AND (
+                                (@GioBatDau >= p.GioBatDau AND @GioBatDau < p.GioKetThuc) OR
+                                (@GioKetThuc > p.GioBatDau AND @GioKetThuc <= p.GioKetThuc) OR
+                                (p.GioBatDau >= @GioBatDau AND p.GioBatDau < @GioKetThuc)
+                            )
+                            -- Nếu đây là update số lượng cho chính phiếu này thì không tính là trùng
+                            AND p.MaDatSan != @MaDatSan"; 
+                        
+                        int conflict = _db.ExecuteScalar<int>(sqlCheckConflict, 
+                            new SqlParameter("@MaDV", item.MaDV),
+                            new SqlParameter("@NgayDat", model.NgayDat),
+                            new SqlParameter("@GioBatDau", model.GioBatDau),
+                            new SqlParameter("@GioKetThuc", model.GioKetThuc),
+                            new SqlParameter("@MaDatSan", model.MaDatSan));
+
+                        if (conflict > 0)
+                        {
+                            errors.Add($"Dịch vụ '{item.TenDV}' đã có người đặt trong khung giờ này! Vui lòng chọn giờ khác.");
+                            continue; // Bỏ qua item này
+                        }
+                    }
                     try 
                     {
                         // Call SP with Delta
@@ -410,16 +452,26 @@ namespace webapp_mvc.Controllers
                 }
             }
 
+            // DEBUG: Log incoming data
+            Console.WriteLine($"DEBUG POST Index: MaDatSan={model.MaDatSan}, Count={model.DanhSachDichVu?.Count ?? 0}");
+            if (model.DanhSachDichVu != null)
+            {
+                foreach (var d in model.DanhSachDichVu.Where(x => x.SoLuong > 0))
+                {
+                    Console.WriteLine($" - Item: {d.MaDV}, Qty: {d.SoLuong}, Name: {d.TenDV}");
+                }
+            }
+
             if (errors.Count > 0)
             {
-                // Nếu có lỗi, stay at page và hiện lỗi
+                // Nếu là AJAX -> Trả về JSON lỗi để hiện Alert
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = false, message = string.Join("\n", errors) });
+                }
+
+                // Nếu submit thường -> Hiện lỗi trên View
                 foreach (var err in errors) ModelState.AddModelError("", err);
-                // Load lại data hiển thị vì model trả về có thể thiếu info
-                // (Tạm redirect về GET với Msg lỗi nếu việc reload phức tạp, hoặc reload tại chỗ)
-                // Ở đây reload nhẹ:
-                // Cần load lại info vì Model binding chỉ có list input
-                // Logic load lại giống HttpGet (Refactor later)
-                // Để đơn giản tôi return Redirect với Error Query
                 return RedirectToAction("Index", new { maDatSan = model.MaDatSan, msg = string.Join("; ", errors) });
             }
 

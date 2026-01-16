@@ -36,6 +36,7 @@ namespace webapp_mvc.Models
     {
         public long MaDatSan { get; set; }
         public string MaSan { get; set; }
+        public string? LoaiSan { get; set; } // Court type for validation
         public DateTime NgayDat { get; set; }
         public TimeSpan GioBatDau { get; set; }
         public TimeSpan GioKetThuc { get; set; }

@@ -1232,6 +1232,7 @@ namespace webapp_mvc.Controllers
         }
 
         // API: Get revenue by time period
+        // API: Get revenue by time period
         [HttpGet]
         public IActionResult GetDoanhThuTheoThoiGian(string kieu = "thang", int nam = 2026)
         {
@@ -1244,25 +1245,55 @@ namespace webapp_mvc.Controllers
                     _ => "YEAR(HD.NgayLap)"
                 };
 
+                // Remove filters for "nam" mode to show multi-year trend (e.g., last 5 years)
+                // For "thang" and "quy", keep specific year filter
+                string whereClause = (kieu.ToLower() == "nam") 
+                    ? $"YEAR(HD.NgayLap) >= {nam - 4} AND YEAR(HD.NgayLap) <= {nam}" 
+                    : "YEAR(HD.NgayLap) = @Nam";
+
                 var query = $@"
                     SELECT 
                         {groupBy} AS KyHan,
                         ISNULL(SUM(HD.TongTien), 0) AS DoanhThu
                     FROM HOADON HD
-                    WHERE YEAR(HD.NgayLap) = @Nam
+                    WHERE {whereClause}
                     GROUP BY {groupBy}
                     ORDER BY KyHan";
 
                 var dt = _db.ExecuteQuery(query, new SqlParameter("@Nam", nam));
-                var data = new List<object>();
-
+                
+                // Use Dictionary to map results
+                var resultsMap = new Dictionary<int, decimal>();
                 foreach (DataRow row in dt.Rows)
                 {
-                    data.Add(new
+                    resultsMap[Convert.ToInt32(row["KyHan"])] = Convert.ToDecimal(row["DoanhThu"]);
+                }
+
+                var data = new List<object>();
+
+                if (kieu.ToLower() == "thang")
+                {
+                    // Fill 12 months
+                    for (int i = 1; i <= 12; i++)
                     {
-                        KyHan = Convert.ToInt32(row["KyHan"]),
-                        DoanhThu = Convert.ToDecimal(row["DoanhThu"])
-                    });
+                        data.Add(new { KyHan = i, DoanhThu = resultsMap.ContainsKey(i) ? resultsMap[i] : 0 });
+                    }
+                }
+                else if (kieu.ToLower() == "quy")
+                {
+                    // Fill 4 quarters
+                    for (int i = 1; i <= 4; i++)
+                    {
+                        data.Add(new { KyHan = i, DoanhThu = resultsMap.ContainsKey(i) ? resultsMap[i] : 0 });
+                    }
+                }
+                else
+                {
+                    // For years, just return what we have matching the 5-year range
+                    for (int i = nam - 4; i <= nam; i++)
+                    {
+                         data.Add(new { KyHan = i, DoanhThu = resultsMap.ContainsKey(i) ? resultsMap[i] : 0 });
+                    }
                 }
 
                 return Json(new { success = true, data });
@@ -1275,49 +1306,80 @@ namespace webapp_mvc.Controllers
 
         // API: Get court utilization rate
         [HttpGet]
-        public IActionResult GetTyLeSuDungSan(string? maCS = null)
+        public IActionResult GetTyLeSuDungSan(string? maCS = null, string? tuNgay = null, string? denNgay = null)
         {
             try
             {
-                var query = @"
+                // Calculate total booked hours
+                var queryBooked = @"
                     SELECT 
-                        S.MaSan,
-                        LS.TenLS + ' - ' + CS.TenCS AS TenSan,
-                        365 * 16 AS TongGioKhaDung,
-                        ISNULL(SUM(DATEDIFF(HOUR, PDS.GioBatDau, PDS.GioKetThuc)), 0) AS TongGioDat
-                    FROM SAN S
-                    JOIN LOAISAN LS ON S.MaLS = LS.MaLS
-                    JOIN COSO CS ON S.MaCS = CS.MaCS
-                    LEFT JOIN DATSAN DS ON S.MaSan = DS.MaSan
-                    LEFT JOIN PHIEUDATSAN PDS ON DS.MaDatSan = PDS.MaDatSan AND PDS.TrangThai NOT IN (N'Hủy', N'Vắng mặt')
-                    WHERE 1=1";
+                        ISNULL(SUM(DATEDIFF(MINUTE, P.GioBatDau, P.GioKetThuc) / 60.0), 0) AS TongGioDat
+                    FROM PHIEUDATSAN P
+                    JOIN DATSAN D ON P.MaDatSan = D.MaDatSan
+                    JOIN SAN S ON D.MaSan = S.MaSan
+                    WHERE P.TrangThai NOT IN (N'Đã hủy', N'Hủy', N'Nháp')";
 
                 var parameters = new List<SqlParameter>();
 
                 if (!string.IsNullOrEmpty(maCS))
                 {
-                    query += " AND S.MaCS = @MaCS";
+                    queryBooked += " AND S.MaCS = @MaCS";
                     parameters.Add(new SqlParameter("@MaCS", maCS));
                 }
 
-                query += " GROUP BY S.MaSan, LS.TenLS, CS.TenCS";
-
-                var dt = _db.ExecuteQuery(query, parameters.ToArray());
-                var data = new List<object>();
-
-                foreach (DataRow row in dt.Rows)
+                if (!string.IsNullOrEmpty(tuNgay))
                 {
-                    var tongGioKhaDung = Convert.ToInt32(row["TongGioKhaDung"]);
-                    var tongGioDat = Convert.ToInt32(row["TongGioDat"]);
-                    var tyLe = tongGioKhaDung > 0 ? (double)tongGioDat / tongGioKhaDung * 100 : 0;
-
-                    data.Add(new
-                    {
-                        MaSan = row["MaSan"].ToString(),
-                        TenSan = row["TenSan"].ToString(),
-                        TyLeSuDung = Math.Round(tyLe, 2)
-                    });
+                    queryBooked += " AND P.NgayDat >= @TuNgay";
+                    parameters.Add(new SqlParameter("@TuNgay", DateTime.Parse(tuNgay)));
                 }
+
+                if (!string.IsNullOrEmpty(denNgay))
+                {
+                    queryBooked += " AND P.NgayDat <= @DenNgay";
+                    parameters.Add(new SqlParameter("@DenNgay", DateTime.Parse(denNgay)));
+                }
+
+                var dtBooked = _db.ExecuteQuery(queryBooked, parameters.ToArray());
+                var tongGioDat = dtBooked.Rows.Count > 0 ? Convert.ToDecimal(dtBooked.Rows[0]["TongGioDat"]) : 0;
+
+                // Calculate total available hours
+                var queryAvailable = @"
+                    SELECT 
+                        COUNT(DISTINCT S.MaSan) AS SoSan,
+                        ISNULL(AVG(DATEDIFF(MINUTE, CS.GioMoCua, CS.GioDongCua) / 60.0), 12) AS GioHoatDongTB
+                    FROM SAN S
+                    JOIN COSO CS ON S.MaCS = CS.MaCS
+                    WHERE 1=1";
+
+                var params2 = new List<SqlParameter>();
+                if (!string.IsNullOrEmpty(maCS))
+                {
+                    queryAvailable += " AND S.MaCS = @MaCS";
+                    params2.Add(new SqlParameter("@MaCS", maCS));
+                }
+
+                var dtAvailable = _db.ExecuteQuery(queryAvailable, params2.ToArray());
+                var soSan = dtAvailable.Rows.Count > 0 ? Convert.ToInt32(dtAvailable.Rows[0]["SoSan"]) : 0;
+                var gioHoatDong = dtAvailable.Rows.Count > 0 ? Convert.ToDecimal(dtAvailable.Rows[0]["GioHoatDongTB"]) : 12;
+
+                // Calculate number of days
+                var soNgay = 30; // Default 30 days
+                if (!string.IsNullOrEmpty(tuNgay) && !string.IsNullOrEmpty(denNgay))
+                {
+                    soNgay = (DateTime.Parse(denNgay) - DateTime.Parse(tuNgay)).Days + 1;
+                }
+
+                var tongGioCoThe = soSan * gioHoatDong * soNgay;
+                var tyLe = tongGioCoThe > 0 ? (tongGioDat / tongGioCoThe) * 100 : 0;
+
+                var data = new
+                {
+                    TongGioDat = Math.Round(tongGioDat, 2),
+                    TongGioCoThe = Math.Round(tongGioCoThe, 2),
+                    TyLeSuDung = Math.Round(tyLe, 2),
+                    SoSan = soSan,
+                    SoNgay = soNgay
+                };
 
                 return Json(new { success = true, data });
             }
@@ -1335,9 +1397,14 @@ namespace webapp_mvc.Controllers
             {
                 var query = @"
                     SELECT 
-                        CASE WHEN PDS.KenhDat = N'Website' THEN N'Online' ELSE N'Trực tiếp' END AS HinhThuc,
+                        CASE 
+                            WHEN NV.MaNV IS NOT NULL THEN N'Trực tiếp'
+                            WHEN PDS.KenhDat IN (N'Website', N'Online', N'App') THEN N'Online' 
+                            ELSE N'Trực tiếp' 
+                        END AS HinhThuc,
                         COUNT(*) AS SoLuong
                     FROM PHIEUDATSAN PDS
+                    LEFT JOIN NHANVIEN NV ON PDS.NguoiLap = NV.MaNV
                     WHERE PDS.TrangThai NOT IN (N'Hủy')";
 
                 var parameters = new List<SqlParameter>();
@@ -1354,7 +1421,12 @@ namespace webapp_mvc.Controllers
                     parameters.Add(new SqlParameter("@DenNgay", DateTime.Parse(denNgay)));
                 }
 
-                query += " GROUP BY CASE WHEN PDS.KenhDat = N'Website' THEN N'Online' ELSE N'Trực tiếp' END";
+                query += @" GROUP BY 
+                    CASE 
+                        WHEN NV.MaNV IS NOT NULL THEN N'Trực tiếp'
+                        WHEN PDS.KenhDat IN (N'Website', N'Online', N'App') THEN N'Online' 
+                        ELSE N'Trực tiếp' 
+                    END";
 
                 var dt = _db.ExecuteQuery(query, parameters.ToArray());
                 var data = new List<object>();
@@ -1384,12 +1456,23 @@ namespace webapp_mvc.Controllers
             {
                 var query = @"
                     SELECT 
-                        COUNT(*) AS SoLuongHuy,
-                        ISNULL(SUM(HD.TongTien * 0.1), 0) AS TienMat,
-                        (SELECT COUNT(*) FROM PHIEUDATSAN WHERE TrangThai = N'Vắng mặt') AS SoNoShow
+                        COUNT(DISTINCT PDS.MaDatSan) AS SoLuongHuy,
+                        ISNULL(SUM(
+                            CASE 
+                                WHEN HD.MaHD IS NULL THEN 0 
+                                ELSE 
+                                    CASE 
+                                        WHEN DATEDIFF(HOUR, CAST(HD.NgayLap AS DATETIME), CAST(PDS.NgayDat AS DATETIME) + CAST(PDS.GioBatDau AS DATETIME)) > 24 
+                                        THEN (DATEDIFF(MINUTE, PDS.GioBatDau, PDS.GioKetThuc)/60.0 * S.GiaSan) * 0.1
+                                        ELSE (DATEDIFF(MINUTE, PDS.GioBatDau, PDS.GioKetThuc)/60.0 * S.GiaSan) * 0.5
+                                    END
+                            END
+                        ), 0) AS TienPhat
                     FROM PHIEUDATSAN PDS
-                    LEFT JOIN HOADON HD ON PDS.MaDatSan = HD.MaPhieu
-                    WHERE PDS.TrangThai = N'Hủy'";
+                    JOIN DATSAN DS ON PDS.MaDatSan = DS.MaDatSan
+                    JOIN SAN S ON DS.MaSan = S.MaSan
+                    LEFT JOIN HOADON HD ON PDS.MaDatSan = HD.MaPhieu AND (HD.HinhThucTT LIKE N'%phạt%' OR HD.HinhThucTT LIKE N'%hủy%')
+                    WHERE PDS.TrangThai IN (N'Đã hủy', N'Hủy')";
 
                 var parameters = new List<SqlParameter>();
 
@@ -1409,8 +1492,7 @@ namespace webapp_mvc.Controllers
                 var data = new
                 {
                     SoLuongHuy = dt.Rows.Count > 0 ? Convert.ToInt32(dt.Rows[0]["SoLuongHuy"]) : 0,
-                    TienMat = dt.Rows.Count > 0 ? Convert.ToDecimal(dt.Rows[0]["TienMat"]) : 0,
-                    SoNoShow = dt.Rows.Count > 0 ? Convert.ToInt32(dt.Rows[0]["SoNoShow"]) : 0
+                    TienPhat = dt.Rows.Count > 0 ? Convert.ToDecimal(dt.Rows[0]["TienPhat"]) : 0
                 };
 
                 return Json(new { success = true, data });
@@ -1625,7 +1707,7 @@ namespace webapp_mvc.Controllers
                         giaApDung = row["GiaApDung"] != DBNull.Value ? Convert.ToDecimal(row["GiaApDung"]) : 0,
                         loaiNgay = row["LoaiNgay"]?.ToString(),
                         tenKhungGio = row["TenKhungGio"]?.ToString(),
-                        trangThai = row["TrangThai"] == DBNull.Value || Convert.ToBoolean(row["TrangThai"]),
+                        trangThai = row["TrangThai"]?.ToString() ?? "Đang áp dụng",
                         ngayTao = row["NgayTao"] != DBNull.Value ? Convert.ToDateTime(row["NgayTao"]).ToString("dd/MM/yyyy HH:mm") : ""
                     });
                 }
@@ -1753,34 +1835,14 @@ namespace webapp_mvc.Controllers
 
                 if (trangThai.HasValue)
                 {
-                    if (trangThai.Value) // Filter Active: (TrangThai = 1 OR NULL) AND (Not Expired)
+                    if (trangThai.Value) // Filter Active
                     {
-                        query += " AND (TrangThai = 1 OR TrangThai IS NULL)";
-                        // Optional: To strictly filter out expired items from "Active" list
-                        // query += " AND (NgayKetThuc IS NULL OR NgayKetThuc >= CAST(GETDATE() AS DATE))";
-                        // However, user requirement emphasizes UI display state. 
-                        // Let's keep it simple: Active = Not Paused. Expired items are still "Active" in DB status, just expired.
-                        // But logically, if I search "Active", I expect valid ones? 
-                        // Let's add the date check for strict correctness if filtering Active.
+                        query += " AND TrangThai = N'Đang áp dụng'";
                         query += " AND (NgayKetThuc IS NULL OR NgayKetThuc >= CAST(GETDATE() AS DATE))";
                     }
-                    else // Filter Paused (or Expired? No, filter name is "Trạng thái").
+                    else // Filter Paused
                     {
-                        // If user selects "Tạm dừng" (false), show explicitly paused items.
-                        // What about "Đã kết thúc"? If UI has only 2 options (Active/Paused), 
-                        // "Đã kết thúc" items (Active but Expired) won't show in "Active" (due to date check)
-                        // and won't show in "Paused" (TrangThai=1). They disappear?
-                        // We should probably allow Expired to show if we don't have a specific filter for it.
-                        // OR, maybe the filter dropdown needs a 3rd option?
-                        // For now, let's stick to standard behavior: 
-                        // "Trạng thái" usually refers to the toggle switch (Active/Paused).
-                        // So Active = (TrangThai=1 OR NULL). Paused = (TrangThai=0).
-                        // I will NOT filter by date here to ensure expired items (which are technically 'Active' configuration-wise) still show up 
-                        // so user can edit them (e.g. extend date). Hiding them makes them inaccessible.
-                        
-                        // REVERTING Date check decision: Use standard status column filtering to prevent data loss.
-                        // User can see "Đã kết thúc" status in the row.
-                        query += " AND TrangThai = 0";
+                        query += " AND TrangThai = N'Tạm dừng'";
                     }
                 }
                 else 
@@ -1806,8 +1868,7 @@ namespace webapp_mvc.Controllers
                         ngayKetThuc = row["NgayKetThuc"] != DBNull.Value ? Convert.ToDateTime(row["NgayKetThuc"]).ToString("dd/MM/yyyy") : "",
                         giaTriToiThieu = row["GiaTriToiThieu"] != DBNull.Value ? Convert.ToDecimal(row["GiaTriToiThieu"]) : 0,
                         soGioToiThieu = row["SoGioToiThieu"] != DBNull.Value ? Convert.ToInt32(row["SoGioToiThieu"]) : 0,
-                        // Fix: DBNull -> true (Active)
-                        trangThai = row["TrangThai"] == DBNull.Value || Convert.ToBoolean(row["TrangThai"]),
+                        trangThai = row["TrangThai"]?.ToString() ?? "Đang áp dụng",
                         ngayTao = row["NgayTao"] != DBNull.Value ? Convert.ToDateTime(row["NgayTao"]).ToString("dd/MM/yyyy HH:mm") : ""
                     });
                 }
@@ -1963,6 +2024,7 @@ namespace webapp_mvc.Controllers
                         tenThamSo = row["TenThamSo"]?.ToString(),
                         giaTri = row["GiaTri"]?.ToString(),
                         donVi = row["DonVi"]?.ToString(),
+                        loaiThamSo = row["LoaiThamSo"]?.ToString(),
                         moTa = row["MoTa"]?.ToString(),
                         ngayCapNhat = row["NgayCapNhat"] != DBNull.Value ? Convert.ToDateTime(row["NgayCapNhat"]).ToString("dd/MM/yyyy HH:mm") : ""
                     });
@@ -2098,6 +2160,115 @@ namespace webapp_mvc.Controllers
                 return Json(new { success = false, message = "Lỗi: " + ex.Message });
             }
         }
+        public IActionResult UpdateSchemaForManagement()
+        {
+            try
+            {
+                // Step 1: Create table or add missing columns
+                var sqlStep1 = @"
+                    -- 1. Create table THAMSO_HETHONG if not exists
+                    IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[THAMSO_HETHONG]') AND type in (N'U'))
+                    BEGIN
+                        CREATE TABLE [dbo].[THAMSO_HETHONG](
+                            [MaThamSo] [varchar](50) NOT NULL,
+                            [TenThamSo] [nvarchar](255) NULL,
+                            [GiaTri] [nvarchar](255) NULL,
+                            [DonVi] [nvarchar](50) NULL,
+                            [MoTa] [nvarchar](500) NULL,
+                            [LoaiThamSo] [nvarchar](50) NULL,
+                            [NgayCapNhat] [datetime] NULL DEFAULT GETDATE(),
+                         CONSTRAINT [PK_THAMSO_HETHONG] PRIMARY KEY CLUSTERED 
+                        (
+                            [MaThamSo] ASC
+                        ) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+                        ) ON [PRIMARY]
+                    END
+                    
+                    -- Add missing columns if table exists
+                    IF NOT EXISTS(SELECT 1 FROM sys.columns WHERE Name = N'DonVi' AND Object_ID = Object_ID(N'THAMSO_HETHONG'))
+                    BEGIN
+                        ALTER TABLE THAMSO_HETHONG ADD DonVi NVARCHAR(50) NULL;
+                    END
+                    IF NOT EXISTS(SELECT 1 FROM sys.columns WHERE Name = N'NgayCapNhat' AND Object_ID = Object_ID(N'THAMSO_HETHONG'))
+                    BEGIN
+                        ALTER TABLE THAMSO_HETHONG ADD NgayCapNhat DATETIME DEFAULT GETDATE() WITH VALUES;
+                    END
+
+                    -- 2. Add missing columns to KHUNGGIO
+                    IF NOT EXISTS(SELECT 1 FROM sys.columns WHERE Name = N'LoaiNgay' AND Object_ID = Object_ID(N'KHUNGGIO'))
+                    BEGIN
+                        ALTER TABLE KHUNGGIO ADD LoaiNgay NVARCHAR(50) DEFAULT N'Thường' WITH VALUES;
+                    END
+                    IF NOT EXISTS(SELECT 1 FROM sys.columns WHERE Name = N'TenKhungGio' AND Object_ID = Object_ID(N'KHUNGGIO'))
+                    BEGIN
+                        ALTER TABLE KHUNGGIO ADD TenKhungGio NVARCHAR(100) NULL;
+                    END
+                    IF NOT EXISTS(SELECT 1 FROM sys.columns WHERE Name = N'TrangThai' AND Object_ID = Object_ID(N'KHUNGGIO'))
+                    BEGIN
+                        ALTER TABLE KHUNGGIO ADD TrangThai NVARCHAR(50) DEFAULT N'Đang áp dụng' WITH VALUES;
+                    END
+                    IF NOT EXISTS(SELECT 1 FROM sys.columns WHERE Name = N'NgayTao' AND Object_ID = Object_ID(N'KHUNGGIO'))
+                    BEGIN
+                        ALTER TABLE KHUNGGIO ADD NgayTao DATETIME DEFAULT GETDATE() WITH VALUES;
+                    END
+
+                    -- 3. Add missing columns to UUDAI
+                    IF NOT EXISTS(SELECT 1 FROM sys.columns WHERE Name = N'LoaiUuDai' AND Object_ID = Object_ID(N'UUDAI'))
+                    BEGIN
+                        ALTER TABLE UUDAI ADD LoaiUuDai NVARCHAR(50) DEFAULT N'Giảm giá trực tiếp' WITH VALUES;
+                    END
+                    IF NOT EXISTS(SELECT 1 FROM sys.columns WHERE Name = N'NgayBatDau' AND Object_ID = Object_ID(N'UUDAI'))
+                    BEGIN
+                        ALTER TABLE UUDAI ADD NgayBatDau DATE DEFAULT GETDATE() WITH VALUES;
+                    END
+                    IF NOT EXISTS(SELECT 1 FROM sys.columns WHERE Name = N'NgayKetThuc' AND Object_ID = Object_ID(N'UUDAI'))
+                    BEGIN
+                        ALTER TABLE UUDAI ADD NgayKetThuc DATE DEFAULT DATEADD(year, 1, GETDATE()) WITH VALUES;
+                    END
+                    IF NOT EXISTS(SELECT 1 FROM sys.columns WHERE Name = N'GiaTriToiThieu' AND Object_ID = Object_ID(N'UUDAI'))
+                    BEGIN
+                        ALTER TABLE UUDAI ADD GiaTriToiThieu DECIMAL(18,2) DEFAULT 0 WITH VALUES;
+                    END
+                    IF NOT EXISTS(SELECT 1 FROM sys.columns WHERE Name = N'SoGioToiThieu' AND Object_ID = Object_ID(N'UUDAI'))
+                    BEGIN
+                        ALTER TABLE UUDAI ADD SoGioToiThieu INT DEFAULT 0 WITH VALUES;
+                    END
+                    IF NOT EXISTS(SELECT 1 FROM sys.columns WHERE Name = N'TrangThai' AND Object_ID = Object_ID(N'UUDAI'))
+                    BEGIN
+                        ALTER TABLE UUDAI ADD TrangThai NVARCHAR(50) DEFAULT N'Đang áp dụng' WITH VALUES;
+                    END
+                    IF NOT EXISTS(SELECT 1 FROM sys.columns WHERE Name = N'NgayTao' AND Object_ID = Object_ID(N'UUDAI'))
+                    BEGIN
+                        ALTER TABLE UUDAI ADD NgayTao DATETIME DEFAULT GETDATE() WITH VALUES;
+                    END
+                ";
+
+                _db.ExecuteNonQuery(sqlStep1);
+
+                // Step 2: Insert default data (in separate transaction after columns exist)
+                var sqlStep2 = @"
+                    IF NOT EXISTS(SELECT 1 FROM THAMSO_HETHONG)
+                    BEGIN
+                        INSERT [dbo].[THAMSO_HETHONG] ([MaThamSo], [TenThamSo], [GiaTri], [DonVi], [MoTa], [LoaiThamSo]) VALUES 
+                        (N'PHAT_HUY_SAN', N'Phí phạt hủy sân sát giờ', N'20', N'%', N'Phần trăm phí phạt khi hủy sân trước giờ đặt dưới 2 tiếng', N'Số'),
+                        (N'THOI_GIAN_HUY_FREE', N'Thời gian hủy miễn phí', N'12', N'giờ', N'Số giờ tối thiểu hủy đơn để được hoàn tiền 100%', N'Số'),
+                        (N'DIEM_THUONG_DAT_SAN', N'Điểm thưởng đặt sân', N'10', N'điểm/100k', N'Tỷ lệ điểm thưởng trên giá trị hóa đơn (100k = 10 điểm)', N'Số'),
+                        (N'PHU_THU_NGAY_LE', N'Phụ thu ngày lễ', N'30', N'%', N'Phần trăm tăng giá vào ngày lễ', N'Số'),
+                        (N'GIO_MO_CUA_MAC_DINH', N'Giờ mở cửa mặc định', N'05:00', N'', N'Giờ mở cửa áp dụng cho tất cả cơ sở nếu không quy định riêng', N'Thời gian'),
+                        (N'GIO_DONG_CUA_MAC_DINH', N'Giờ đóng cửa mặc định', N'22:00', N'', N'Giờ đóng cửa áp dụng cho tất cả cơ sở nếu không quy định riêng', N'Thời gian')
+                    END
+                ";
+
+                _db.ExecuteNonQuery(sqlStep2);
+
+                return Content("✅ Đã cập nhật Database thành công! Bây giờ bạn có thể sử dụng chức năng Quản lý giá.");
+            }
+            catch (Exception ex)
+            {
+                return Content("❌ Lỗi cập nhật DB: " + ex.Message);
+            }
+        }
+
     }
 
     // Request models

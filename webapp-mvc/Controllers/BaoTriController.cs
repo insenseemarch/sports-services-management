@@ -124,11 +124,19 @@ namespace webapp_mvc.Controllers
                     new SqlParameter("@MaPhieu", maPhieu),
                     new SqlParameter("@MaNV", maUser));
 
-                // 2. Cập nhật tình trạng sân
+                // 2. Set CONTEXT_INFO để trigger nhận biết đây là thao tác bảo trì
+                string setContextSql = "SET CONTEXT_INFO 0x4D41494E54454E414E4345"; // 'MAINTENANCE' in hex
+                _db.ExecuteNonQuery(setContextSql);
+
+                // 3. Cập nhật tình trạng sân
                 string updateSanSql = "UPDATE SAN SET TinhTrang = @TinhTrangSan WHERE MaSan = @MaSan";
                 _db.ExecuteNonQuery(updateSanSql,
                     new SqlParameter("@TinhTrangSan", tinhTrangSan),
                     new SqlParameter("@MaSan", maSan));
+
+                // 4. Reset CONTEXT_INFO
+                string resetContextSql = "SET CONTEXT_INFO 0x0";
+                _db.ExecuteNonQuery(resetContextSql);
 
                 TempData["Success"] = "Cập nhật phiếu bảo trì thành công!";
                 return RedirectToAction("Index");

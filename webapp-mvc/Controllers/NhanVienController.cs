@@ -32,13 +32,17 @@ namespace webapp_mvc.Controllers
                 SELECT p.MaDatSan, p.NgayDat, p.GioBatDau, p.GioKetThuc, p.TrangThai, p.NgayTao,
                        ISNULL(kh.HoTen, N'Khách vãng lai') as TenKhachHang, ISNULL(kh.SDT, '') as SDT,
                        s.MaSan, ls.TenLS, cs.TenCS,
-                       dbo.f_TinhTienSan(p.MaDatSan) as TienSan
+                       dbo.f_TinhTienSan(p.MaDatSan) as TienCourt,
+                       ISNULL(SUM(ct.SoLuong * dv.DonGia), 0) as TienDichVu,
+                       (dbo.f_TinhTienSan(p.MaDatSan) + ISNULL(SUM(ct.SoLuong * dv.DonGia), 0)) as TienSan -- GHI DE VAO COT TIENSAN DE HIEN THI
                 FROM PHIEUDATSAN p
                 LEFT JOIN KHACHHANG kh ON p.MaKH = kh.MaKH
                 LEFT JOIN DATSAN d ON p.MaDatSan = d.MaDatSan
                 LEFT JOIN SAN s ON d.MaSan = s.MaSan
                 LEFT JOIN LOAISAN ls ON s.MaLS = ls.MaLS
                 LEFT JOIN COSO cs ON s.MaCS = cs.MaCS
+                LEFT JOIN CT_DICHVUDAT ct ON p.MaDatSan = ct.MaDatSan
+                LEFT JOIN DICHVU dv ON ct.MaDV = dv.MaDV
                 WHERE 1=1";
 
             var parameters = new List<SqlParameter>();
@@ -86,6 +90,7 @@ namespace webapp_mvc.Controllers
                 ViewBag.Status = status;
             }
 
+            sql += " GROUP BY p.MaDatSan, p.NgayDat, p.GioBatDau, p.GioKetThuc, p.TrangThai, p.NgayTao, kh.HoTen, kh.SDT, s.MaSan, ls.TenLS, cs.TenCS";
             sql += " ORDER BY p.NgayTao DESC, p.MaDatSan DESC";
 
             var dt = _db.ExecuteQuery(sql, parameters.ToArray());
@@ -430,6 +435,64 @@ namespace webapp_mvc.Controllers
             TempData["SuccessMessage"] = "Đơn xin nghỉ phép của bạn đã được gửi thành công!";
             TempData["ShowSuccessModal"] = "true"; // Trigger modal in View
             return RedirectToAction("LichLamViec");
+        }
+        [HttpGet]
+        public IActionResult GetBookingStats(string fromDate = null, string toDate = null)
+        {
+            try
+            {
+                var maUser = HttpContext.Session.GetString("MaUser");
+                var vaiTro = HttpContext.Session.GetString("VaiTro");
+                
+                string sql = @"
+                    SELECT TrangThai, COUNT(*) as SoLuong
+                    FROM PHIEUDATSAN p
+                    WHERE p.TrangThai != N'Nháp'";
+
+                var parameters = new List<SqlParameter>();
+
+                // Filter by role (User only sees their own created bookings unless Manager/Cashier)
+                if (vaiTro != "Thu ngân" && vaiTro != "Quản lý")
+                {
+                     // Check if NguoiLap exists before filtering to avoid errors on old DB versions
+                     try {
+                        _db.ExecuteQuery("SELECT TOP 1 NguoiLap FROM PHIEUDATSAN");
+                        sql += " AND p.NguoiLap = @MaNV";
+                        parameters.Add(new SqlParameter("@MaNV", maUser));
+                     } catch {}
+                }
+
+                if (!string.IsNullOrEmpty(fromDate))
+                {
+                    sql += " AND p.NgayDat >= @FromDate";
+                    parameters.Add(new SqlParameter("@FromDate", DateTime.Parse(fromDate)));
+                }
+
+                if (!string.IsNullOrEmpty(toDate))
+                {
+                    sql += " AND p.NgayDat <= @ToDate";
+                    parameters.Add(new SqlParameter("@ToDate", DateTime.Parse(toDate)));
+                }
+
+                sql += " GROUP BY TrangThai";
+
+                var dt = _db.ExecuteQuery(sql, parameters.ToArray());
+                
+                var data = new List<object>();
+                foreach(System.Data.DataRow row in dt.Rows)
+                {
+                    data.Add(new { 
+                        label = row["TrangThai"].ToString(), 
+                        count = Convert.ToInt32(row["SoLuong"]) 
+                    });
+                }
+
+                return Json(new { success = true, data = data });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
     }
 }

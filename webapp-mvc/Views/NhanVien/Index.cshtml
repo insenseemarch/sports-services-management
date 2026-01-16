@@ -44,15 +44,56 @@
                                     <option value="Đã hủy" selected="@(ViewBag.Status == "Đã hủy" ? "selected" : null)">Đã hủy</option>
                                 </select>
                             </div>
-                            <div class="col-md-3">
-                                <button type="submit" class="btn btn-success w-100 rounded-pill">
+                            <div class="col-md-3 d-flex gap-2">
+                                <button type="submit" class="btn btn-success flex-grow-1 rounded-pill">
                                     <i class="fas fa-filter me-2"></i>Lọc
+                                </button>
+                                <button type="button" class="btn btn-info flex-grow-1 rounded-pill text-white" onclick="toggleStats()">
+                                    <i class="fas fa-chart-pie me-2"></i>Biểu đồ
                                 </button>
                             </div>
                         </div>
                     </form>
+                    
+                    <!-- Khu vực Biểu đồ (Collapse) -->
+                    <div class="collapse mt-4" id="statsContainer">
+                        <div class="card border border-success border-opacity-25 bg-light rounded-4">
+                            <div class="card-body position-relative text-center">
+                                <button type="button" class="btn-close position-absolute top-0 end-0 m-3" onclick="toggleStats()"></button>
+                                <h5 class="fw-bold text-success mb-3">Tỷ lệ trạng thái phiếu đặt</h5>
+                                
+                                <div class="row justify-content-center">
+                                    <div class="col-md-6" style="height: 300px;">
+                                        <canvas id="statusChart"></canvas>
+                                    </div>
+                                </div>
+                                <p class="mt-2 text-muted small fst-italic" id="statsFilterInfo"></p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            @if (ViewBag.SuccessMessage != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show rounded-3" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>@ViewBag.SuccessMessage
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <!-- ... Table Content skipped ... -->
+            <!-- Note: I will only replace the top part and script part. The middle table part remains mostly same but I need to be careful with line numbers. -->
+            <!-- Actually, since the Modal was at bottom, I should remove it from bottom and put the container at top. -->
+            <!-- Let's replace the Script block completely first, then I will handle the HTML structure carefully. -->
+            
+            <!-- IMPORTANT: Since I cannot replace non-contiguous blocks easily without messing up, I will do it in 2 steps. -->
+            <!-- Step 1: Replace the Script block at the bottom (old script + modal removal) -->
+            <!-- Step 2: Adds the Collapse Div near the form. -->
+            
+            <!-- Wait, the user instruction implies a single action if possible. -->
+            <!-- I will replace the SCRIPT section first (Lines ~144 to end). -->
+
 
             @if (ViewBag.SuccessMessage != null)
             {
@@ -75,7 +116,7 @@
                                         <th>Sân</th>
                                         <th>Ngày Đặt</th>
                                         <th>Giờ</th>
-                                        <th>Tiền Sân</th>
+                                        <th>Tổng Tiền</th>
                                         <th>Trạng Thái</th>
                                         <th class="text-center pe-4">Thao Tác</th>
                                     </tr>
@@ -141,3 +182,120 @@
         </div>
     </div>
 </div>
+
+<!-- Chart.js & Datalabels Plugin -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+
+<script>
+    // Register plugin globally
+    Chart.register(ChartDataLabels);
+
+    let myChart = null;
+
+    function toggleStats() {
+        const container = document.getElementById('statsContainer');
+        const bsCollapse = new bootstrap.Collapse(container, { toggle: false });
+        
+        if (container.classList.contains('show')) {
+            bsCollapse.hide();
+        } else {
+            loadStatsData();
+            bsCollapse.show();
+        }
+    }
+
+    function loadStatsData() {
+        const fromDate = document.querySelector('input[name="fromDate"]').value;
+        const toDate = document.querySelector('input[name="toDate"]').value;
+
+        fetch(`/NhanVien/GetBookingStats?fromDate=${fromDate}&toDate=${toDate}`)
+            .then(response => response.json())
+            .then(res => {
+                if (res.success) {
+                    renderChart(res.data);
+                    
+                    let filterText = "Dữ liệu tính trên tất cả thời gian";
+                    if (fromDate && toDate) filterText = `Dữ liệu từ ${formatDateV2(fromDate)} đến ${formatDateV2(toDate)}`;
+                    else if (fromDate) filterText = `Dữ liệu từ ${formatDateV2(fromDate)}`;
+                    else if (toDate) filterText = `Dữ liệu đến ${formatDateV2(toDate)}`;
+                    document.getElementById('statsFilterInfo').innerText = filterText;
+                } else {
+                    alert("Lỗi tải thống kê: " + res.message);
+                }
+            })
+            .catch(err => console.error(err));
+    }
+
+    function renderChart(data) {
+        const ctx = document.getElementById('statusChart').getContext('2d');
+        
+        const labels = data.map(item => item.label);
+        const values = data.map(item => item.count);
+        const total = values.reduce((a, b) => a + b, 0);
+        
+        // Colors Logic (Improved Order)
+        const bgColors = labels.map(label => {
+            let l = label.toLowerCase();
+            if (l.includes("huỷ") || l.includes("hủy") || l.includes("no-show")) return '#ef4444'; // Red (Cancelled)
+            if (l.includes("chờ")) return '#f59e0b'; // Yellow/Orange (Pending)
+            if (l.includes("thanh toán") || l.includes("đã đặt") || l.includes("hoàn thành")) return '#10b981'; // Green (Success)
+            return '#6b7280'; // Gray (Other)
+        });
+
+        if (myChart) myChart.destroy();
+
+        myChart = new Chart(ctx, {
+            type: 'pie', // Pie chart is good for ratios
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: bgColors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right', // Legend on right looks cleaner for dropdown
+                        labels: {
+                            font: { size: 12 },
+                            boxWidth: 15
+                        }
+                    },
+                    datalabels: {
+                        color: '#fff',
+                        font: {
+                            weight: 'bold',
+                            size: 14
+                        },
+                        formatter: (value, ctx) => {
+                            if (value === 0) return "";
+                            let percentage = (value * 100 / total).toFixed(1) + "%";
+                            return percentage; // Show only % on the slice
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                let value = context.parsed || 0;
+                                let pct = (value * 100 / total).toFixed(1) + "%";
+                                return `${label}: ${value} phiếu (${pct})`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function formatDateV2(dateStr) {
+        if (!dateStr) return "";
+        const [year, month, day] = dateStr.split('-');
+        return `${day}/${month}/${year}`;
+    }
+</script>

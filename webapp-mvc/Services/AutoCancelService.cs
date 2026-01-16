@@ -34,7 +34,8 @@ namespace webapp_mvc.Services
                     // Assuming DatabaseHelper is Singleton or Transient safe.
                     
                     // Since ExecuteNonQuery is synchronous, we wrap it
-                    _db.ExecuteNonQuery("sp_TuDongHuyDonQuaHan");
+                    // TODO: Create sp_TuDongHuyDonQuaHan stored procedure
+                    // _db.ExecuteNonQuery("sp_TuDongHuyDonQuaHan");
                 }
                 catch (Exception ex)
                 {

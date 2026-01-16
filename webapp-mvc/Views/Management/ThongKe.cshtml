@@ -314,16 +314,12 @@
                     <h4><i class="fas fa-ban"></i> Tình Hình Hủy Sân</h4>
                     <div id="cancelStats" class="p-3">
                         <div class="stat-summary">
-                            <h3 id="statSoLuongHuy">-</h3>
+                            <h3 id="statSoLuongHuy">0</h3>
                             <p>Số lượng hủy</p>
                         </div>
                         <div class="stat-summary">
-                            <h3 id="statTienMat">-</h3>
+                            <h3 id="statTienMat">0 VNĐ</h3>
                             <p>Tiền mất do hủy</p>
-                        </div>
-                        <div class="stat-summary">
-                            <h3 id="statNoShow">-</h3>
-                            <p>Tỷ lệ No-show</p>
                         </div>
                     </div>
                 </div>
@@ -640,37 +636,44 @@
     async function loadCourtUtilization() {
         try {
             const maCS = document.getElementById('filterCoSo').value;
-            const params = maCS ? `?maCS=${maCS}` : '';
+            const tuNgay = document.getElementById('filterTuNgay').value;
+            const denNgay = document.getElementById('filterDenNgay').value;
             
-            const res = await fetch(`@Url.Action("GetTyLeSuDungSan", "Management")${params}`);
+            const params = new URLSearchParams({ tuNgay, denNgay });
+            if (maCS) params.append('maCS', maCS);
+            
+            const res = await fetch(`@Url.Action("GetTyLeSuDungSan", "Management")?${params}`);
             const result = await res.json();
             
             if (!result.success) throw new Error(result.message);
             
-            const labels = result.data.map(d => d.tenSan);
-            const data = result.data.map(d => d.tyLeSuDung);
+            // API returns aggregate object: { tongGioDat, tongGioCoThe, tyLeSuDung, ... }
+            const data = result.data;
+            const hoursUsed = data.tongGioDat;
+            const hoursTotal = data.tongGioCoThe;
+            const hoursEmpty = Math.max(0, hoursTotal - hoursUsed);
             
             if (charts.tyLeSuDung) charts.tyLeSuDung.destroy();
             
             const ctx = document.getElementById('chartTyLeSuDung').getContext('2d');
             charts.tyLeSuDung = new Chart(ctx, {
-                type: 'bar',
+                type: 'doughnut',
                 data: {
-                    labels: labels,
+                    labels: ['Giờ đã đặt', 'Giờ còn trống'],
                     datasets: [{
-                        label: 'Tỷ lệ sử dụng (%)',
-                        data: data,
-                        backgroundColor: data.map(v => 
-                            v >= 75 ? 'rgba(76, 175, 80, 0.8)' : 
-                            v >= 50 ? 'rgba(255, 193, 7, 0.8)' : 
-                            'rgba(244, 67, 54, 0.8)'
-                        ),
-                        borderWidth: 2,
-                        borderRadius: 8
+                        data: [hoursUsed, hoursEmpty],
+                        backgroundColor: [
+                            'rgba(76, 175, 80, 0.8)',  // Green for Used
+                            'rgba(224, 224, 224, 0.8)' // Gray for Empty
+                        ],
+                        borderColor: [
+                            'rgba(76, 175, 80, 1)',
+                            'rgba(189, 189, 189, 1)'
+                        ],
+                        borderWidth: 2
                     }]
                 },
                 options: {
-                    indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
                     animation: {
@@ -678,20 +681,20 @@
                         easing: 'easeInOutQuart'
                     },
                     plugins: {
-                        legend: { display: false },
+                        legend: { position: 'bottom' },
                         tooltip: {
                             callbacks: {
-                                label: (context) => `${context.parsed.x.toFixed(2)}%`
+                                label: (context) => {
+                                    const value = context.parsed;
+                                    const percentage = hoursTotal > 0 ? ((value / hoursTotal) * 100).toFixed(1) : 0;
+                                    return `${context.label}: ${value.toLocaleString('vi-VN')} giờ (${percentage}%)`;
+                                }
                             }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            beginAtZero: true,
-                            max: 100,
-                            ticks: {
-                                callback: (value) => value + '%'
-                            }
+                        },
+                        title: {
+                            display: true,
+                            text: `Tỷ lệ sử dụng: ${data.tyLeSuDung}% (${data.soSan} sân)`,
+                            font: { size: 16 }
                         }
                     }
                 }
@@ -761,8 +764,7 @@
             if (!result.success || !result.data) throw new Error(result.message || 'No data available');
             
             document.getElementById('statSoLuongHuy').textContent = (result.data.soLuongHuy || 0).toLocaleString('vi-VN');
-            document.getElementById('statTienMat').textContent = (result.data.tienMat || 0).toLocaleString('vi-VN') + ' VNĐ';
-            document.getElementById('statNoShow').textContent = (result.data.soNoShow || 0) + ' lượt';
+            document.getElementById('statTienMat').textContent = (result.data.tienPhat || 0).toLocaleString('vi-VN') + ' VNĐ';
         } catch (err) {
             console.error('Error loading cancellation stats:', err);
         }

@@ -9,11 +9,13 @@ namespace webapp_mvc.Controllers
     {
         private readonly DatabaseHelper _db;
         private readonly ILogger<ManagementController> _logger;
+        private readonly IConfiguration _configuration;
 
         public ManagementController(IConfiguration configuration, ILogger<ManagementController> logger)
         {
             _db = new DatabaseHelper(configuration);
             _logger = logger;
+            _configuration = configuration;
         }
 
         // GET: /Management/Index - redirect to home (removed Management landing page)
@@ -1690,7 +1692,8 @@ namespace webapp_mvc.Controllers
                     LoaiNgay = @LoaiNgay, TenKhungGio = @TenKhungGio
                 WHERE MaKG = @MaKG";
 
-                _db.ExecuteNonQuery(query,
+                var parameters = new SqlParameter[]
+                {
                     new SqlParameter("@MaKG", request.MaKG),
                     new SqlParameter("@MaLS", request.MaLS),
                     new SqlParameter("@GioBD", TimeSpan.Parse(request.GioBatDau)),
@@ -1699,7 +1702,38 @@ namespace webapp_mvc.Controllers
                     new SqlParameter("@GiaApDung", request.GiaApDung),
                     new SqlParameter("@LoaiNgay", request.LoaiNgay),
                     new SqlParameter("@TenKhungGio", request.TenKhungGio)
-                );
+                };
+
+                // Update DEFAULT database
+                _db.ExecuteNonQuery(query, parameters);
+
+                // *** DEMO UNREPEATABLE READ: Also update FIXED database ***
+                try
+                {
+                    var fixedConnectionString = _configuration.GetConnectionString("FixedConnection");
+                    if (!string.IsNullOrEmpty(fixedConnectionString))
+                    {
+                        using (var conn = new SqlConnection(fixedConnectionString))
+                        {
+                            using (var cmd = new SqlCommand(query, conn))
+                            {
+                                // Clone parameters for second database
+                                foreach (SqlParameter param in parameters)
+                                {
+                                    cmd.Parameters.Add(new SqlParameter(param.ParameterName, param.Value));
+                                }
+                                conn.Open();
+                                cmd.ExecuteNonQuery();
+                                _logger.LogInformation($"Updated price on BOTH databases: MaKG={request.MaKG}, GiaApDung={request.GiaApDung}");
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // If Fixed DB doesn't exist yet, just log warning and continue
+                    _logger.LogWarning($"Could not update Fixed DB (this is OK if not yet created): {ex.Message}");
+                }
 
                 return Json(new { success = true, message = "Cập nhật khung giờ thành công!" });
             }

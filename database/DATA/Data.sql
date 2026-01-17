@@ -48,20 +48,21 @@ GO
 
 -- 1. NẠP DATA VÀO BẢNG CẤP BẬC
 INSERT INTO CAPBAC (MaCB, TenCB, UuDai) VALUES
-('CB001', N'Đồng', 0.00),
-('CB002', N'Bạc', 0.05),
-('CB003', N'Vàng', 0.10),
-('CB004', N'Bạch Kim', 0.15),
-('CB005', N'Kim Cương', 0.20),
-('CB006', N'Cao Thủ', 0.25),
-('CB007', N'Siêu Sao', 0.30),
-('CB008', N'Huyền Thoại', 0.35),
-('CB009', N'VIP Silver', 0.40),
+('CB001', N'Bronze', 0.00),
+('CB002', N'Silver', 0.05),
+('CB003', N'Gold', 0.10),
+('CB004', N'Platinum', 0.20),
+('CB005', N'Diamond', 0.25),
+('CB006', N'Master', 0.30),
+('CB007', N'Superstar', 0.35),
+('CB008', N'Legend', 0.40),
+('CB009', N'VIP Silver', 0.45),
 ('CB010', N'VIP Gold', 0.50);
 GO
 
 -- 2. NẠP DATA VÀO BẢNG TÀI KHOẢN
 INSERT INTO TAIKHOAN (MaTK, TenDangNhap, MatKhau, VaiTro, NgayDangKy) VALUES
+-- Nhân viên (10 account)
 ('TK001', 'quanly01', 'QL@2024Pass', N'Quản lý', '2024-01-15'),
 ('TK002', 'letan01', 'LT@2024Pass', N'Lễ tân', '2024-01-20'),
 ('TK003', 'letan02', 'LT@2024Pass', N'Lễ tân', '2024-02-01'),
@@ -71,25 +72,32 @@ INSERT INTO TAIKHOAN (MaTK, TenDangNhap, MatKhau, VaiTro, NgayDangKy) VALUES
 ('TK007', 'kythuat02', 'KT@2024Pass', N'Kỹ thuật', '2024-03-05'),
 ('TK008', 'hlv01', 'HLV@2024Pass', N'HLV', '2024-03-10'),
 ('TK009', 'hlv02', 'HLV@2024Pass', N'HLV', '2024-03-15'),
-('TK010', 'khachhang01', 'KH@2024Pass', N'Khách hàng', '2024-04-01'),
-('TK011', 'khachhang02', 'KH@2024Pass', N'Khách hàng', '2024-04-05'),
-('TK012', 'khachhang03', 'KH@2024Pass', N'Khách hàng', '2024-04-10'),
-('TK013', 'khachhang04', 'KH@2024Pass', N'Khách hàng', '2024-04-15'),
-('TK014', 'khachhang05', 'KH@2024Pass', N'Khách hàng', '2024-04-20');
+('TK010', 'hlv03', 'HLV@2024Pass', N'HLV', '2024-03-20'),
+-- Khách hàng (12 account)
+('TK011', 'khachhang01', 'KH@2024Pass', N'Khách hàng', '2024-04-01'),
+('TK012', 'khachhang02', 'KH@2024Pass', N'Khách hàng', '2024-04-05'),
+('TK013', 'khachhang03', 'KH@2024Pass', N'Khách hàng', '2024-04-10'),
+('TK014', 'khachhang04', 'KH@2024Pass', N'Khách hàng', '2024-04-15'),
+('TK015', 'khachhang05', 'KH@2024Pass', N'Khách hàng', '2024-04-20'),
+('TK016', 'khachhang06', 'KH@2024Pass', N'Khách hàng', '2024-04-25'),
+('TK017', 'khachhang07', 'KH@2024Pass', N'Khách hàng', '2024-05-01'),
+('TK018', 'khachhang08', 'KH@2024Pass', N'Khách hàng', '2024-05-05'),
+('TK019', 'khachhang09', 'KH@2024Pass', N'Khách hàng', '2024-05-10'),
+('TK020', 'khachhang10', 'KH@2024Pass', N'Khách hàng', '2024-05-15'),
+('TK021', 'khachhang11', 'KH@2024Pass', N'Khách hàng', '2024-05-20'),
+('TK022', 'khachhang12', 'KH@2024Pass', N'Khách hàng', '2024-05-25');
 GO
 
 -- 3. NẠP DATA VÀO BẢNG CƠ SỞ
-INSERT INTO COSO (MaCS, TenCS, DiaChi, ThanhPho) VALUES
-('CS001', N'Trung Tâm Thể Thao Quận 1', N'123 Nguyễn Huệ, Quận 1', N'TP. Hồ Chí Minh'),
-('CS002', N'Trung Tâm Thể Thao Quận 3', N'456 Võ Văn Tần, Quận 3', N'TP. Hồ Chí Minh'),
-('CS003', N'Trung Tâm Thể Thao Thủ Đức', N'789 Võ Văn Ngân, Thủ Đức', N'TP. Hồ Chí Minh'),
-('CS004', N'Trung Tâm Thể Thao Bình Thạnh', N'321 Xô Viết Nghệ Tĩnh, Bình Thạnh', N'TP. Hồ Chí Minh'),
-('CS005', N'Trung Tâm Thể Thao Quận 7', N'147 Nguyễn Thị Thập, Quận 7', N'TP. Hồ Chí Minh'),
-('CS006', N'Trung Tâm Thể Thao Tân Bình', N'258 Cộng Hòa, Tân Bình', N'TP. Hồ Chí Minh'),
-('CS007', N'Trung Tâm Thể Thao Phú Nhuận', N'369 Phan Xích Long, Phú Nhuận', N'TP. Hồ Chí Minh'),
-('CS008', N'Trung Tâm Thể Thao Gò Vấp', N'741 Quang Trung, Gò Vấp', N'TP. Hồ Chí Minh'),
-('CS009', N'Trung Tâm Thể Thao Quận 10', N'852 3 Tháng 2, Quận 10', N'TP. Hồ Chí Minh'),
-('CS010', N'Trung Tâm Thể Thao Quận 5', N'963 Trần Hưng Đạo, Quận 5', N'TP. Hồ Chí Minh');
+INSERT INTO COSO (MaCS, TenCS, DiaChi, ThanhPho, GioMoCua, GioDongCua) VALUES
+('CS001', N'Trung Tâm Thể Thao Quận 1', N'123 Nguyễn Huệ, Quận 1', N'TP. Hồ Chí Minh', '06:00:00', '22:00:00'),
+('CS002', N'Trung Tâm Thể Thao Quận 3', N'456 Võ Văn Tần, Quận 3', N'TP. Hồ Chí Minh', '06:00:00', '22:00:00'),
+('CS003', N'Trung Tâm Thể Thao Thủ Đức', N'789 Võ Văn Ngân, Thủ Đức', N'TP. Hồ Chí Minh', '05:00:00', '23:00:00'),
+('CS004', N'Trung Tâm Thể Thao Bình Thạnh', N'321 Xô Viết Nghệ Tĩnh, Bình Thạnh', N'TP. Hồ Chí Minh', '06:00:00', '22:00:00'),
+('CS005', N'Trung Tâm Thể Thao Quận 7', N'147 Nguyễn Thị Thập, Quận 7', N'TP. Hồ Chí Minh', '06:00:00', '22:00:00'),
+('CS006', N'Trung Tâm Thể Thao Tân Bình', N'258 Cộng Hòa, Tân Bình', N'TP. Hồ Chí Minh', '06:00:00', '22:00:00'),
+('CS007', N'Trung Tâm Thể Thao Phú Nhuận', N'369 Phan Xích Long, Phú Nhuận', N'TP. Hồ Chí Minh', '06:00:00', '22:00:00'),
+('CS008', N'Trung Tâm Thể Thao Gò Vấp', N'741 Quang Trung, Gò Vấp', N'TP. Hồ Chí Minh', '06:00:00', '22:00:00')
 GO
 
 -- 4. NẠP DATA VÀO BẢNG LƯƠNG (Tạo trước để map với NHANVIEN)
@@ -122,18 +130,18 @@ GO
 
 -- 6. NẠP DATA VÀO BẢNG KHÁCH HÀNG
 INSERT INTO KHACHHANG (MaKH, HoTen, NgaySinh, CCCD, SDT, Email, DiaChi, LaHSSV, DiemTichLuy, MaCB, MaTK) VALUES
-('KH001', N'Lê Minh Tuấn', '2000-01-15', '001200001234', '0901111111', 'tuanle@gmail.com', N'123 Lê Duẩn, Quận 1, TP.HCM', 1, 150, 'CB002', 'TK011'),
-('KH002', N'Nguyễn Thị Hoa', '1998-05-20', '001198002345', '0902222222', 'hoanguyen@gmail.com', N'456 Nguyễn Thị Minh Khai, Quận 3, TP.HCM', 0, 520, 'CB004', 'TK012'),
-('KH003', N'Trần Văn Nam', '2001-08-10', '001201003456', '0903333333', 'namtran@gmail.com', N'789 Võ Thị Sáu, Quận 3, TP.HCM', 1, 80, 'CB001', 'TK013'),
-('KH004', N'Phạm Thị Mai', '1995-03-25', '001195004567', '0904444444', 'maipham@gmail.com', N'321 Trần Hưng Đạo, Quận 5, TP.HCM', 0, 1250, 'CB006', 'TK014'),
-('KH005', N'Hoàng Văn Đức', '1999-11-30', '001199005678', '0905555555', 'duchoang@gmail.com', N'654 Lý Chính Thắng, Quận 3, TP.HCM', 0, 350, 'CB003', 'TK001'),
-('KH006', N'Vũ Thị Lan', '2002-07-18', '001202006789', '0906666666', 'lanvu@gmail.com', N'987 Pasteur, Quận 1, TP.HCM', 1, 45, 'CB001', 'TK002'),
-('KH007', N'Đỗ Văn Hải', '1997-12-05', '001197007890', '0907777777', 'haido@gmail.com', N'147 Điện Biên Phủ, Bình Thạnh, TP.HCM', 0, 890, 'CB005', 'TK003'),
-('KH008', N'Bùi Thị Nga', '2000-09-22', '001200008901', '0908888888', 'ngabui@gmail.com', N'258 Xô Viết Nghệ Tĩnh, Bình Thạnh, TP.HCM', 1, 210, 'CB002', 'TK004'),
-('KH009', N'Ngô Văn Sơn', '1996-04-14', '001196009012', '0909999999', 'sonngo@gmail.com', N'369 Cộng Hòa, Tân Bình, TP.HCM', 0, 1580, 'CB007', 'TK005'),
-('KH010', N'Trương Thị Tâm', '2001-02-28', '001201010123', '0910000000', 'tamtruong@gmail.com', N'741 Hoàng Văn Thụ, Tân Bình, TP.HCM', 1, 95, 'CB001', 'TK006'),
-('KH011', N'Lý Văn Phúc', '1994-06-17', '001194011234', '0911111112', 'phucly@gmail.com', N'852 Lạc Long Quân, Tân Bình, TP.HCM', 0, 2150, 'CB008', 'TK007'),
-('KH012', N'Phan Thị Hương', '1999-10-03', '001199012345', '0912222223', 'huongphan@gmail.com', N'963 Nguyễn Oanh, Gò Vấp, TP.HCM', 0, 670, 'CB004', 'TK008');
+('KH001', N'Lê Minh Tuấn', '2000-01-15', '079200001234', '0909123456', 'leminhtuan.2000@gmail.com', N'15 Lê Thánh Tôn, Quận 1, TP.HCM', 0, 150, 'CB002', 'TK011'),
+('KH002', N'Nguyễn Thị Thanh Hoa', '1998-05-20', '079198002345', '0918234567', 'thanhhoa.nguyen@outlook.com', N'246 Nam Kỳ Khởi Nghĩa, Quận 3, TP.HCM', 0, 520, 'CB004', 'TK012'),
+('KH003', N'Trần Văn Nam', '2003-08-10', '079203003456', '0939345678', 'namtran.student@edu.vn', N'10 Võ Văn Ngân, TP. Thủ Đức, TP.HCM', 1, 80, 'CB001', 'TK013'),
+('KH004', N'Phạm Thu Mai', '1995-03-25', '079195004567', '0987456789', 'thumai.pham95@gmail.com', N'88 Trần Hưng Đạo, Quận 5, TP.HCM', 0, 1250, 'CB006', 'TK014'),
+('KH005', N'Hoàng Anh Đức', '1990-11-30', '079190005678', '0903567890', 'anhduc.hoang@company.com', N'12 Lý Chính Thắng, Quận 3, TP.HCM', 0, 350, 'CB003', 'TK015'),
+('KH006', N'Vũ Thị Lan Anh', '2002-07-18', '079202006789', '0945678901', 'lananh.vu2k2@gmail.com', N'56 Pasteur, Quận 1, TP.HCM', 1, 45, 'CB001', 'TK016'),
+('KH007', N'Đỗ Minh Hải', '1997-12-05', '079197007890', '0976789012', 'minhhai.do@tech.vn', N'79 Điện Biên Phủ, Bình Thạnh, TP.HCM', 0, 890, 'CB005', 'TK017'),
+('KH008', N'Bùi Phương Nga', '2000-09-22', '079200008901', '0933890123', 'phuongnga.bui@gmail.com', N'102 Xô Viết Nghệ Tĩnh, Bình Thạnh, TP.HCM', 1, 210, 'CB002', 'TK018'),
+('KH009', N'Ngô Thanh Sơn', '1988-04-14', '079188009012', '0912901234', 'thanhson.ngo@realestate.com', N'34 Cộng Hòa, Tân Bình, TP.HCM', 0, 1580, 'CB007', 'TK019'),
+('KH010', N'Trương Ngọc Tâm', '2004-02-28', '079204010123', '0988012345', 'ngoctam.truong@ueh.edu.vn', N'21 Hoàng Văn Thụ, Tân Bình, TP.HCM', 1, 95, 'CB001', 'TK020'),
+('KH011', N'Lý Văn Phúc', '1994-06-17', '079194011234', '0905123456', 'phucly.designer@gmail.com', N'45 Lạc Long Quân, Tân Bình, TP.HCM', 0, 2150, 'CB008', 'TK021'),
+('KH012', N'Phan Thu Hương', '1999-10-03', '079199012345', '0937234567', 'thuhuong.phan99@gmail.com', N'67 Nguyễn Oanh, Gò Vấp, TP.HCM', 0, 670, 'CB004', 'TK022');
 GO
 
 -- 7. NẠP DATA VÀO BẢNG LOẠI SÂN
@@ -205,19 +213,13 @@ GO
 -- 11. NẠP DATA VÀO BẢNG DỊCH VỤ - CƠ SỞ
 INSERT INTO DV_COSO (MaDV, MaCS, SoLuongTon) VALUES
 -- Cơ sở 1
-('DV001', 'CS001', 5),
-('DV002', 'CS001', 3),
 ('DV003', 'CS001', 100),
 ('DV004', 'CS001', 80),
 ('DV005', 'CS001', 50),
 ('DV006', 'CS001', 30),
-('DV007', 'CS001', 2),
-('DV008', 'CS001', 20),
 ('DV009', 'CS001', 100),
 ('DV010', 'CS001', 40),
 -- Cơ sở 2
-('DV001', 'CS002', 4),
-('DV002', 'CS002', 3),
 ('DV003', 'CS002', 90),
 ('DV004', 'CS002', 70),
 ('DV005', 'CS002', 45),
@@ -244,7 +246,8 @@ INSERT INTO KHUNGGIO (MaKG, MaLS, GioBatDau, GioKetThuc, NgayApDung, GiaApDung) 
 ('KG013', 'LS003', '17:00:00', '22:00:00', '2024-01-01', 150000),
 -- Bóng rổ
 ('KG014', 'LS004', '08:00:00', '12:00:00', '2024-01-01', 150000),
-('KG015', 'LS004', '14:00:00', '18:00:00', '2024-01-01', 180000);
+('KG015', 'LS004', '14:00:00', '18:00:00', '2024-01-01', 180000),
+('KG016', 'LS004', '18:00:00', '22:00:00', '2024-01-01', 200000);
 GO
 
 -- 13. NẠP DATA VÀO BẢNG ƯU ĐÃI

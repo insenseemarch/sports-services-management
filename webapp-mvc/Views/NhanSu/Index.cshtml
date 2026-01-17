@@ -1,0 +1,180 @@
+@model webapp_mvc.Models.NhanSuViewModel
+@{
+    ViewData["Title"] = "Quản Lý Nhân Sự";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">
+            <i class="fas fa-users-cog me-2 text-primary"></i>Quản Lý Nhân Sự
+        </h2>
+        <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#createModal">
+            <i class="fas fa-plus me-2"></i>Thêm Nhân Viên
+        </button>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-0"><i class="fas fa-search"></i></span>
+                        <input type="text" name="search" class="form-control bg-light border-0" placeholder="Tìm theo tên nhân viên..." value="@Model.SearchKeyword">
+                        <button class="btn btn-dark" type="submit">Tìm kiếm</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Alert Messages -->
+    @if (Context.Request.Query["msg"].ToString().Length > 0)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@Context.Request.Query["msg"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (Model.Message != null)
+    {
+        <div class="alert @(Model.IsSuccess ? "alert-success" : "alert-danger") alert-dismissible fade show" role="alert">
+            @Model.Message
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Employee List -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Mã NV</th>
+                            <th>Họ Tên</th>
+                            <th>Chức Vụ</th>
+                            <th>Cơ Sở</th>
+                            <th>SĐT</th>
+                            <th>Lương CB</th>
+                            <th>Tài Khoản</th>
+                            <th class="text-end pe-4">Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.DanhSachNhanVien)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-bold">@item.MaNV</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle me-2 bg-primary text-white d-flex align-items-center justify-content-center rounded-circle" style="width:32px; height:32px;">
+                                            @item.HoTen.Substring(0,1)
+                                        </div>
+                                        @item.HoTen
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-info text-dark">@item.ChucVu</span></td>
+                                <td>@item.TenCoSo</td>
+                                <td>@item.SDT</td>
+                                <td>@item.LuongCoBan.ToString("N0") đ</td>
+                                <td>@item.TenDangNhap</td>
+                                <td class="text-end pe-4">
+                                    <button class="btn btn-sm btn-outline-primary me-2"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash-alt"></i></button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            @if (Model.DanhSachNhanVien.Count == 0)
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-search fa-3x mb-3 opacity-50"></i>
+                    <p>Không tìm thấy nhân viên nào.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Create Modal -->
+<div class="modal fade" id="createModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold">Thêm Nhân Viên Mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="Create" method="post">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Họ Tên</label>
+                            <input asp-for="HoTen" class="form-control" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Ngày Sinh</label>
+                            <input asp-for="NgaySinh" type="date" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">CCCD (Bắt buộc)</label>
+                            <input asp-for="CCCD" class="form-control" required placeholder="Số CCCD/CMND" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Điện Thoại</label>
+                            <input asp-for="SDT" class="form-control" />
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Địa Chỉ</label>
+                            <input asp-for="DiaChi" class="form-control" />
+                        </div>
+                        
+                        <div class="col-12"><hr /></div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">Chức Vụ</label>
+                            <select asp-for="ChucVu" class="form-select">
+                                <option value="Lễ tân">Lễ tân</option>
+                                <option value="Thu ngân">Thu ngân</option>
+                                <option value="Kỹ thuật">Kỹ thuật</option>
+                                <option value="Quản lý">Quản lý</option>
+                                <option value="Bảo vệ">Bảo vệ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Cơ Sở Làm Việc</label>
+                            <select asp-for="MaCS" class="form-select">
+                                <option value="">-- Chọn Cơ Sở --</option>
+                                @foreach (var cs in Model.DanhSachCoSo)
+                                {
+                                    <option value="@cs.MaCS">@cs.TenCS</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Lương Cơ Bản</label>
+                            <input asp-for="LuongCoBan" type="number" class="form-control" />
+                        </div>
+
+                        <div class="col-12"><hr /></div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">Tên Đăng Nhập</label>
+                            <input asp-for="TenDangNhap" class="form-control" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Mật Khẩu</label>
+                            <input asp-for="MatKhau" type="password" class="form-control" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary px-4">Lưu Nhân Viên</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

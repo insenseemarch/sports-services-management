@@ -1,0 +1,64 @@
+@model webapp_mvc.Controllers.HoaDonViewModel
+@{
+    ViewData["Title"] = "Xác Nhận Thanh Toán";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-success text-white py-3">
+                    <h4 class="mb-0"><i class="fas fa-file-invoice-dollar me-2"></i>Xác Nhận Thanh Toán</h4>
+                </div>
+                <div class="card-body p-4">
+                    <h5 class="text-center mb-4">Phiếu Đặt Sân #@Model.MaDatSan</h5>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Khách hàng:</span>
+                        <span class="fw-bold">@Model.TenKhachHang</span>
+                    </div>
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tiền Sân:</span>
+                        <span>@Model.TienSan.ToString("N0") đ</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Tiền Dịch Vụ:</span>
+                        <span>@Model.TienDichVu.ToString("N0") đ</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-4 pt-3 border-top">
+                        <span class="fs-5 fw-bold">Tổng Cộng:</span>
+                        <span class="fs-4 fw-bold text-success">@Model.TongTien.ToString("N0") đ</span>
+                    </div>
+
+                    @if(Context.Request.Query["error"].ToString().Length > 0)
+                    {
+                         <div class="alert alert-danger">@Context.Request.Query["error"]</div>
+                    }
+
+                    <form asp-action="Process" method="post">
+                        <input type="hidden" name="MaDatSan" value="@Model.MaDatSan" />
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Hình Thức Thanh Toán</label>
+                            <select name="HinhThucTT" class="form-select">
+                                <option value="Tiền mặt">Tiền mặt</option>
+                                <option value="Chuyển khoản">Chuyển khoản</option>
+                                <option value="Thẻ tín dụng">Thẻ tín dụng</option>
+                            </select>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check-circle me-2"></i>Hoàn Tất Thanh Toán
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">Quay Lại</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

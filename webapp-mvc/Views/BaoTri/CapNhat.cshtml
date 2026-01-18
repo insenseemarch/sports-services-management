@@ -114,7 +114,7 @@
                                         <label class="form-label fw-semibold text-secondary">Tình Trạng Sân</label>
                                         <select name="tinhTrangSan" class="form-select form-select-lg border-2 shadow-none" style="border-color: #f1c40f;">
                                             <option value="Còn Trống" selected="@(Model.TinhTrangSan == "Còn Trống")">Còn Trống</option>
-                                            <option value="Đang Bảo Trì" selected="@(Model.TinhTrangSan == "Đang Bảo Trì")">Đang Bảo Trì</option>
+                                            <option value="Bảo Trì" selected="@(Model.TinhTrangSan == "Bảo Trì" || Model.TinhTrangSan == "Đang Bảo Trì")">Đang Bảo Trì</option>
                                             <option value="Không Hoạt Động" selected="@(Model.TinhTrangSan == "Không Hoạt Động")">Không Hoạt Động</option>
                                         </select>
                                     </div>
@@ -151,12 +151,87 @@
                                             <i class="fas fa-save me-2"></i>LƯU CẬP NHẬT
                                         </button>
                                     </div>
+                                    
+                                    <!-- DIRTY READ DEMO CONTROLS -->
+                                    <div class="col-12 mt-5 pt-3 border-top border-2 border-danger border-opacity-25">
+                                        <div class="p-3 rounded-3" style="background: rgba(220, 53, 69, 0.05); border: 1px dashed #dc3545;">
+                                            <label class="form-label fw-bold text-danger small text-uppercase mb-2">
+                                                <i class="fas fa-biohazard me-2"></i>Demo Dirty Read (Kỹ Thuật Viên)
+                                            </label>
+                                            
+                                            <div class="d-flex align-items-center gap-3 mb-3">
+                                                 <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="demoMode" id="demoModeUnsafe" value="unsafe" checked>
+                                                    <label class="form-check-label fw-bold text-danger" for="demoModeUnsafe">Unsafe (Default)</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="demoMode" id="demoModeSafe" value="safe">
+                                                    <label class="form-check-label fw-bold text-success" for="demoModeSafe">Safe (Fixed)</label>
+                                                </div>
+                                            </div>
+
+                                            <button type="button" onclick="runDirtyReadDemo()" class="btn btn-danger w-100 fw-bold shadow-sm" style="border-radius: 50px;">
+                                                <i class="fas fa-history me-2"></i>LƯU & ROLLBACK (DELAY 15s)
+                                            </button>
+                                            <div class="form-text small mt-2 fst-italic text-center">
+                                                Sân sẽ chuyển sang "Đang Bảo Trì" trong 15s rồi tự hủy (Rollback).
+                                                <br/>Lễ tân xem "Danh sách sân" trong lúc này để thấy lỗi.
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </form>
+            
+            <script>
+                function runDirtyReadDemo() {
+                    const maSan = '@Model.MaSan';
+                    
+                    // FORCE DEMO use "Bảo Trì" to satisfy Database Trigger
+                    // The trigger only allows "Bảo Trì" from "Còn Trống"
+                    const tinhTrangSan = "Bảo Trì"; 
+                    
+                    const demoMode = document.querySelector('input[name="demoMode"]:checked').value;
+                    
+                    const btn = document.querySelector('button[onclick="runDirtyReadDemo()"]');
+                    const originalText = btn.innerHTML;
+                    
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang chạy Demo (15s)...';
+                    showToast('Đang mô phỏng cập nhật chậm (15s)...', 'warning');
+
+                    $.post('@Url.Action("UpdateMaintenanceDemo", "BaoTri")', {
+                        maSan: maSan,
+                        tinhTrangSan: tinhTrangSan, 
+                        demoMode: demoMode
+                    })
+                    .done(function(res) {
+                        if (res.success) {
+                            showToast(res.message, 'success');
+                            // Delay reload
+                            setTimeout(() => location.reload(), 2000);
+                        } else {
+                            showToast(res.message, 'error');
+                            btn.disabled = false;
+                            btn.innerHTML = originalText;
+                        }
+                    })
+                    .fail(function(err) {
+                        showToast('Lỗi kết nối: ' + err.statusText, 'error');
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                    });
+                }
+                
+                // Toast helper if not globally available, normally it comes from _Layout or global script
+                // Assuming showToast exists or fallback
+                if (typeof showToast !== 'function') {
+                    window.showToast = function(msg, type) { alert(msg); }
+                }
+            </script>
         </div>
     </div>
 </div>

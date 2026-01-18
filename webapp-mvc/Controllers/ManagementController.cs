@@ -9,11 +9,13 @@ namespace webapp_mvc.Controllers
     {
         private readonly DatabaseHelper _db;
         private readonly ILogger<ManagementController> _logger;
+        private readonly IConfiguration _configuration;
 
         public ManagementController(IConfiguration configuration, ILogger<ManagementController> logger)
         {
             _db = new DatabaseHelper(configuration);
             _logger = logger;
+            _configuration = configuration;
         }
 
         // GET: /Management/Index - redirect to home (removed Management landing page)
@@ -1690,7 +1692,8 @@ namespace webapp_mvc.Controllers
                     LoaiNgay = @LoaiNgay, TenKhungGio = @TenKhungGio
                 WHERE MaKG = @MaKG";
 
-                _db.ExecuteNonQuery(query,
+                var parameters = new SqlParameter[]
+                {
                     new SqlParameter("@MaKG", request.MaKG),
                     new SqlParameter("@MaLS", request.MaLS),
                     new SqlParameter("@GioBD", TimeSpan.Parse(request.GioBatDau)),
@@ -1699,7 +1702,38 @@ namespace webapp_mvc.Controllers
                     new SqlParameter("@GiaApDung", request.GiaApDung),
                     new SqlParameter("@LoaiNgay", request.LoaiNgay),
                     new SqlParameter("@TenKhungGio", request.TenKhungGio)
-                );
+                };
+
+                // Update DEFAULT database
+                _db.ExecuteNonQuery(query, parameters);
+
+                // *** DEMO UNREPEATABLE READ: Also update FIXED database ***
+                try
+                {
+                    var fixedConnectionString = _configuration.GetConnectionString("FixedConnection");
+                    if (!string.IsNullOrEmpty(fixedConnectionString))
+                    {
+                        using (var conn = new SqlConnection(fixedConnectionString))
+                        {
+                            using (var cmd = new SqlCommand(query, conn))
+                            {
+                                // Clone parameters for second database
+                                foreach (SqlParameter param in parameters)
+                                {
+                                    cmd.Parameters.Add(new SqlParameter(param.ParameterName, param.Value));
+                                }
+                                conn.Open();
+                                cmd.ExecuteNonQuery();
+                                _logger.LogInformation($"Updated price on BOTH databases: MaKG={request.MaKG}, GiaApDung={request.GiaApDung}");
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // If Fixed DB doesn't exist yet, just log warning and continue
+                    _logger.LogWarning($"Could not update Fixed DB (this is OK if not yet created): {ex.Message}");
+                }
 
                 return Json(new { success = true, message = "Cập nhật khung giờ thành công!" });
             }
@@ -2096,6 +2130,76 @@ namespace webapp_mvc.Controllers
             {
                 _logger.LogError(ex, "Error creating shift");
                 return Json(new { success = false, message = "Lỗi: " + ex.Message });
+            }
+        }
+
+        // GET: /Management/SalaryDemo
+        public IActionResult SalaryDemo()
+        {
+            var vaiTro = HttpContext.Session.GetString("VaiTro");
+            if (!vaiTro?.Equals("Quản lý", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                return RedirectToAction("Index", "HomeStaff");
+            }
+            return View();
+        }
+
+        // POST: /Management/UpdateSalaryDemo
+        [HttpPost]
+        public JsonResult UpdateSalaryDemo(string maNV, decimal luongMoi, string mode)
+        {
+            // Mode: "unsafe" (Default DL), "deadlock" (Fixed DB -> Deadlock), "realfix" (Fixed DB -> No Deadlock)
+            bool useFixedDb = (mode == "deadlock" || mode == "realfix");
+            
+            string connectionString = useFixedDb 
+                ? _configuration.GetConnectionString("FixedConnection") 
+                : _configuration.GetConnectionString("DefaultConnection");
+
+            string spName = "sp_UpdateSalary_Unsafe";
+            if (mode == "deadlock") spName = "sp_UpdateSalary_Safe"; // Intentionally named 'Safe' but causes Deadlock in Repeatable Read
+            if (mode == "realfix") spName = "sp_UpdateSalary_RealFix";
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = new SqlCommand(spName, conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@MaNV", maNV);
+                        cmd.Parameters.AddWithValue("@LuongMoi", luongMoi);
+                        
+                        // Execute (might wait 10s or Deadlock)
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+                
+                string modeDesc = mode switch {
+                    "unsafe" => "DEFAULT DB (Lost Update)",
+                    "deadlock" => "FIXED DB (Deadlock Expected)",
+                    "realfix" => "FIXED DB (Real Solution - UPDLOCK)",
+                    _ => "Unknown"
+                };
+
+                return Json(new { success = true, message = $"[{modeDesc}] Cập nhật lương thành công! (Mức lương: {luongMoi:N0} đ)" });
+            }
+            catch (SqlException ex)
+            {
+                // Error 1205 = Deadlock Victim
+                if (ex.Number == 1205)
+                {
+                    _logger.LogWarning("Deadlock detected in UpdateSalaryDemo");
+                    return Json(new { success = false, message = "DEADLOCK DETECTED! Transaction was chosen as victim and rolled back." });
+                }
+                
+                _logger.LogError(ex, "Error updating salary");
+                return Json(new { success = false, message = "Lỗi SQL: " + ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "General error updating salary");
+                return Json(new { success = false, message = "Lỗi hệ thống: " + ex.Message });
             }
         }
     }

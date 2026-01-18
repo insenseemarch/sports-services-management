@@ -301,6 +301,7 @@ namespace webapp_mvc.Controllers
                 var item = new SanItem
                 {
                     MaSan = row["MaSan"].ToString(),
+                    MaLS = row["MaLS"].ToString(),
                     TenSan = row["MaSan"].ToString(),
                     TenLoaiSan = row["TenLS"].ToString(),
                     TenCoSo = row["TenCS"].ToString(),
@@ -395,6 +396,122 @@ namespace webapp_mvc.Controllers
                 });
             }
             return Json(new { success = false, message = "Không tìm thấy khách hàng này!" });
+        }
+
+        /// <summary>
+        /// API Endpoint: Lấy giá sân theo khung giờ
+        /// Hỗ trợ demo Unrepeatable Read bằng cách chọn database mode
+        /// </summary>
+        [HttpGet]
+        public IActionResult GetCourtPriceByTimeSlot(string maLS, string gioBatDau, bool useFixedDb = false, DateTime? ngayDat = null)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(maLS) || string.IsNullOrEmpty(gioBatDau))
+                {
+                    return Json(new { success = false, message = "Thiếu thông tin cần thiết" });
+                }
+
+                // Parse time
+                if (!TimeSpan.TryParse(gioBatDau, out TimeSpan gioBD))
+                {
+                    return Json(new { success = false, message = "Giờ bắt đầu không hợp lệ" });
+                }
+
+                // Lấy connection string tương ứng với database mode
+                var configuration = HttpContext.RequestServices.GetService(typeof(IConfiguration)) as IConfiguration;
+                string connectionString = useFixedDb 
+                    ? configuration.GetConnectionString("FixedConnection")
+                    : configuration.GetConnectionString("DefaultConnection");
+
+                // Chọn stored procedure tương ứng
+                string spName = useFixedDb 
+                    ? "sp_GetCourtPrice_WithRepeatableRead" 
+                    : "sp_GetCourtPrice_NoIsolation";
+
+                // Tạo connection riêng cho query này
+                using (var conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+                    using (var cmd = new SqlCommand(spName, conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@MaLS", maLS);
+                        cmd.Parameters.AddWithValue("@GioBatDau", gioBD);
+                        
+                        if (ngayDat.HasValue)
+                            cmd.Parameters.AddWithValue("@NgayDat", ngayDat.Value);
+
+                        // Note: We don't strictly need the output parameter if we select it in the result set, 
+                        // but keeping it for compatibility if needed. The SP returns it in result set now.
+                        SqlParameter transactionIdParam = null;
+                        if (useFixedDb)
+                        {
+                            transactionIdParam = new SqlParameter("@TransactionId", SqlDbType.UniqueIdentifier)
+                            {
+                                Direction = ParameterDirection.Output
+                            };
+                            cmd.Parameters.Add(transactionIdParam);
+                        }
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                // Safe retrieval helper
+                                T GetValue<T>(string colName, T defaultValue = default)
+                                {
+                                    try 
+                                    {
+                                        int ord = reader.GetOrdinal(colName);
+                                        if (reader.IsDBNull(ord)) return defaultValue;
+                                        return (T)reader.GetValue(ord);
+                                    }
+                                    catch 
+                                    { 
+                                        return defaultValue; 
+                                    }
+                                }
+
+                                decimal giaApDung = GetValue<decimal>("GiaApDung", 0);
+                                string dvt = GetValue<string>("DVT", "giờ");
+                                string isolationLevel = GetValue<string>("IsolationLevel", "Unknown");
+                                DateTime queryTime = GetValue<DateTime>("QueryTime", DateTime.Now);
+                                
+                                // Try read TransactionId from result set first (more reliable in loop)
+                                string txIdStr = null;
+                                if (useFixedDb)
+                                {
+                                    try {
+                                        var txObj = GetValue<object>("TransactionId");
+                                        if (txObj != null) txIdStr = txObj.ToString();
+                                    } catch { /* ignore */ }
+                                }
+
+                                var result = new
+                                {
+                                    success = true,
+                                    price = giaApDung,
+                                    formattedPrice = giaApDung.ToString("N0"),
+                                    unit = dvt,
+                                    isolationLevel = isolationLevel,
+                                    databaseMode = useFixedDb ? "FIXED (REPEATABLE READ)" : "DEFAULT (READ COMMITTED)",
+                                    queryTime = queryTime.ToString("HH:mm:ss"),
+                                    transactionId = txIdStr // Use value from reader
+                                };
+
+                                return Json(result);
+                            }
+                        }
+                    }
+                }
+
+                return Json(new { success = false, message = "Không tìm thấy giá cho khung giờ này" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi: " + ex.Message });
+            }
         }
     }
 }

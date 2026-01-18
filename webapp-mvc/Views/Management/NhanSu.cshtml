@@ -615,7 +615,30 @@
                             <div class="col-md-12">
                                 <label class="form-label fw-semibold">Lương Cơ Bản <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control" name="luongCoBan" id="edit_luongCoBan" required min="0" step="100000">
-                            </div>
+                                
+                                <!-- Deadlock Demo Controls -->
+                                <div class="mt-3 p-3 rounded-3" style="background: rgba(220, 53, 69, 0.05); border: 1px dashed #dc3545;">
+                                    <label class="form-label fw-bold text-danger small text-uppercase mb-2">
+                                        <i class="fas fa-biohazard me-2"></i>Demo Deadlock (Cập nhật Lương)
+                                    </label>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="demoMode" id="demoOff" value="off" checked>
+                                            <label class="form-check-label small" for="demoOff">Tắt</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="demoMode" id="demoUnsafe" value="unsafe">
+                                            <label class="form-check-label small fw-bold text-danger" for="demoUnsafe">1. Unsafe (Lỗi Lost Update)</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="demoMode" id="demoSafe" value="deadlock">
+                                            <label class="form-check-label small fw-bold text-success" for="demoSafe">2. Safe (Lỗi Deadlock)</label>
+                                        </div>
+                                    </div>
+                                    <div class="form-text small mt-1 fst-italic">
+                                        Demo Cập nhật Lương đồng thời trên 2 tab.
+                                    </div>
+                                </div>
                         </div>
                     </div>
 
@@ -913,6 +936,44 @@
         if (!form.checkValidity()) {
             form.reportValidity();
             return;
+        }
+
+        // Check for Demo Mode
+        const demoMode = document.querySelector('input[name="demoMode"]:checked').value;
+        
+        if (demoMode !== 'off') {
+            // Handle Demo Mode
+            const maNV = document.getElementById('edit_maNV').value;
+            const luongMoi = document.getElementById('edit_luongCoBan').value;
+            
+            // Show loading state
+            const btnSave = document.querySelector('#editEmployeeModal .btn[onclick="submitSuaNhanVien()"]');
+            const originalText = btnSave.innerHTML;
+            btnSave.disabled = true;
+            btnSave.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý Demo...';
+            
+            showToast('Đang chạy Demo (Mode: ' + demoMode + ')...', 'info');
+
+            $.post('@Url.Action("UpdateSalaryDemo", "Management")', {
+                maNV: maNV,
+                luongMoi: luongMoi,
+                mode: demoMode
+            }, function(res) {
+                if (res.success) {
+                    showToast(res.message, 'success');
+                    // Reload after short delay
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast(res.message, 'error');
+                }
+            }).fail(function() {
+                 showToast('Lỗi kết nối server!', 'error');
+            }).always(function() {
+                btnSave.disabled = false;
+                btnSave.innerHTML = originalText;
+            });
+            
+            return; // Stop normal submission
         }
 
         const formData = new FormData(form);

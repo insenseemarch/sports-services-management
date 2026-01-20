@@ -1,16 +1,15 @@
 -- ==================================================================================
 -- DEMO: UNREPEATABLE READ - XEM GIÁ SÂN
--- Mục đích: Tạo database thứ 2 và stored procedures để demo lỗi tranh chấp
 -- ==================================================================================
 
 -- ==================================================================================
--- 2. TẠO STORED PROCEDURES CHO DATABASE CHƯA FIX (READ COMMITTED - mặc định)
+-- TẠO STORED PROCEDURES CHO DATABASE CHƯA FIX (READ COMMITTED - mặc định)
 -- ==================================================================================
 -- 1. Default DB (Read Committed) -> Sẽ thấy GIÁ MỚI sau khi chờ (LỖI)
 USE TRUNGTAMTHETHAO;
 GO
 
-ALTER PROCEDURE sp_GetCourtPrice_NoIsolation
+CREATE OR ALTER PROCEDURE sp_GetCourtPrice_NoIsolation
     @MaLS VARCHAR(20),
     @GioBatDau TIME,
     @NgayDat DATE = NULL
@@ -61,7 +60,7 @@ GO
 -- Sửa lại SP Fixed để dùng UPDLOCK (Update Lock)
 -- UPDLOCK tương thích với Shared Lock nhưng CHẶN Update khác
 -- Nó mạnh hơn Shared Lock thường và chắc chắn sẽ block Manager
-ALTER PROCEDURE sp_GetCourtPrice_WithRepeatableRead
+CREATE OR ALTER PROCEDURE sp_GetCourtPrice_WithRepeatableRead
     @MaLS VARCHAR(20),
     @GioBatDau TIME,
     @NgayDat DATE = NULL,
@@ -77,7 +76,6 @@ BEGIN
     IF @NgayDat IS NULL SET @NgayDat = GETDATE();
     
     -- Đọc lần 1 VỚI UPDLOCK
-    -- UPDLOCK: "Tôi đang đọc để chuẩn bị sửa, đừng ai đụng vào!"
     -- Điều này sẽ CHẶN mọi transaction muốn Update dòng này
     DECLARE @GiaTam DECIMAL(18,2);
     
@@ -89,7 +87,7 @@ BEGIN
       AND NgayApDung <= @NgayDat
     ORDER BY NgayApDung DESC;
     
-    -- Delay 10s -> Manager Update sẽ KHÓC THÉT (Blocked)
+    -- Delay 10s -> Manager Update Blocked
     WAITFOR DELAY '00:00:10';
     
     -- Đọc lần 2 và Commit
@@ -126,7 +124,7 @@ BEGIN
     -- Hoặc sau một khoảng timeout
     
     -- Trong demo này, transaction đã được commit trong sp_GetCourtPrice_WithRepeatableRead
-    -- Nhưng trong production, bạn có thể dùng temp table hoặc session state
+    -- Nhưng trong production, có thể dùng temp table hoặc session state
     
     PRINT 'Transaction committed: ' + CAST(@TransactionId AS NVARCHAR(50));
 END
@@ -153,6 +151,9 @@ PRINT 'EXEC sp_GetCourtPrice_NoIsolation @MaLS=''LS001'', @GioBatDau=''08:00:00'
 
 GO
 
+-- ==================================================================================
+-- DEMO: LOST UPDATE - CẬP NHẬT LƯƠNG NHÂN VIÊN
+-- ==================================================================================
 
 -- 1. Setup Data for Default DB
 USE TRUNGTAMTHETHAO;
@@ -175,7 +176,7 @@ BEGIN
     FROM NHANVIEN 
     WHERE MaNV = @MaNV;
     
-    -- 2. Delay 10s (Simulate User thinking or Verify time)
+    -- 2. Delay 10s
     WAITFOR DELAY '00:00:10';
     
     -- 3. Update (Ghi đè - Lost Update nếu có người khác update trong lúc delay)
@@ -273,6 +274,9 @@ GO
 USE TRUNGTAMTHETHAO
 GO
 
+-- ==================================================================================
+-- DEMO: DIRTY READ - CẬP NHẬT TRẠNG THÁI SÂN
+-- ==================================================================================
 --------------------------------------------------------------------------------
 -- 1. STORED PROCEDURE: WRITER (Simulation)
 --    Update Court Status to 'Đang bảo trì' -> Wait 15s -> Rollback
@@ -376,8 +380,6 @@ END
 GO
 
 -- =============================================
--- Author:      AntiGravity
--- Create date: 2024-01-16
 -- Description: Patch sp_DatSan to validate Court Status
 --              Prevents booking if Status is 'Bảo Trì', 'Đang Bảo Trì', or 'Ngưng hoạt động'
 -- =============================================
@@ -514,16 +516,13 @@ BEGIN
 END
 GO
 
+-- ==================================================================================
+-- DEMO: PHANTOM READ - ĐẾM SỐ LƯỢNG NHÂN VIÊN
+-- ==================================================================================
+
 USE TRUNGTAMTHETHAO
 GO
 
---------------------------------------------------------------------------------
--- 1. STORED PROCEDURE: READER (UNSAFE - REPEATABLE READ / READ COMMITTED)
---    Note: REPEATABLE READ allows Phantom Rows (Inserts) in standard SQL definition.
---    However, in SQL Server, REPEATABLE READ prevents updates/deletes but NOT inserts 
---    that fall into range unless range locks are taken.
---    We will use explicit delay to demonstrate the race condition.
---------------------------------------------------------------------------------
 CREATE OR ALTER PROCEDURE sp_PhantomRead_Demo_Unsafe
 AS
 BEGIN
@@ -614,6 +613,9 @@ BEGIN
 END
 GO
 
+-- ==================================================================================
+-- DEMO: DEADLOCK - THÊM CA TRỰC
+-- ==================================================================================
 
 USE TRUNGTAMTHETHAO
 GO

@@ -574,43 +574,147 @@ namespace webapp_mvc.Controllers
         }
 
         [HttpPost]
-        public IActionResult DeadlockDemo(string demoMode)
+public IActionResult DeadlockDemo(
+    string demoMode,
+    string? ngayTruc = null,
+    string? tenCa = null,
+    string? gioBatDau = null,
+    string? gioKetThuc = null,
+    string? ghiChu = null,
+    List<string>? maNVs = null
+)
+{
+    try 
+    {
+        // Get current logged-in manager
+        var maNguoiTao = HttpContext.Session.GetString("MaUser");
+        if (string.IsNullOrEmpty(maNguoiTao))
         {
-            // demoMode: "unsafe" vs "safe"
-            string spName = (demoMode == "safe") ? "sp_DeadlockDemo_Safe" : "sp_DeadlockDemo_Unsafe";
+            return Json(new { success = false, message = "Phiên đăng nhập hết hạn!" });
+        }
+
+        long maCaTruc = 1; // Default
+        string selectedStaff = "NV001"; // Default
+        
+        // If form data is provided, find or use the LATEST shift matching the criteria
+        // This ensures both browsers use the SAME shift for deadlock demo
+        if (!string.IsNullOrEmpty(ngayTruc) && !string.IsNullOrEmpty(gioBatDau) && maNVs != null && maNVs.Count > 0)
+        {
+            selectedStaff = maNVs[0];
             
-            try 
+            // Try to find an existing shift with matching date and time
+            // Use ISNULL to return 0 if not found, avoiding nullable type issues
+            var findShiftQuery = @"
+                SELECT ISNULL(
+                    (SELECT TOP 1 MaCaTruc 
+                     FROM CATRUC 
+                     WHERE CAST(NgayTruc AS DATE) = CAST(@NgayTruc AS DATE)
+                       AND GioBatDau = @GioBatDau
+                       AND GioKetThuc = @GioKetThuc
+                     ORDER BY MaCaTruc DESC),
+                    0
+                ) AS MaCaTruc";
+            
+            try
             {
-                using (var conn = _db.GetConnection())
+                var existingShift = _db.ExecuteScalar<long>(findShiftQuery,
+                    new SqlParameter("@NgayTruc", DateTime.Parse(ngayTruc)),
+                    new SqlParameter("@GioBatDau", TimeSpan.Parse(gioBatDau)),
+                    new SqlParameter("@GioKetThuc", TimeSpan.Parse(gioKetThuc))
+                );
+                
+                if (existingShift > 0)
                 {
-                    conn.Open();
-                    // Deadlock usually throws SqlException with Number 1205
-                    using (var cmd = new SqlCommand(spName, conn))
-                    {
-                        cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                        cmd.Parameters.AddWithValue("@MaCaTruc", 1); 
-                        cmd.Parameters.AddWithValue("@MaNV", "NV001");
-                        cmd.CommandTimeout = 20; // Enough for the 10s delay
-
-                        cmd.ExecuteNonQuery();
-
-                        return Json(new { success = true, message = "✅ Lưu thành công (Không bị Deadlock)" });
-                    }
+                    maCaTruc = existingShift;
+                    _logger.LogInformation($"Using existing shift {maCaTruc} for deadlock demo");
                 }
-            }
-            catch (SqlException ex)
-            {
-                if (ex.Number == 1205) // Deadlock Victim Error Number
+                else
                 {
-                     return Json(new { success = false, message = "❌ HỆ THỐNG BÁO LỖI: DEADLOCK DETECTED! (Transaction (Process ID) was deadlocked on lock resources with another process and has been chosen as the deadlock victim.)" });
+                    // No existing shift found - create one
+                    // But log a warning because for true deadlock demo, shift should exist
+                    _logger.LogWarning("No existing shift found matching criteria. Creating new shift. For true deadlock demo, create shift first using 'Tạo Ca Trực' button!");
+                    
+                    decimal phuCap = 0;
+                    if (gioBatDau == "06:00") phuCap = 50000;
+                    else if (gioBatDau == "18:00") phuCap = 100000;
+
+                    var insertCaTrucQuery = @"
+                        INSERT INTO CATRUC (MaNV, NgayTruc, GioBatDau, GioKetThuc, PhuCap)
+                        VALUES (@MaNV, @NgayTruc, @GioBatDau, @GioKetThuc, @PhuCap);
+                        SELECT CAST(SCOPE_IDENTITY() AS BIGINT);";
+
+                    maCaTruc = _db.ExecuteScalar<long>(insertCaTrucQuery,
+                        new SqlParameter("@MaNV", maNguoiTao),
+                        new SqlParameter("@NgayTruc", DateTime.Parse(ngayTruc)),
+                        new SqlParameter("@GioBatDau", TimeSpan.Parse(gioBatDau)),
+                        new SqlParameter("@GioKetThuc", TimeSpan.Parse(gioKetThuc)),
+                        new SqlParameter("@PhuCap", phuCap)
+                    );
+                    
+                    _logger.LogInformation($"Created NEW shift {maCaTruc} for deadlock demo");
                 }
-                return Json(new { success = false, message = "Lỗi SQL: " + ex.Message });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Lỗi: " + ex.Message });
+                _logger.LogError(ex, "Error finding/creating shift for deadlock demo");
+                // Fall back to default shift ID 1
+                maCaTruc = 1;
             }
         }
+
+        // Run deadlock demo with the shift
+        string spName = (demoMode == "safe") ? "sp_DeadlockDemo_Safe" : "sp_DeadlockDemo_Unsafe";
+        
+        _logger.LogInformation($"Running {spName} with MaCaTruc={maCaTruc}, MaNV={selectedStaff}");
+        
+        using (var conn = _db.GetConnection())
+        {
+            conn.Open();
+            using (var cmd = new SqlCommand(spName, conn))
+            {
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@MaCaTruc", maCaTruc);
+                cmd.Parameters.AddWithValue("@MaNV", selectedStaff);
+                cmd.CommandTimeout = 20; // Enough for the 10s delay
+
+                // Execute and read result set
+                using (var reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        var success = reader["Success"] != DBNull.Value && Convert.ToInt32(reader["Success"]) == 1;
+                        var message = reader["Message"]?.ToString() ?? "";
+                        
+                        if (success)
+                        {
+                            return Json(new { success = true, message = message });
+                        }
+                        else
+                        {
+                            return Json(new { success = false, message = message });
+                        }
+                    }
+                }
+
+                return Json(new { success = true, message = "✅ Lưu thành công (Không bị Deadlock)" });
+            }
+        }
+    }
+    catch (SqlException ex)
+    {
+        if (ex.Number == 1205) // Deadlock Victim Error Number
+        {
+             return Json(new { success = false, message = "❌ HỆ THỐNG BÁO LỖI: DEADLOCK DETECTED! (Transaction (Process ID) was deadlocked on lock resources with another process and has been chosen as the deadlock victim.)" });
+        }
+        _logger.LogError(ex, "SQL Error in DeadlockDemo");
+        return Json(new { success = false, message = "Lỗi SQL: " + ex.Message });
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error in DeadlockDemo");
+        return Json(new { success = false, message = "Lỗi: " + ex.Message });
+    }
+}
 
         // GET: /Management/SuaNhanVien
         public IActionResult SuaNhanVien(string id)

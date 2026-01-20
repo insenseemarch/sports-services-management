@@ -224,19 +224,67 @@
             const btn = document.getElementById('btnDeadlockDemo');
             const statusEl = document.getElementById('deadlockStatus');
             
+            // Read form data from createShiftModal
+            const modal = document.getElementById('createShiftModal');
+            const dateInput = modal.querySelector('input[type="date"]');
+            const shiftSelect = modal.querySelector('select');
+            const staffSelect = modal.querySelector('select[multiple]');
+            const ghiChuEl = modal.querySelector('textarea');
+            
+            const ngayTruc = dateInput?.value || '';
+            const shiftType = shiftSelect?.value || '';
+            const ghiChu = ghiChuEl?.value || '';
+            
+            // Collect selected staff
+            const selectedStaff = [];
+            if (staffSelect) {
+                Array.from(staffSelect.options).forEach(opt => {
+                    if (opt.selected) selectedStaff.push(opt.value && opt.value.trim() !== '' ? opt.value : opt.text.trim());
+                });
+            }
+            
+            // Validate
+            if (!ngayTruc || !shiftType || selectedStaff.length === 0) {
+                statusEl.className = 'badge bg-warning text-dark';
+                statusEl.innerText = 'Vui lòng mở form "Tạo Ca Trực" và nhập đầy đủ thông tin trước!';
+                showToast('warning', 'Hãy nhập thông tin trong form "Tạo Ca Trực" trước khi demo!');
+                return;
+            }
+            
+            // Map shift type to times
+            let gioBatDau = '08:00', gioKetThuc = '17:00', tenCa = 'Ca';
+            switch (shiftType) {
+                case 'morning': gioBatDau = '06:00'; gioKetThuc = '12:00'; tenCa = 'Sáng'; break;
+                case 'afternoon': gioBatDau = '12:00'; gioKetThuc = '18:00'; tenCa = 'Chiều'; break;
+                case 'evening': gioBatDau = '18:00'; gioKetThuc = '22:00'; tenCa = 'Tối'; break;
+                case 'full': gioBatDau = '08:00'; gioKetThuc = '17:00'; tenCa = 'Cả ngày'; break;
+                default: break;
+            }
+            
             // UI Loading State
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
             statusEl.className = 'badge bg-warning text-dark';
             statusEl.innerText = 'Đang giữ Lock & Chờ...';
             
+            // Build form data
+            const formData = new URLSearchParams();
+            formData.append('demoMode', mode);
+            formData.append('ngayTruc', ngayTruc);
+            formData.append('tenCa', tenCa);
+            formData.append('gioBatDau', gioBatDau);
+            formData.append('gioKetThuc', gioKetThuc);
+            formData.append('ghiChu', ghiChu);
+            selectedStaff.forEach(s => formData.append('maNVs', s));
+            
             // Call Backend
-            $.post('/Management/DeadlockDemo', { demoMode: mode })
+            $.post('/Management/DeadlockDemo', formData.toString())
             .done(function(res) {
                 if(res.success) {
                     statusEl.className = 'badge bg-success';
                     statusEl.innerText = res.message;
                     showToast('success', 'Giao dịch thành công!');
+                    loadShifts(); // Refresh calendar
                 } else {
                     statusEl.className = 'badge bg-danger text-wrap text-start p-2';
                     statusEl.innerText = res.message;

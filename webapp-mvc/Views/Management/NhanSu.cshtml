@@ -484,7 +484,7 @@
                             <td>@emp.HoTen</td>
                             <td>
                                 @{
-                                    var badgeClass = emp.VaiTro switch {
+                                    var badgeClass = emp.ChucVu switch {
                                         "Quản lý" => "badge-quanly",
                                         "Lễ tân" => "badge-letran",
                                         "Kỹ thuật" => "badge-nvkythuat",
@@ -494,7 +494,7 @@
                                         _ => "badge-letran"
                                     };
                                 }
-                                <span class="badge-role @badgeClass">@emp.VaiTro</span>
+                                <span class="badge-role @badgeClass">@emp.ChucVu</span>
                             </td>
                             <td>@emp.SDT</td>
                             <td>

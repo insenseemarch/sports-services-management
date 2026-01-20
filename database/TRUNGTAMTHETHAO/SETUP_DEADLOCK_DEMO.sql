@@ -18,32 +18,55 @@ CREATE OR ALTER PROCEDURE sp_DeadlockDemo_Unsafe
     @MaNV VARCHAR(20) = 'NV001'
 AS
 BEGIN
+    SET NOCOUNT ON
     SET TRAN ISOLATION LEVEL REPEATABLE READ
-    BEGIN TRANSACTION
+    
+    BEGIN TRY
+        BEGIN TRANSACTION
 
-    -- 1. Read Capacity (Holds S-Lock)
-    DECLARE @SoLuong INT
-    SELECT @SoLuong = COUNT(*) FROM CATRUC WHERE MaCaTruc = @MaCaTruc
+        -- 1. Read Capacity (Holds S-Lock)
+        DECLARE @SoLuong INT
+        SELECT @SoLuong = COUNT(*) FROM CATRUC WHERE MaCaTruc = @MaCaTruc
 
-    -- 2. Simulate User Thinking / Form filling delay
-    WAITFOR DELAY '00:00:10'
+        -- 2. Simulate User Thinking / Form filling delay
+        WAITFOR DELAY '00:00:10'
 
-    -- 3. Perform Assignment (Requires X-Lock on CATRUC to update capacity or similar, 
-    --    or just simulating the collision on the same resource)
-    --    Here we update CATRUC to trigger lock conversion
-    UPDATE CATRUC 
-    SET GioBatDau = GioBatDau -- No-op update to force X-Lock
-    WHERE MaCaTruc = @MaCaTruc
+        -- 3. Perform Assignment (Requires X-Lock on CATRUC to update capacity or similar, 
+        --    or just simulating the collision on the same resource)
+        --    Here we update CATRUC to trigger lock conversion (THIS IS WHERE DEADLOCK OCCURS)
+        UPDATE CATRUC 
+        SET GioBatDau = GioBatDau -- No-op update to force X-Lock
+        WHERE MaCaTruc = @MaCaTruc
 
-    -- 4. Insert into THAMGIACATRUC (Just to match scenario)
-    --    We use dynamic SQL or check existence to avoid PK errors during demo repeats
-    IF NOT EXISTS (SELECT 1 FROM THAMGIACATRUC WHERE MaCaTruc = @MaCaTruc AND MaNV = @MaNV)
-    BEGIN
-        INSERT INTO THAMGIACATRUC (MaCaTruc, MaNV) VALUES (@MaCaTruc, @MaNV)
-    END
+        -- 4. Insert into THAMGIACATRUC (Just to match scenario)
+        --    We use dynamic SQL or check existence to avoid PK errors during demo repeats
+        IF NOT EXISTS (SELECT 1 FROM THAMGIACATRUC WHERE MaCaTruc = @MaCaTruc AND MaNV = @MaNV)
+        BEGIN
+            INSERT INTO THAMGIACATRUC (MaCaTruc, MaNV) VALUES (@MaCaTruc, @MaNV)
+        END
 
-    COMMIT TRANSACTION
-    SELECT 1 AS Success
+        COMMIT TRANSACTION
+        SELECT 1 AS Success, 'Transaction committed successfully' AS Message
+    END TRY
+    BEGIN CATCH
+        -- Rollback if transaction is still open
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION
+        
+        -- Check if this is a deadlock error
+        IF ERROR_NUMBER() = 1205
+        BEGIN
+            SELECT 0 AS Success, 
+                   'DEADLOCK DETECTED: This transaction was chosen as the deadlock victim and has been rolled back. Chỉ có 1 transaction được lưu vào database.' AS Message,
+                   1205 AS ErrorNumber
+        END
+        ELSE
+        BEGIN
+            SELECT 0 AS Success, 
+                   ERROR_MESSAGE() AS Message,
+                   ERROR_NUMBER() AS ErrorNumber
+        END
+    END CATCH
 END
 GO
 
@@ -91,14 +114,41 @@ CREATE OR ALTER PROCEDURE sp_DeadlockDemo_Unsafe
     @MaCaTruc BIGINT = 1, @MaNV VARCHAR(20) = 'NV001'
 AS
 BEGIN
+    SET NOCOUNT ON
     SET TRAN ISOLATION LEVEL REPEATABLE READ
-    BEGIN TRANSACTION
-    DECLARE @SoLuong INT
-    SELECT @SoLuong = COUNT(*) FROM CATRUC WHERE MaCaTruc = @MaCaTruc
-    WAITFOR DELAY '00:00:10'
-    UPDATE CATRUC SET GioBatDau = GioBatDau WHERE MaCaTruc = @MaCaTruc
-    COMMIT TRANSACTION
-    SELECT 1 AS Success
+    
+    BEGIN TRY
+        BEGIN TRANSACTION
+        DECLARE @SoLuong INT
+        SELECT @SoLuong = COUNT(*) FROM CATRUC WHERE MaCaTruc = @MaCaTruc
+        WAITFOR DELAY '00:00:10'
+        UPDATE CATRUC SET GioBatDau = GioBatDau WHERE MaCaTruc = @MaCaTruc
+        
+        IF NOT EXISTS (SELECT 1 FROM THAMGIACATRUC WHERE MaCaTruc = @MaCaTruc AND MaNV = @MaNV)
+        BEGIN
+            INSERT INTO THAMGIACATRUC (MaCaTruc, MaNV) VALUES (@MaCaTruc, @MaNV)
+        END
+        
+        COMMIT TRANSACTION
+        SELECT 1 AS Success, 'Transaction committed successfully' AS Message
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION
+        
+        IF ERROR_NUMBER() = 1205
+        BEGIN
+            SELECT 0 AS Success, 
+                   'DEADLOCK DETECTED: This transaction was chosen as the deadlock victim and has been rolled back.' AS Message,
+                   1205 AS ErrorNumber
+        END
+        ELSE
+        BEGIN
+            SELECT 0 AS Success, 
+                   ERROR_MESSAGE() AS Message,
+                   ERROR_NUMBER() AS ErrorNumber
+        END
+    END CATCH
 END
 GO
 

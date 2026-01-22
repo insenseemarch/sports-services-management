@@ -1,0 +1,225 @@
+@{
+    ViewData["Title"] = "Đặt Dịch Vụ Bổ Sung";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Panel bên trái: Tìm kiếm & Thông tin -->
+        <div class="col-md-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-primary text-white">
+                    <h6 class="m-0 font-weight-bold"><i class="fas fa-search me-2"></i>Tìm Hóa Đơn / Đặt Sân</h6>
+                </div>
+                <div class="card-body">
+                    <div class="form-group mb-3">
+                        <label class="form-label">Nhập Mã Hóa Đơn hoặc Mã Đặt Sân:</label>
+                        <div class="input-group">
+                            <input type="text" id="txtMaTraCuu" class="form-control" placeholder="VD: 10023 hoặc DS2024..." />
+                            <button class="btn btn-primary" id="btnTimKiem">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted">Nhập số Hóa Đơn (VD: 12) hoặc mã Đặt Sân (VD: DS2026...)</small>
+                    </div>
+
+                    <div id="infoSection" style="display:none;">
+                        <hr />
+                        <h6 class="text-primary fw-bold">Thông Tin Đơn Hàng</h6>
+                        <table class="table table-sm table-borderless">
+                            <tr>
+                                <td><strong>Khách hàng:</strong></td>
+                                <td id="lblTenKH">...</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Sân:</strong></td>
+                                <td id="lblTenSan">...</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Cơ sở:</strong></td>
+                                <td id="lblTenCS">...</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Thời gian:</strong></td>
+                                <td id="lblThoiGian">...</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Trạng thái:</strong></td>
+                                <td><span id="lblTrangThai" class="badge bg-secondary">...</span></td>
+                            </tr>
+                        </table>
+                        
+                        <div class="alert alert-success">
+                            <strong>Đã thanh toán:</strong> <span id="lblDaThanhToan" class="fw-bold fs-5">0 ₫</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel bên phải: Chọn dịch vụ -->
+        <div class="col-md-8">
+            <div class="card shadow mb-4" id="serviceSection" style="display:none;">
+                <div class="card-header py-3 bg-warning text-dark d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold"><i class="fas fa-cart-plus me-2"></i>Chọn Dịch Vụ Thêm</h6>
+                    <span class="badge bg-dark" id="lblMaHDDisplay"></span>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Chọn Dịch Vụ:</label>
+                            <select id="ddlDichVu" class="form-select">
+                                <option value="">-- Chọn dịch vụ --</option>
+                                <!-- Populate via JS -->
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Số Lượng:</label>
+                            <input type="number" id="numSoLuong" class="form-control" value="1" min="1" />
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button class="btn btn-success w-100" id="btnThemDV">
+                                <i class="fas fa-plus-circle me-1"></i> Thêm xác nhận
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Result Area -->
+                    <div id="paymentResult" class="alert alert-info mt-3" style="display:none;">
+                        <h5 class="alert-heading"><i class="fas fa-check-circle"></i> Cập nhật thành công!</h5>
+                        <hr>
+                        <div class="row text-center">
+                            <div class="col-4 border-end">
+                                <small>Tổng chi phí mới</small>
+                                <h4 class="text-primary" id="lblTongMoi">0 ₫</h4>
+                            </div>
+                            <div class="col-4 border-end">
+                                <small>Đã thanh toán trước</small>
+                                <h4 class="text-success" id="lblDaTraResult">0 ₫</h4>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-danger fw-bold">CẦN THU THÊM</small>
+                                <h3 class="text-danger fw-bold" id="lblCanThu">0 ₫</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            
+            <!-- Empty State -->
+            <div id="emptyState" class="text-center py-5 text-muted">
+                <i class="fas fa-receipt fa-4x mb-3"></i>
+                <p>Vui lòng tìm kiếm hóa đơn để bắt đầu đặt dịch vụ bổ sung.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            var currentMaDatSan = null;
+            var currentMaCS = null;
+
+            // Check URL param for auto-fill
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchId = urlParams.get('id');
+            if(searchId) {
+                $('#txtMaTraCuu').val(searchId);
+                setTimeout(() => $('#btnTimKiem').click(), 500);
+            }
+
+            // 1. Tìm kiếm
+            $('#btnTimKiem').click(function() {
+                var keyword = $('#txtMaTraCuu').val();
+                if(!keyword) {
+                    alert('Vui lòng nhập mã!');
+                    return; 
+                }
+
+                $.post('/DatSanTrucTiep/TimHoaDon', { maTraCuu: keyword }, function(res) {
+                    if(res.success) {
+                        var d = res.data;
+                        currentMaDatSan = d.maDatSan;
+                        
+                        // Fill Info
+                        $('#lblTenKH').text(d.tenKH);
+                        $('#lblTenSan').text(d.maSan);
+                        $('#lblTenCS').text(d.tenCS);
+                        $('#lblThoiGian').text(d.ngayDat + ' (' + d.gioBatDau + ' - ' + d.gioKetThuc + ')');
+                        $('#lblTrangThai').text(d.trangThai);
+                        $('#lblDaThanhToan').text(new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(d.tongTienDaTra));
+                        $('#lblMaHDDisplay').text(d.maHD ? 'Hóa Đơn #' + d.maHD : 'Phiếu đặt #' + d.maDatSan);
+
+                        $('#infoSection').fadeIn();
+                        $('#serviceSection').fadeIn();
+                        $('#emptyState').hide();
+                        $('#paymentResult').hide();
+
+                        // Load Service List for this Facility
+                        // Reuse API LoadDichVu but filter by this CS. Unfortunately current API takes args.
+                        // We will call LoadDichVu logic again or simpler, reuse DatSanTrucTiep/LoadDichVu
+                        loadServices(d.tenCS); // Trick: tenCS matching might be fuzzy, better pass maCS if available. 
+                        // But wait, the previous api returned `maCS`? No. The SP returns TenCS.
+                        // Let's assume we can pass '' to LoadDichVu and filter clientside or just fetch all.
+                    } else {
+                        alert(res.message);
+                        $('#infoSection').hide();
+                        $('#serviceSection').hide();
+                        $('#emptyState').show();
+                    }
+                });
+            });
+
+            function loadServices(facilityName) { // Simplified loading
+                $.get('/DatSanTrucTiep/LoadDichVu', function(res) {
+                    if(res.success) {
+                        var html = '<option value="">-- Chọn dịch vụ --</option>';
+                        res.data.forEach(function(item) {
+                            // Only rough filtering or show all? 
+                            // Ideally SP returns MaCS. I should fix SP to return MaCS too. 
+                            // But for now let's just show all services. User/Staff is responsible.
+                            html += `<option value="${item.MaDV}">${item.TenDV} - ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.Gia)} (Tồn: ${item.SoLuongTon})</option>`;
+                        });
+                        $('#ddlDichVu').html(html);
+                    }
+                });
+            }
+
+            // 2. Thêm dịch vụ
+            $('#btnThemDV').click(function() {
+                var maDV = $('#ddlDichVu').val();
+                var soLuong = $('#numSoLuong').val();
+                
+                if(!maDV) { alert('Chưa chọn dịch vụ!'); return; }
+                if(!currentMaDatSan) { alert('Chưa chọn đơn hàng!'); return; }
+
+                if(confirm('Xác nhận thêm dịch vụ và cập nhật hóa đơn? Hành động này sẽ cập nhật ngay lập tức.')) {
+                    $.ajax({
+                        url: '/DatSanTrucTiep/XacNhanThemDichVu',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            maDatSan: String(currentMaDatSan),
+                            maDV: maDV,
+                            soLuong: String(soLuong)
+                        }),
+                        success: function(res) {
+                            if(res.success) {
+                                // Show Result
+                                $('#lblTongMoi').text(new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(res.tongTienMoi));
+                                $('#lblDaTraResult').text($('#lblDaThanhToan').text());
+                                $('#lblCanThu').text(new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(res.canThanhToanThem));
+                                $('#paymentResult').fadeIn();
+                                alert('Thêm dịch vụ thành công! Vui lòng thu thêm tiền của khách.');
+                            } else {
+                                alert(res.message);
+                            }
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}

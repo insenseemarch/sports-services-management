@@ -113,6 +113,20 @@
         transform: translateY(-3px) scale(1.02);
         box-shadow: 0 8px 25px rgba(56, 239, 125, 0.6) !important;
     }
+
+    /* Pulse animation for demo badge */
+    @@keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.7; transform: scale(1.05); }
+    }
+    .pulse-animation {
+        animation: pulse 2s ease-in-out infinite;
+    }
+    .btn-check:checked + label {
+        background-color: rgba(255,255,255,0.3) !important;
+        border-color: #ffd700 !important;
+        box-shadow: 0 0 15px rgba(255,215,0,0.5) !important;
+    }
 </style>
 
 <!-- Hero Banner -->
@@ -156,6 +170,59 @@
                             <li class="mb-1"><strong>Thanh toán Online:</strong> Thẻ hoặc Ví điện tử.</li>
                             <li><strong>Thanh toán tại quầy:</strong> Hoàn tất trong vòng <strong>30 phút</strong> sau khi đặt (hệ thống sẽ tự động hủy nếu quá hạn).</li>
                         </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DEMO MODE: Database Selector -->
+    <div class="alert border-0 shadow-lg rounded-4 mb-4 fade-in-up position-relative overflow-hidden" role="alert" 
+         style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-left: 6px solid #ffd700 !important;">
+        <div class="position-absolute" style="top: -20px; right: -20px; opacity: 0.1; font-size: 120px;">
+            <i class="fas fa-database"></i>
+        </div>
+        <div class="d-flex align-items-center position-relative" style="z-index: 2;">
+            <div class="me-4 text-warning mt-1">
+                <i class="fas fa-flask fa-3x"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h5 class="alert-heading fw-bold mb-2 text-white d-flex align-items-center">
+                    <i class="fas fa-bug me-2"></i>
+                    DEMO MODE: Unrepeatable Read Concurrency Issue
+                    <span class="badge bg-warning text-dark ms-2 pulse-animation">LIVE DEMO</span>
+                </h5>
+                <p class="text-white opacity-90 mb-3 small">
+                    Chọn database để demo lỗi tranh chấp <strong>Unrepeatable Read</strong>. Khi Manager cập nhật giá sân, bạn sẽ thấy sự khác biệt giữa hai database.
+                </p>
+                
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-8">
+                        <div class="btn-group w-100 shadow-sm" role="group" id="dbModeSelector">
+                            <input type="radio" class="btn-check" name="dbMode" id="dbModeDefault" value="default" checked>
+                            <label class="btn btn-outline-light fw-bold py-3" for="dbModeDefault">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Database Mặc Định
+                                <small class="d-block mt-1 opacity-75">READ COMMITTED - Có lỗi Unrepeatable Read</small>
+                            </label>
+                            
+                            <input type="radio" class="btn-check" name="dbMode" id="dbModeFixed" value="fixed">
+                            <label class="btn btn-outline-light fw-bold py-3" for="dbModeFixed">
+                                <i class="fas fa-shield-alt me-2"></i>
+                                Database Đã Fix
+                                <small class="d-block mt-1 opacity-75">REPEATABLE READ - Ngăn chặn lỗi</small>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm" style="background: rgba(255,255,255,0.95);">
+                            <div class="card-body p-2 text-center">
+                                <small class="text-muted d-block mb-1"><i class="fas fa-server me-1"></i>Đang sử dụng:</small>
+                                <strong id="currentDbDisplay" class="text-danger" style="font-size: 0.9rem;">
+                                    DEFAULT DB
+                                </strong>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -219,6 +286,7 @@
          style="background: #ffffff; border-radius: 20px; border: 5px solid #a3cf06; box-shadow: 0 0 20px rgba(163, 207, 6, 0.2);">
         <div class="card-body p-3 px-md-4">
             <form method="get" asp-action="Index" class="row g-2 align-items-end">
+                <input type="hidden" name="demoMode" id="hiddenDemoMode" value="default" />
                 <!-- Cơ sở -->
                 <div class="col-md-2">
                     <label class="form-label text-dark fw-bold ms-1" style="font-size: 0.75rem;"><i class="fas fa-map-marker-alt me-1 text-warning"></i>CƠ SỞ</label>
@@ -379,6 +447,7 @@
                                         data-tensan="@san.TenSan" 
                                         data-tencoso="@san.TenCoSo" 
                                         data-loaisan="@san.TenLoaiSan"
+                                        data-mals="@san.MaLS"
                                         data-gia="@san.GiaGio.ToString("F0")"
                                         data-dvt="@san.DonViTinh">
                                     Đặt Sân Ngay <i class="fas fa-bolt ms-1 text-warning"></i>
@@ -462,6 +531,43 @@
                             <input type="time" name="GioKetThuc" id="GioKetThuc" class="form-control bg-light border-0 py-2" required />
                         </div>
                     </div>
+
+                    <!-- DEMO: Auto-Update Price Display -->
+                    <div class="mt-3 p-3 rounded-3" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px solid #0ea5e9;">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div>
+                                <i class="fas fa-tag text-info me-2"></i>
+                                <strong class="text-dark">Giá Khung Giờ Này:</strong>
+                            </div>
+                            <div id="priceLoadingIndicator" class="d-none">
+                                <i class="fas fa-spinner fa-spin text-info"></i>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-end justify-content-between">
+                            <div>
+                                <h3 class="mb-0 text-primary fw-bold" id="modalCurrentPrice">
+                                    <span class="text-muted">--</span>
+                                </h3>
+                                <small class="text-muted" id="modalPriceUnit">Chọn giờ để xem giá</small>
+                            </div>
+                            <div class="text-end">
+                                <small class="d-block text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    <span id="modalPriceQueryTime">--</span>
+                                </small>
+                                <small class="d-block badge" id="modalIsolationLevel" style="font-size: 0.7rem;">
+                                    --
+                                </small>
+                            </div>
+                        </div>
+                        <div id="transactionIdDisplay" class="mt-2 d-none">
+                            <small class="text-muted">
+                                <i class="fas fa-database me-1"></i>
+                                Transaction ID: <code id="modalTransactionId"></code>
+                            </small>
+                        </div>
+                    </div>
+                    <input type="hidden" id="modalMaLS" />
 
                     <div class="mt-4">
                         <button type="submit" class="btn w-100 py-3 fw-bold rounded-3 shadow-sm" 
@@ -727,7 +833,10 @@
                 $('#modalMaSan').val(maSan);
                 $('#modalTenSan').text(tenSan);
                 $('#modalTenCoSo').text(tenCoSo);
-                $('#modalLoaiSan').text($(this).data('loaisan') || 'Không rõ');
+                var loaiSan = $(this).data('loaisan') || 'Không rõ';
+                var maLS = $(this).data('mals') || '';
+                $('#modalLoaiSan').text(loaiSan);
+                $('#modalMaLS').val(maLS);
                 
                 // Format price display in header
                 var formattedPrice = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(currentCourt.gia);
@@ -759,6 +868,82 @@
                 // Show modal manually
                 $('#datSanModal').modal('show');
             });
+
+            // ========== DEMO MODE: Database Selector ==========
+            $('input[name="dbMode"]').on('change', function() {
+                var mode = $(this).val();
+                if (mode === 'default') {
+                    $('#currentDbDisplay').text('DEFAULT DB').removeClass('text-success').addClass('text-danger');
+                } else {
+                    $('#currentDbDisplay').text('FIXED DB').removeClass('text-danger').addClass('text-success');
+                }
+
+                // Trigger price refresh if modal is open and time is selected
+                if ($('#datSanModal').hasClass('show') && $('#GioBatDau').val()) {
+                    fetchCourtPrice();
+                }
+            });
+
+            // ========== AUTO-UPDATE PRICE WHEN TIME CHANGES ==========
+            function fetchCourtPrice() {
+                var maLS = $('#modalMaLS').val();
+                var gioBatDau = $('#GioBatDau').val();
+                var ngayDat = $('#NgayDat').val();
+
+                if (!maLS || !gioBatDau) {
+                    return; // Không đủ thông tin
+                }
+
+                var useFixedDb = $('#dbModeFixed').is(':checked');
+
+                // Show loading
+                $('#priceLoadingIndicator').removeClass('d-none');
+
+                $.get('@Url.Action("GetCourtPriceByTimeSlot", "DatSan")', {
+                    maLS: maLS,
+                    gioBatDau: gioBatDau,
+                    useFixedDb: useFixedDb,
+                    ngayDat: ngayDat || null
+                }, function(response) {
+                    if (response.success) {
+                        // Update price display
+                        $('#modalCurrentPrice').html(response.formattedPrice + ' đ');
+                        $('#modalPriceUnit').text('/' + response.unit);
+                        $('#modalPriceQueryTime').text(response.queryTime);
+
+                        // Update isolation level badge
+                        var badge = $('#modalIsolationLevel');
+                        badge.text(response.isolationLevel);
+                        if (response.isolationLevel.includes('REPEATABLE')) {
+                            badge.removeClass('bg-danger').addClass('bg-success');
+                        } else {
+                            badge.removeClass('bg-success').addClass('bg-danger');
+                        }
+
+                        // Show transaction ID if available (REPEATABLE READ)
+                        if (response.transactionId) {
+                            $('#modalTransactionId').text(response.transactionId);
+                            $('#transactionIdDisplay').removeClass('d-none');
+                        } else {
+                            $('#transactionIdDisplay').addClass('d-none');
+                        }
+                    } else {
+                        $('#modalCurrentPrice').html('<span class="text-danger">Lỗi</span>');
+                        $('#modalPriceUnit').text(response.message || 'Không lấy được giá');
+                    }
+                }).fail(function() {
+                    $('#modalCurrentPrice').html('<span class="text-danger">Lỗi kết nối</span>');
+                    $('#modalPriceUnit').text('Vui lòng thử lại');
+                }).always(function() {
+                    $('#priceLoadingIndicator').addClass('d-none');
+                });
+            }
+
+            // Attach event listeners to time/date inputs
+            $('#GioBatDau, #NgayDat').on('change', function() {
+                fetchCourtPrice();
+            });
+
             // STAFF SEARCH LOGIC
             var foundMaKH = '';
             
@@ -929,6 +1114,54 @@
                 });
             });
             // ====================================================
+            // ====================================================
+            // DEMO MODE HANDLER
+            // ====================================================
+            // Sync Radio with Hidden Input & Auto Submit
+            const dbModeRadios = document.querySelectorAll('input[name="dbMode"]');
+            const hiddenDemoInput = document.getElementById('hiddenDemoMode');
+            const currentDbDisplay = document.getElementById('currentDbDisplay');
+            
+            // Set initial value based on URL param or default
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentDemoMode = urlParams.get('demoMode') || 'default';
+            
+            if (currentDemoMode === 'fixed' || currentDemoMode === 'safe') {
+                document.getElementById('dbModeFixed').checked = true;
+                hiddenDemoInput.value = 'fixed';
+                currentDbDisplay.innerHTML = 'FIXED DB';
+                currentDbDisplay.className = 'text-success fw-bold';
+            } else {
+                document.getElementById('dbModeDefault').checked = true;
+                hiddenDemoInput.value = 'default';
+                currentDbDisplay.innerHTML = 'DEFAULT DB';
+                currentDbDisplay.className = 'text-danger fw-bold';
+            }
+
+            dbModeRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.checked) {
+                        // Update Hidden Input inside Form
+                        hiddenDemoInput.value = this.value;
+                        
+                        // Update Display Text
+                        if (this.value === 'fixed') {
+                            currentDbDisplay.innerHTML = 'FIXED DB';
+                            currentDbDisplay.className = 'text-success fw-bold';
+                        } else {
+                            currentDbDisplay.innerHTML = 'DEFAULT DB';
+                            currentDbDisplay.className = 'text-danger fw-bold';
+                        }
+
+                        // Auto Submit Form to Reload Page with new Mode
+                        // We use a small timeout to let the UI update slightly
+                        showToast('Đang chuyển Database...', 'warning');
+                        setTimeout(() => {
+                            $('form').submit();
+                        }, 300);
+                    }
+                });
+            });
         });
         
         // Intersection Observer for scroll animations

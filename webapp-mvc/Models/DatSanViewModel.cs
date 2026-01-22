@@ -24,6 +24,7 @@ namespace webapp_mvc.Models
     public class LoaiSanItem { public string MaLS { get; set; } public string TenLS { get; set; } }
     public class SanItem { 
         public string MaSan { get; set; } 
+        public string MaLS { get; set; }  // Code for court type (for price lookup)
         public string TenSan { get; set; }
         public string TenLoaiSan { get; set; }
         public string TenCoSo { get; set; }
